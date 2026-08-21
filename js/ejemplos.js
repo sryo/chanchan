@@ -109,9 +109,10 @@ el piano toca fa séptima | fa séptima | do mayor | do mayor, bajito, con eco
 
 el tema va entrada estrofa estrofa puente estribillo estrofa puente estribillo estribillo` },
 
-  // ejemplos/Orff Carl.mid — O Fortuna, de Carmina Burana, 1936. Dominio público, y
-  // el único que se pudo cotejar de verdad: la melodía del coro es la que se
-  // reconoce. Acá no hay esqueleto, está el coro nota por nota. Necesita las cuatro
+  // ejemplos/Orff Carl.mid — O Fortuna, de Carmina Burana, 1936. No es dominio
+  // público: Orff murió en 1982. Es el único que se pudo cotejar de verdad, la
+  // melodía del coro es la que se reconoce. Acá no hay esqueleto, está el coro
+  // nota por nota. Necesita las cuatro
   // cosas juntas —secciones, compases y un tempo por sección—, porque Orff lo
   // escribió con siete cambios de pulso: arranca en 130, se va a 264 para el susurro
   // de «semper crescis», empuja a 280 cuando el coro lo repite una octava arriba, y

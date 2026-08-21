@@ -15,6 +15,23 @@
   } catch (e) { document.documentElement.dataset.luz = 'claro'; }
 </script>
 <body>
+
+<!-- Los de trazo son de Lucide 1.33 (ISC, lucide.dev), en grilla de 24 — por qué
+     un sprite acá adentro y qué sostiene ese número, en REGLAS.md. -->
+<svg hidden aria-hidden="true">
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-deshacer" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+  <symbol id="i-rehacer" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></symbol>
+  <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-bajar" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol>
+  <symbol id="i-tocar" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></symbol>
+  <symbol id="i-parar" viewBox="0 0 24 24"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></symbol>
+  <symbol id="i-enlace" viewBox="0 0 24 24"><circle cx="8.5" cy="12" r="5.5"/><circle cx="15.5" cy="12" r="5.5"/></symbol>
+  <!-- la media luna va rellena por atributo y no por clase: el css del documento
+       no entra al árbol que arma <use>, así que una regla .lleno no la alcanzaría -->
+  <symbol id="i-luz" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path fill="currentColor" stroke="none" d="M12 3.5a8.5 8.5 0 0 0 0 17z"/></symbol>
+</svg>
+
 <svg id="cinta" aria-hidden="true"></svg>
 <header>
   <button id="tocar" title="tocar"></button>
@@ -24,10 +41,10 @@
     <span class="nombre">
       <input id="nombre" placeholder="sin título" spellcheck="false" autocomplete="off"
              maxlength="60" aria-label="nombre del tema">
-      <button id="abrir" title="abrir otro tema">▾</button>
+      <button id="abrir" title="abrir otro tema"><svg class="i chica"><use href="#i-chevron"/></svg></button>
     </span>
-    <button id="enlace" title="copiar un enlace con este tema adentro" aria-label="copiar enlace">⚯</button>
-    <button id="archivo" title="guardar este tema como archivo" aria-label="guardar archivo">⤓</button>
+    <button id="enlace" title="copiar un enlace con este tema adentro" aria-label="copiar enlace"><svg class="i"><use href="#i-enlace"/></svg></button>
+    <button id="archivo" title="exportar este tema como archivo" aria-label="exportar archivo"><svg class="i"><use href="#i-bajar"/></svg></button>
   </div>
 </header>
 <main>
@@ -41,10 +58,10 @@
       <div id="errores"></div>
       <div class="pie">
         <details>
-          <summary>ver el strudel que sale de esto</summary>
+          <summary><svg class="i chica"><use href="#i-chevron"/></svg>ver el strudel que sale de esto</summary>
           <pre id="js"></pre>
         </details>
-        <button id="luz" title="papel o tinta">◐</button>
+        <button id="luz" title="papel o tinta"><svg class="i"><use href="#i-luz"/></svg></button>
       </div>
     </div>
   </section>
@@ -52,8 +69,6 @@
 
 <script src="https://unpkg.com/@strudel/web@1.3.0"></script>
 
-<!-- Van en este orden y no en otro: son scripts comunes, comparten un solo
-     ámbito, y cada uno usa lo que declararon los de arriba. -->
 <script src="js/texto.js"></script>       <!-- leer y comparar palabras -->
 <script src="js/vocabulario.js"></script> <!-- las tablas del idioma: golpes, notas, instrumentos, cajas y «cómo» -->
 <script src="js/color.js"></script>       <!-- de qué color es cada instrumento -->

@@ -1,6 +1,3 @@
-  /* Dos juegos de tinta sobre el mismo papel. El claro es el de arriba; el
-     oscuro sólo redefine lo que cambia. Quién manda lo decide el script de acá
-     abajo antes de que se pinte nada, así no hay un parpadeo blanco al abrir. */
   :root {
     --fondo: #efe6d2;
     --panel: #e8ddc6;
@@ -9,56 +6,40 @@
     --tenue: #756e5d;
     --suave: #c6bda6;
     --punteo: #8a8069;
-    /* Los dos escalones que van abajo del texto, y son del editor. El silencio
-       se cuenta —es la grilla, es lo que dice en qué corchea estás—, así que
-       tiene que verse; el andamio es «la», «toca», «va a», que se leen una vez y
-       después estorban. Estaban al revés: el guión era lo más apagado de la
-       página y «toca» pesaba el doble que él. */
+    /* El silencio se cuenta —es la grilla, es lo que dice en qué corchea estás—, así
+       que tiene que verse; el andamio se lee una vez y después estorba. */
     --silencio: #978f7b;
     --andamio: #aba493;
-    /* Las dos puntas de la altura. No van de oscuro a claro sino de tinta a
-       aire: lo grave es la tinta plena de la página y lo agudo es esa misma
-       tinta dejando pasar el papel. Por eso «grave» es lo más oscuro de día y lo
-       más claro de noche —es el mismo gesto—, y por eso ninguno de los dos modos
-       se sale de lo suyo: la hoja clara nunca se ensombrece y la oscura nunca se
-       prende. Los tres escalones del medio se mezclan de éstos. */
+    /* Las dos puntas de la altura no van de oscuro a claro sino de tinta a aire, así
+       que «grave» es lo más oscuro de día y lo más claro de noche: es el mismo gesto,
+       y ninguno de los dos modos se sale de lo suyo. Los tres del medio se mezclan. */
     --grave: var(--texto);
     --agudo: #557884;
-    /* Lo único de la página que no sale de la rueda, y por eso lo único que
-       puede querer decir algo por sí solo: «esto no lo entiendo».
-       El tono no lo puede distinguir y no hay vuelta que darle: la rueda son
-       dieciocho familias a veinte grados, o sea el círculo entero, así que
-       cualquier rojo que se elija cae encima de alguna. El carmín anterior caía
-       a ΔE 0,036 del agogó, que es el mismo color a simple vista, y del lado del
-       círculo donde está la percusión, que aparece en casi todos los temas.
-       Lo que sí queda libre es la saturación: la rueda está clavada en 0,135 de
-       día y 0,15 de noche, así que el error se va al máximo que entra en la
-       pantalla —0,184 y 0,229— y pasa a ser lo único plenamente saturado que hay.
-       Eso lo aleja al doble (ΔE 0,053 y 0,082) sin tocar el tono, así que sigue
-       siendo rojo, que es lo que todo el mundo lee como «algo está mal» sin que
-       nadie se lo explique. Y encima lleva el subrayado ondulado, que no lo tiene
-       ninguna otra cosa. */
+    /* Lo único plenamente saturado de la página —0,184 de día y 0,229 de noche,
+       el máximo que entra en pantalla—, que es lo que lo separa de la rueda y no
+       el tono. Por qué no puede ser un tono, en REGLAS.md. */
     --mal: #a3000e;
     --vivo: #f0dcab;
     --realce: #ded2b7;
     --sombra: #1235401f;
     /* El color del tema, en las dos bandas de la rueda: la marca pinta —el botón
-       de tocar y el logo, que caen dentro de la curva de la cinta y son una sola
-       pieza con ella— y la tinta escribe, que es para lo poco que lleva el color
-       del tema en letras: el número del tempo, el ▾ del nombre, el tema abierto
-       en la lista. Sin tema abierto las tres caen en la tinta de la página, que
-       es lo que queda cuando todavía no hay tema del que sacar un color. */
+       de tocar y el logo— y la tinta escribe. Lo que escribe es el tema como
+       archivo y no lo que el tema dice; el reparto entero, en REGLAS.md.
+       Sin tema abierto las tres caen en la tinta de la página, que es lo que
+       queda cuando todavía no hay tema del que sacar un color. */
     --marca: var(--texto);
     --marca-fin: var(--texto);
     --marca-tinta: var(--texto);
+    /* El ojo del botón de tocar se apoya sobre un color de la rueda y no sobre el
+       papel, así que no puede ir del color del papel: sobre la trama va del lado
+       claro del par, que se lee sobre cualquiera de los dieciocho tonos. Sin tema
+       el botón es la tinta de la página y ahí lo da vuelta pintarMarca(). */
+    --ojo: var(--fondo);
     --marco: 65px;
     --sangria: 88px;
-    --canal: 30px;          /* el canal de los puntitos, entre la cinta y el texto */
-    /* Cuatro tamaños y nada más. El logo es display; la notación pesa más que
-       todo lo demás porque es el documento; la interfaz es uno solo; y las
-       versalitas son los rótulos en mayúsculas y las glosas de los menús. Los
-       signos (▾, ◐) quedan afuera a propósito: no son texto, y forzarlos a la
-       escala los deja mal ópticamente. */
+    --canal: 30px;
+    /* Cuatro y nada más: el logo, la notación —que pesa más que todo porque es el
+       documento—, la interfaz, y las versalitas de los rótulos. */
     --letra-logo: 30px;
     --letra-tema: 16px;
     --letra: 14px;
@@ -81,28 +62,29 @@
     --vivo: #40311c;
     --realce: #202a2e;
     --sombra: #0006;
+    --ojo: var(--texto);
   }
   * { box-sizing: border-box; }
+  /* El [hidden] del navegador es una regla del namespace html, así que no alcanza
+     a un <svg>, y como es del navegador cualquier regla nuestra con display le
+     gana. El !important hace que «escondido» quiera decir escondido en todos lados. */
+  [hidden] { display: none !important; }
   html, body { height: 100%; margin: 0; }
   body {
     background: var(--fondo); color: var(--texto);
     font: var(--letra)/1.55 var(--mono);
     display: flex; flex-direction: column;
   }
-  /* la cinta va detrás de todo; de ella lo único que recibe el mouse son las franjas */
   #cinta { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
   /* Cada franja tiene su blanco invisible, del grosor que le tocó y sólo sobre el
      tramo que es tiempo: apuntar a una parte es apuntarle a ella y no a un
-     rectángulo que la contenga. No lleva cursor de mano porque no hay nada que
-     apretar — señalarla contesta de quién es, y ahí se termina. */
+     rectángulo que la contenga. Sin cursor de mano: no hay nada que apretar. */
   #cinta .toque { fill: none; stroke: transparent; pointer-events: stroke; }
   /* En una pantalla táctil la cinta vuelve a ser sólo el marco: sin mouse no hay
      manera de señalar sin apretar, y acá apretar no hace nada. */
   @media (hover: none) { #cinta .toque { pointer-events: none; } }
-  /* Al señalar una, las demás se van al fondo. Es la única manera de contestar
-     «ésta es la de esa línea» sin escribirle el nombre encima a la cinta, y la
-     que hace falta: dos partes de la misma familia comparten el tono a propósito,
-     y ahí el color solo no alcanza para separarlas. */
+  /* Al señalar una, las demás se van al fondo: dos partes de la misma familia
+     comparten el tono a propósito, así que el color solo no las separa. */
   #cinta .franja { transition: opacity .12s; }
   #cinta.senalando .franja { opacity: .25; }
   #cinta.senalando .franja.sola { opacity: 1; }
@@ -110,20 +92,15 @@
      blanca sobre la cinta es exactamente lo mismo que el hueco entre dos golpes,
      y la vuelta —que es la unidad con la que se escribe— se perdía entre ellos. */
   #cinta .regla { stroke: var(--texto); stroke-width: 1.5; stroke-opacity: .5; }
-  /* El borde de sección es la misma raya pero entera y más larga, y lleva el
-     nombre escrito al lado: es la diferencia entre ver ocho vueltas y ver una
-     estrofa. Baja más que la regla porque lo que dice es de otro orden — dónde
-     cambia el tema, no dónde cae el uno. */
+  /* el corte baja más que la regla porque dice otra cosa: dónde cambia el tema */
   #cinta .corte { stroke: var(--texto); stroke-width: 1.5; }
   #cinta .rotulo {
-    fill: var(--andamio); font-size: .68rem; letter-spacing: .04em;
+    fill: var(--andamio); font-size: var(--letra-chica); letter-spacing: .04em;
     text-transform: lowercase; dominant-baseline: auto;
   }
   header, main, .abajo { position: relative; z-index: 1; }
-  /* El hueco de arriba es el que deja la cinta; el botón cae dentro de la curva.
-     Y la cabecera no recibe el mouse, sólo lo suyo: su relleno de arriba mide lo
-     mismo que la cinta y se la comía entera, así que con ella por delante no
-     había manera de señalar una franja. */
+  /* La cabecera no recibe el mouse, sólo lo suyo: su relleno de arriba mide lo mismo
+     que la cinta y se la comía entera, así que no había manera de señalar una franja. */
   header {
     display: flex; align-items: center; gap: 26px;
     padding: var(--sangria) 44px 26px var(--sangria);
@@ -135,7 +112,7 @@
     border: 0; border-radius: 50%; background: var(--marca);
     display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
-  #tocar svg { fill: var(--fondo); display: block; }
+  #tocar svg { width: 22px; height: 22px; fill: var(--ojo); display: block; }
   #tocar:hover { filter: brightness(1.08); }
   /* mientras carga strudel el botón se apaga, pero el ojo tiene que seguir
      viéndose: pintado del color del fondo sobre gris claro no quedaba nada */
@@ -150,9 +127,8 @@
   /* El enlace va pegado al nombre: es lo que se comparte, no un control aparte.
      El margen negativo descuenta su padding, que es área de click y no aire. */
   .marca #enlace { margin-left: -9px; }
-  /* Mientras hay un archivo encima, la hoja se enciende y nada más. Un cartel que
-     tape el tema para avisar que se puede soltar un tema es justo lo que no hace
-     falta: el borde ya dice dónde va a caer. */
+  /* Un cartel que tape el tema para avisar que se puede soltar un tema es justo lo
+     que no hace falta: el borde ya dice dónde va a caer. */
   body.soltando .wrap { box-shadow: inset 0 0 0 2px var(--marca, var(--texto)); }
   body.soltando #src { cursor: copy; }
   /* El recorte es por Antonio, que reparte el aire muy para un lado —a 30px, 35
@@ -165,21 +141,13 @@
     text-box: trim-both cap alphabetic;
     margin: 0; font-weight: 600; letter-spacing: -.02em; color: var(--marca);
   }
-  /* Las dos sílabas van una encima de la otra y miden exactamente lo mismo —la
-     tilde no ocupa avance—, así que cierran un rectángulo sin ajustar nada.
-     Partir el renglón es además el corte, que antes lo hacía sólo el color. Va
-     por display y no por un <br> para que el título se copie de una pieza. */
+  /* Va por display y no por un <br> para que el título se copie de una pieza. */
   h1 span { display: block; color: var(--marca-fin); }
-  /* una sola, y entre el nombre de la app y el del tema: son dos textos
-     parecidos y sin ella se leen como una frase sola. Entre el nombre y el ⚯ no
-     hace falta — un campo con subrayado punteado y un signo ya se distinguen.
-     Se estira en vez de medirse: así corta contra el logo, que es lo más alto,
-     sin un número que mantener sincronizado. */
+  /* Se estira en vez de medirse: así corta contra el logo —que es lo más alto— sin
+     un número que mantener sincronizado. */
   .rayita { width: 1px; align-self: stretch; background: var(--linea); flex: none; }
-  /* El nombre del tema y el ▾ que abre los otros son una sola cosa: se escribe
-     encima o se despliega, como un combo. El subrayado es de los dos y llega
-     hasta el ▾, y el ancho lo pone el propio texto — un campo con ancho fijo
-     deja una raya larguísima colgando después de la última letra. */
+  /* El ancho lo pone el propio texto: con ancho fijo queda una raya larguísima
+     colgando después de la última letra. */
   .nombre {
     display: inline-flex; align-items: baseline; gap: 7px;
     border-bottom: 1px dotted var(--punteo); padding-bottom: 3px;
@@ -195,19 +163,37 @@
     background: var(--panel); border: 1px solid var(--linea);
     padding: 5px 13px; border-radius: 5px; cursor: pointer;
   }
-  button:hover { border-color: var(--tenue); }
-  /* El tempo se muestra con la misma frase con la que se escribe y el mismo
-     subrayado punteado del nombre, que en esta barra es lo que quiere decir
-     «esto se cambia acá mismo». El cursor de arrastre horizontal es el único
-     lugar donde se anuncia que además se tira de él. */
-  #enlace, #archivo {
-    background: none; border: 0; border-radius: 0; padding: 2px 5px;
-    color: var(--tenue); font-size: 15px; line-height: 1;   /* signo, no texto */
+  button:active { opacity: .6; }
+  /* ------------------------------------------------------------ los dibujos
+     Una sola perilla de peso para todos: el trazo. Los de Lucide están
+     dibujados en grilla de 24, así que a dieciséis píxeles un trazo de 2 cae en
+     1,33 y se ve blando; 2,25 lo deja en uno y medio, que a este tamaño es lo
+     único que sale nítido. Los chicos van a doce y por eso llevan más trazo: la
+     línea tiene que caer en el mismo uno y medio, no en el mismo número. */
+  .i {
+    width: 16px; height: 16px; flex: none; display: block;
+    fill: none; stroke: currentColor; stroke-width: 2.25;
+    stroke-linecap: round; stroke-linejoin: round;
   }
-  #enlace:hover, #archivo:hover { color: var(--texto); }
-  /* El ⤓ va pegado al ⚯ y sin nada en el medio: copiar el enlace y bajar el
-     archivo son la misma acción —llevarte el tema— por dos puertas distintas, y
-     separarlos los haría parecer dos cosas. */
+  .i.chica { width: 12px; height: 12px; stroke-width: 3; }
+  .i.derecha { transform: rotate(-90deg); }
+  /* lo que suena es macizo y lo que hace es de trazo: la misma regla del puntito
+     del margen, que está lleno si la parte suena y hueco si está callada */
+  .i.maciza { fill: currentColor; stroke: none; }
+  button:hover { border-color: var(--tenue); }
+  /* ------------------------------------------------ los tres pesos de un botón
+     Macizo, con caja o desnudo, y lo decide desde dónde interrumpe. Macizo va uno
+     solo: tocar. Con caja, lo que flota encima del texto y necesita despegarse para
+     poder apretarse. Desnudo, lo que vive en un borde fijo y no le compite a nada.
+     La caja mide veintidós aunque el dibujo mida doce: la tinta puede ser chica, el
+     blanco al que hay que apuntarle no. */
+  #abrir, #enlace, #archivo, #luz {
+    flex: none; background: none; border: 0; border-radius: 4px;
+    padding: 0 4px; min-height: 22px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--tenue);
+  }
+  #abrir:hover, #enlace:hover, #archivo:hover, #luz:hover { color: var(--texto); }
   #archivo { margin-left: -12px; }
   /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
   #enlace.dicho {
@@ -233,67 +219,38 @@
   /* el textarea va arriba con el texto transparente y lo que se lee sale de #hl,
      abajo: si la selección es opaca tapa el texto y no queda nada visible */
   #src::selection { background: color-mix(in oklab, var(--parte, var(--texto)) 18%, transparent); }
-  /* La misma regla, para el resto de la página: la selección es la tinta de lo
-     que se selecciona, en el editor la de la parte y afuera la del papel. Sin
-     esto lo único pintado era el editor y todo lo demás —el nombre del tema, el
-     logo, el strudel del pie— caía en el azul del sistema, que es el único
-     color de la pantalla que no sale ni de la rueda ni de la tinta. */
   ::selection { background: color-mix(in oklab, var(--texto) 18%, transparent); }
-  /* Qué se puede llevar de acá y qué no. Se selecciona lo que dice algo —el
-     tema, su nombre, el strudel que sale de él, el error que explica por qué no
-     sale— y no se selecciona lo que hace algo: los botones, los menús y el
-     desplegable del pie. Un control resaltado no es un control elegido, es un
-     control con una mancha encima; y arrastrar sobre uno pinta media interfaz
-     en vez de apretarlo. La hoja vacía va con ellos: es lo que se lee mientras
-     no hay tema, no es el tema.
-     El espejo se va por otro motivo. Es el mismo texto del tema, pintado abajo
-     del textarea, así que seleccionarlo es seleccionar una copia: queda un
-     resaltado que no es el del editor —no lo tiñe la parte, no lo ve el botón
-     de la selección, no lo copia el textarea—, y un arrastre que empiece
-     afuera del texto se lleva el tema entero de un saque. Se lee el espejo,
-     pero se agarra el textarea. */
+  /* Lo que hace algo no se selecciona, y el espejo tampoco: ver REGLAS.md. La
+     hoja vacía va con los controles — es lo que se lee mientras no hay tema. */
   #hl, #vacio, button, .panel, summary { user-select: none; }
-  /* Tres canales, y cada uno dice una sola cosa: el tono dice quién toca —sale
-     de la rueda y lo pone pintar(), porque la hoja no puede saberlo—, la luz
-     dice qué tan alto, y el peso dice si es el patrón o la frase que lo rodea.
-     Estos tres canales y el rojo del error son todo lo que hay: no queda un
-     cuarto color suelto. Hubo uno —el acento— que pintaba el cursor, la
-     selección, el ▾ y lo elegido en un menú, y encima todas las notas del tema;
-     en «a lo charly» eso eran treinta y dos palabras de acento, y donde todo
-     grita no grita nada. Cuando cada una de esas cosas pasó a llevar el color de
-     la parte de la que cuelga, al acento no le quedó ningún trabajo propio, así
-     que se fue. Lo que era su descarte ahora es la tinta de la página. */
+  /* los canales del editor y qué dice cada uno, en REGLAS.md */
   .t-sujeto { color: var(--texto); }
   .t-articulo, .t-verbo, .t-estructura { color: var(--andamio); }
   .t-sonido, .t-nota { color: var(--texto); font-weight: 600; }
   .t-silencio { color: var(--silencio); }
   .t-mod { color: var(--tenue); }
-  /* La altura, en cinco escalones. Un bajo se ve hundido, una melodía que sube
-     se ve subir, y un pum y un do que caen a la misma altura se ven iguales. */
   #hl [data-alto="1"] { color: var(--grave); }
   #hl [data-alto="2"] { color: color-mix(in oklab, var(--grave) 75%, var(--agudo)); }
   #hl [data-alto="3"] { color: color-mix(in oklab, var(--grave) 50%, var(--agudo)); }
   #hl [data-alto="4"] { color: color-mix(in oklab, var(--grave) 25%, var(--agudo)); }
   #hl [data-alto="5"] { color: var(--agudo); }
-  /* Lo que acompaña a la nota —el bemol, la octava, el acorde— un escalón por
-     debajo de ella y sin peso. Se mezcla con el papel desde el color que la nota
-     ya tiene, así que sigue a la altura sin repetir la rampa. */
+  /* Se mezcla con el papel desde el color que la nota ya tiene, así que sigue a la
+     altura sin repetir la rampa. */
   .t-cola { font-weight: 400; color: color-mix(in oklab, currentColor 62%, var(--fondo)); }
-  /* El tempo es el nombre de la parte que no tiene parte: es el único renglón
-     que es de todas, y el tema entero ya tiene color —el del botón de tocar—,
-     así que lleva ése. Con la tinta común quedaba como el único valor del
-     documento sin dueño, y su ▾ y su menú, que sí lo tienen, no le pegaban. */
-  #hl span[data-tipo="tempo"] { color: var(--marca-tinta); font-weight: 600; }
+  /* El tempo se escribe como el encabezado de una sección y por lo mismo: el número
+     es el valor y el «va a» que lo rodea es andamio. */
+  #hl span[data-tipo="tempo"] { color: var(--texto); font-weight: 600; }
+  /* Tinta de página, como todo lo que dice cuándo y no quién —ver REGLAS.md—. Lo que
+     lo separa es el peso: el encabezado declara el nombre, la forma sólo lo repite. */
+  #hl span[data-tipo="seccion"] { font-weight: 600; }
   .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
   /* El subrayado quiere decir una sola cosa: «de esta palabra cuelga el ▾». Sale
      con el mouse en el botón y no en la palabra, porque el botón flota al lado y
-     lo único que no se ve solo es de cuál de las dos es. Los «cómo» lo tenían
-     puesto siempre y competía con esto; se distinguen igual, por la coma. */
+     lo único que no se ve solo es de cuál de las dos es. */
   .t-editable.t-manija {
     text-decoration: underline dotted currentColor;
     text-underline-offset: 4px;
   }
-  /* la caja la comparten el menú del ▾ y el sugeridor del teclado */
   .panel {
     position: fixed; z-index: 10; display: none;
     background: var(--panel); border: 1px solid var(--linea);
@@ -305,58 +262,39 @@
   .panel .op.conSub { padding-right: 8px; }
   #sugerencias { z-index: 12; max-height: 300px; }
   #sugerencias .op.elegido { background: var(--realce); color: var(--parte, var(--texto)); }
-  /* las columnas las fija pintarPanel() con la cantidad real; acá iba un
-     auto-fit que era justamente el error que ese cálculo vino a arreglar */
+  /* las columnas las fija pintarPanel() con la cantidad real */
   #menu.columnas.abierto { display: grid; gap: 1px; padding: 0; background: var(--linea); }
   #menu.columnas .sec { background: var(--panel); padding: 6px 0; min-width: 118px; }
   #menu.columnas .sec.detalle { min-width: 208px; }
-  /* el silencio no es una dimensión de la altura: cruza todo el ancho, abajo */
   #menu.columnas .sec.pie { grid-column: 1 / -1; }
-  /* Los tres que cuelgan de una palabra. Ahora que pueden tocarse —el ▾ y el de
-     deshacer se reparten la fila cuando salen de la misma palabra, ver
-     acomodarColgantes()— tienen que medir lo mismo de alto y apoyar en la misma
-     línea, o de costado se ve que no son de la misma familia. Quién los ubica es
-     el js: acá va nada más de qué están hechos. */
+  /* Los tres que cuelgan de una palabra —ver REGLAS.md—. El borde se pide acá y
+     no en cada uno: los tres son el mismo objeto visto en tres momentos. */
   #deshacer, #seleccion, #manija {
     position: fixed; z-index: 11; display: none;
     align-items: center; justify-content: center;
     height: 22px; line-height: 1; border-radius: 5px;
   }
   #deshacer.vivo, #seleccion.vivo, #manija.vivo { display: flex; }
-  /* Dos que cuelgan de la misma palabra se sueldan (ver acomodarColgantes): se
-     tocan, el borde del medio es uno solo y las esquinas de adentro se
-     enderezan. Cuelgan de palabras distintas, vuelven a ser dos cajas. */
+  /* Dos que salen de la misma palabra se sueldan: ver acomodarColgantes. */
   #deshacer.junta, #seleccion.junta, #manija.junta {
     border-top-right-radius: 0; border-bottom-right-radius: 0;
   }
   #deshacer.juntado, #seleccion.juntado, #manija.juntado {
     border-top-left-radius: 0; border-bottom-left-radius: 0;
   }
-  /* El mismo padding que el ▾: en monoespaciada dos signos del mismo cuerpo dan
-     la misma caja, así que igualar el ancho no hay que pedirlo, sale solo. Lo
-     que no sale solo es el peso: el ▾ es un triángulo lleno y la flecha de
-     deshacer es un trazo fino, así que va un cuerpo más grande para pesar lo
-     mismo. Y va un punto más apagado a propósito: el ▾ es una puerta de la
-     palabra y está siempre; esto es el aviso de un cambio y se va solo. */
-  #deshacer { padding: 0 6px; font-size: 12px; opacity: .7; }
+  /* Va un punto más apagado a propósito: el ▾ es una puerta de la palabra y está
+     siempre; esto es el aviso de un cambio y se va solo. */
+  #deshacer { padding: 0 5px; opacity: .7; }
   #seleccion {
-    padding: 0 8px;
+    padding: 0 8px 0 5px; gap: 4px;
     border-color: var(--parte, var(--texto)); color: var(--parte, var(--texto));
   }
-  /* El ▾ flota por encima del texto, como el de deshacer: adentro del renglón
-     no podía medir más que un espacio (9,6px) y salía siempre apretado. Acá se
-     lo ubica a mano contra el último trozo del token — una palabra partida en
-     dos renglones tiene su final abajo, no en la caja de la unión. */
+  /* Se ubica a mano contra el último trozo del token: una palabra partida en dos
+     renglones tiene su final abajo, no en la caja de la unión. */
   #manija {
-    padding: 0 6px; font-size: 10px;   /* signo, no texto */
-    /* El ▾ es de la palabra de la que cuelga, así que lleva su color, sea el de
-       su parte o el del tema: la palabra, el botón y el menú que abre quedan de
-       un solo color y se leen como un solo gesto en vez de tres cosas sueltas.
-       Quién lo pone es pintarDeQuien(); la tinta de la página es el último
-       recurso, para cuando la palabra no es de nadie todavía —un renglón vacío,
-       una línea que el idioma aún no entiende—. Que es un control no lo dice el color
-       sino la forma —aparece al pasar, tiene borde y tiene el signo—, así que el
-       tono queda libre para decir de quién es. */
+    padding: 0 5px;
+    /* Lleva el color de su palabra —lo pone pintarDeQuien()—. Que es un control lo
+       dice la forma y no el color, así que el tono queda libre para decir de quién es. */
     color: var(--parte, var(--texto)); opacity: .85;
   }
   #manija:hover, #manija.encendido { opacity: 1; border-color: var(--parte, var(--texto)); }
@@ -372,10 +310,8 @@
   }
   .panel .op:hover { background: var(--realce); }
   .panel .op .d { margin-left: auto; color: var(--tenue); font-size: var(--letra-chica); }
-  /* Lo puesto es estado del documento y lo dice el color de la parte, igual que
-     el ▾ del que cuelga este menú. El peso va además del color: en un
-     monoespaciado no corre nada, y deja que lo puesto se encuentre igual cuando
-     a la parte le tocó un tono pálido. */
+  /* Lo puesto lo dice el color de la parte, y el peso va además: en monoespaciada
+     no corre nada, y deja que se encuentre cuando a la parte le tocó un tono pálido. */
   .panel .op.puesto { color: var(--parte, var(--texto)); font-weight: 600; }
   .t-activo {
     background: var(--vivo); border-radius: 3px;
@@ -389,38 +325,32 @@
   #errores:not(:empty) { padding: 10px 20px 10px var(--canal); border-bottom: 1px solid var(--linea); }
   #errores p { margin: 0 0 4px; color: var(--mal); }
   #errores b { color: var(--texto); font-weight: 600; }
-  /* el remate de abajo: el desplegable del strudel y el interruptor de la luz.
-     Va acotado a .abajo porque el menú del ▾ tiene su propia franja al pie. */
+  /* acotado a .abajo porque el menú del ▾ tiene su propia franja al pie */
   .abajo .pie { display: flex; align-items: center; }
   details { flex: 1; min-width: 0; }
-  details summary { padding: 8px 20px 8px var(--canal); cursor: pointer; color: var(--tenue); list-style: none; }
-  details summary::-webkit-details-marker { display: none; }
-  details summary::before { content: "▸ "; }
-  details[open] summary::before { content: "▾ "; }
-  #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
-  #luz {
-    flex: none; margin-right: 44px; background: none; border: 0; padding: 4px 6px;
-    color: var(--tenue); font-size: 14px; line-height: 1;   /* signo, no texto */
+  details summary {
+    padding: 8px 20px 8px var(--canal); cursor: pointer; color: var(--tenue);
+    list-style: none; display: flex; align-items: center; gap: 6px;
   }
-  #luz:hover { color: var(--texto); }
-  /* La hoja en blanco es la que enseña: mientras no hay nada escrito muestra el
-     molde y los temas que vienen hechos. No recibe clicks salvo en los botones,
-     así que se puede empezar a escribir encima sin tener que cerrar nada. */
+  details summary::-webkit-details-marker { display: none; }
+  details summary .i { transform: rotate(-90deg); transition: transform .12s ease; }
+  details[open] summary .i { transform: none; }
+  #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
+  #luz { margin-right: 44px; }
+  /* No recibe clicks salvo en los botones, así que se puede empezar a escribir
+     encima sin tener que cerrar nada. */
   #vacio {
     position: absolute; z-index: 2; pointer-events: none;
     left: calc(var(--sangria) + var(--canal)); top: 56px; right: 44px;
   }
-  #vacio[hidden] { display: none; }
   .molde { color: var(--tenue); margin: 0 0 4px; }
   .molde b { color: var(--texto); font-weight: 600; }
   .pista { color: var(--suave); margin: 26px 0 10px; }
   .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
   .ejemplos button { padding: 4px 11px; }
-  /* con la tinta de la página y no con la marca: estos botones abren otros
-     temas, y pintarlos del color del tema abierto decía justo lo que no es.
-     Además en la hoja vacía no hay tema abierto del que sacar un color. */
+  /* con la tinta de la página: estos botones abren otros temas, y pintarlos del
+     color del tema abierto decía justo lo que no es. */
   .ejemplos button:hover { border-color: var(--texto); color: var(--texto); }
-  /* el canal de los puntitos queda entre la cinta y el texto */
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
   /* El punto es chico pero el botón no: la caja mide lo mismo que el ▾, así que
      apuntarle no pide puntería. El color lo pone el js en currentColor, y de ahí
@@ -436,8 +366,7 @@
   }
   .punto:hover::before { filter: brightness(1.15); }
   .punto.callado::before { background: none; box-shadow: inset 0 0 0 1.5px currentColor; }
-  /* el halo es la contestación de la cinta: esa franja y este punto son la misma
-     línea. Va después de .callado porque las dos escriben la misma sombra. */
+  /* va después de .callado porque las dos escriben la misma sombra */
   .punto.senalado::before { box-shadow: 0 0 0 4px color-mix(in oklab, currentColor 28%, transparent); }
   .punto.callado.senalado::before {
     box-shadow: inset 0 0 0 1.5px currentColor,
@@ -445,18 +374,20 @@
   }
   /* La × sólo del lado de los propios y sólo al pasar por la fila: en reposo
      esto es una lista de temas, no un panel de administración. Va escondida y no
-     sacada, para que el número del tempo no se corra al aparecer. */
+     sacada, para que la fecha no se corra al aparecer. */
+  /* El ancho es fijo para que los nombres sigan alineados aunque un tema tenga dos
+     partes y otro seis; lo que cambia es cuántas barras entran en el mismo alto. */
+  #temas .op { align-items: center; }
+  #temas .tira {
+    flex: none; display: flex; flex-direction: column;
+    width: 16px; height: 15px; border-radius: 1px; overflow: hidden;
+  }
+  #temas .tira span { flex: 1; min-height: 1px; }
+  #temas .op.aparte { margin-top: 5px; padding-top: 7px; border-top: 1px solid var(--linea); }
   #temas .op .borrar { visibility: hidden; margin-left: 2px; color: var(--suave); }
   #temas .op:hover .borrar { visibility: visible; }
   #temas .op .borrar:hover { color: var(--mal); }
-  #abrir {
-    flex: none; background: none; border: 0; border-radius: 0;
-    padding: 0; font-size: 10px; line-height: 1; color: var(--tenue);   /* signo */
-  }
-  /* el otro ▾ de la página: éste cuelga del nombre del tema, así que se pinta
-     del color del tema, igual que el de una palabra se pinta del de su parte */
   #abrir:hover { color: var(--marca-tinta); }
-  /* y el tema abierto dentro de la lista, por lo mismo */
   #temas .op.puesto { color: var(--marca-tinta); }
   #temas .op .d { text-transform: none; }
   @media (max-width: 720px) {

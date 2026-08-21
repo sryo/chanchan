@@ -1,7 +1,5 @@
 // ------------------------------------------------- silenciar una línea
-// «callado» es una palabra del idioma y no un estado escondido de la interfaz:
-// acá el texto es el tema, así que si mandás un enlace tiene que sonar igual.
-// Los puntitos del margen son un atajo para escribirla.
+// los puntitos del margen son un atajo para escribir «callado» — ver REGLAS.md
 const puntos = document.createElement('div');
 puntos.id = 'puntos';
 document.querySelector('.wrap').appendChild(puntos);
@@ -12,9 +10,8 @@ document.querySelector('.wrap').appendChild(puntos);
 const sacarCallado = ln => ln.replace(/\s*,\s*callado\b/i, '');
 const ponerCallado = ln => sacarCallado(ln) + ', callado';
 
-// El tempo, el nombre de una sección y la línea de forma tienen menú pero no son
-// partes: no hay nada que callar en ellas, y con un puntito al lado la hoja decía
-// que sí lo había.
+// tempo, sección, forma y lo que no se entiende tienen menú pero no son partes:
+// un puntito al lado decía que había algo para callar
 const NO_SUENA = ['tempo', 'mal', 'seccion', 'forma'];
 
 function lineasQueSuenan(marcas) {
@@ -35,7 +32,6 @@ function armarPuntos(marcas, calladas, renglones = renglonesActuales) {
     if (y < 0 || y > caja.height) continue;
     const b = document.createElement('button');
     b.className = 'punto' + (calladas.has(l) ? ' callado' : '');
-    // el punto es la franja de la cinta vista de canto: mismo color, misma parte
     if (color.has(l)) b.style.color = color.get(l);
     b.dataset.l = l;
     b.title = 'silenciar · may+click deja sólo ésta';

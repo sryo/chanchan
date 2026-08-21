@@ -4,17 +4,13 @@
 let esperaOir;
 
 // Una sola fuente de verdad para «a qué suena esto», compartida por el menú y el
-// sugeridor. «voz» es el instrumento de la línea donde está el cursor: probar
-// una nota tiene que sonar con el instrumento que esa parte usa, no con el
-// piano. Si la línea no lo dice —o es una línea de golpes— cae en el de fábrica.
-// Los graves se prueban abajo, si no no se les oye el cuerpo — lo mismo que ya
-// hacía la vista previa de un instrumento suelto, ahí abajo.
+// sugeridor. Probar una nota suena con el instrumento de la línea donde está el
+// cursor y no con el piano; los graves abajo, si no no se les oye el cuerpo.
 function vozPara(voz) {
   const ins = instrumentoDe(voz || '') || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO];
   return { s: ins.sonido, oct: ins.fam === 'bajos' ? OCTAVA_BASE - 2 : OCTAVA_BASE };
 }
 
-// la voz de la línea l, tal como la resolvió el traductor
 const vozDeLinea = l => (renglonesActuales.find(r => r.nro - 1 === l) || {}).voz;
 
 function recetaDe(que, clave, voz) {

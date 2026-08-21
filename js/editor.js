@@ -13,27 +13,39 @@ function avisar(msg) {
   cajaErr.innerHTML += '<p>' + esc(msg) + '</p>';
 }
 
-let relojDicho;
-// El botón es un signo y no una frase: copiar el enlace es una acción menor y
-// no se merece trece letras en versalitas al lado del logo. La palabra aparece
-// sólo cuando tiene algo para decir — al copiar, y por un segundo y medio.
-const ENLACE = '⚯';
+const icono = (n, clase) =>
+  '<svg class="i' + (clase ? ' ' + clase : '') + '"><use href="#i-' + n + '"/></svg>';
 
+const dentroDe = (nodo, ...donde) => donde.some(el => el && el.contains(nodo));
+
+let relojDicho;
+// El botón es un signo y no una frase: copiar el enlace es una acción menor y no
+// se merece trece letras en versalitas al lado del logo. La palabra aparece sólo
+// cuando tiene algo para decir.
 function decirEnElEnlace(txt) {
   btnEnlace.textContent = txt;
   btnEnlace.classList.add('dicho');
   clearTimeout(relojDicho);
   relojDicho = setTimeout(() => {
-    btnEnlace.textContent = ENLACE;
+    btnEnlace.innerHTML = icono('enlace');
     btnEnlace.classList.remove('dicho');
   }, 1800);
 }
 const btnTocar = document.getElementById('tocar');
 
 let marcasActuales = [], calladasActuales = new Set();
-// dónde deja pintar() el ancla del sugeridor: {l, c} o null. Apunta al arranque de
-// lo que se va a reemplazar y no al cursor — es como alinean los editores, y de
-// paso cae en un borde de token, donde el html de la línea ya se corta solo.
+
+// Las secciones escritas en la hoja: del nombre normalizado al nombre tal como
+// se tecleó. Salen de los encabezados y no de la línea de forma, porque una
+// sección recién abierta todavía no está en ninguna forma. Se queda con la
+// primera grafía —de ahí el «has»: armar el Map de la lista tomaría la última.
+const seccionesEscritas = () => {
+  const vistas = new Map();
+  for (const x of marcasActuales.flat())
+    if (x && x.tipo === 'seccion' && !vistas.has(x.nombre)) vistas.set(x.nombre, x.escrito);
+  return vistas;
+};
+// dónde deja pintar() el ancla del sugeridor: {l, c} o null
 let anclaCaret = null;
 let activos = new Set();
 let señalado = null;
@@ -62,25 +74,21 @@ function pintar(marcas) {
       const vivo = activos.has(n + ':' + t.i) ? ' t-activo' : '';
       // la marca de hover se aplica desde acá y no tocando el nodo: pintar()
       // reconstruye el html todo el tiempo mientras suena y se la llevaría puesta
-      // marca lo que tiene menú; el subrayado sale recién con el mouse en el ▾
-      // (ver .t-editable.t-manija en la hoja)
       const editable = t.tipo && t.tipo !== 'mal' ? ' t-editable' : '';
       const bajoElMouse = !(señalado && señalado.l === n && señalado.i === t.i) ? ''
         : enElBoton() ? ' t-manija' : '';
       const datos = t.tipo ? ' data-tipo="' + t.tipo + '" data-l="' + n + '" data-i="' + t.i + '" data-len="' + t.len + '"' : '';
-      // La altura sale como dato pelado y el color se lo pone la hoja: son cinco
-      // escalones fijos, los mismos para un tambor que para un do.
       const alto = t.alto ? ' data-alto="' + t.alto + '"' : '';
-      // Lo único que la hoja no puede saber es de qué parte es el renglón, que
-      // sale de la rueda y vive en js. El nombre se tiñe entero; el realce de lo
-      // que suena se tiñe sólo mientras suena, y por eso va como variable y no
-      // como color: la regla de .t-activo sigue siendo una sola.
+      // De qué parte es el renglón no lo puede saber la hoja: sale de la rueda. El realce
+      // va como variable y no como color, así .t-activo sigue siendo una sola regla.
       const tinte = !t.voz ? ''
         : t.cls === 'sujeto' ? ' style="color:' + tintaDe(t.voz) + '"'
+        // el «en pizzicato» dice quién, así que va del color de la parte; un
+        // escalón atrás del sujeto, que es el que le puso el nombre
+        : t.tipo === 'instrumento' ? ' style="color:color-mix(in oklab,' + tintaDe(t.voz) + ' 62%,var(--fondo))"'
         : vivo ? ' style="--vivo:color-mix(in oklab,' + tramaDe(t.voz) + ' 30%,var(--fondo))"'
         : '';
-      // la nota se parte en dos, la que se lee y la que la acompaña; el span de
-      // afuera es el que sigue midiendo para el ▾ y para el realce
+      // el span de afuera es el que sigue midiendo para el ▾ y para el realce
       const crudo = l.substr(t.i, t.len);
       const cuerpo = t.raizLen && t.raizLen < t.len
         ? esc(crudo.slice(0, t.raizLen)) + '<span class="t-cola">' + esc(crudo.slice(t.raizLen)) + '</span>'
@@ -102,13 +110,8 @@ let ultimoCodigo = '';
 let sonando = false;
 let motorListo = false;
 
-// El último renglón vacío no se puede borrar: es el lugar donde se empieza a
-// escribir la parte que sigue. Se repone antes de traducir y sin mover el
-// cursor, así que un borrar al principio de esa línea simplemente no hace nada.
-// Asignar .value de un textarea le manda el cursor al final. Todo lo que
-// reescribe el tema desde afuera —el menú, los puntitos, la selección— pasa por
-// acá para devolverlo a donde estaba, si no cambiar una nota en la mitad de un
-// tema largo te tira al final de todo.
+// Asignar .value de un textarea le manda el cursor al final: todo lo que reescribe
+// el tema desde afuera pasa por acá para devolverlo a donde estaba.
 const baseDe = (lineas, l) => lineas.slice(0, l).reduce((n, x) => n + x.length + 1, 0);
 
 function escribir(txt, desde, hasta) {
@@ -124,13 +127,9 @@ function asegurarRenglonFinal() {
   src.setSelectionRange(a, z);
 }
 
-// El espejo y los puntitos son lo único que tiene que ir al ritmo del teclado:
-// no necesitan a strudel, cuestan medio milisegundo entre los dos, y son lo que
-// se ve moverse al apretar enter. Todo lo demás —el eval de cada línea, la
-// cinta que sale de él, y los errores— espera los 400 ms, que es exactamente lo
-// que ese retardo vino a proteger. Antes viajaban juntos y el texto bajaba un
-// renglón mientras los puntitos se quedaban arriba; peor, un click en ese rato
-// callaba la línea de al lado, porque el data-l todavía era el viejo.
+// El espejo y los puntitos van al ritmo del teclado; lo que necesita a strudel
+// —la cinta, los errores— espera los 400 ms de deshacer.js. Si los puntitos se
+// van con la espera, su data-l queda viejo y un click calla la línea de al lado.
 function repintarTexto() {
   const r = traducir(src.value);
   calladasActuales = r.calladas;
@@ -147,17 +146,13 @@ function actualizar(reproducir) {
   vueltasActuales = r.vueltas;
   tramosActuales = r.tramos;
   temposActuales = r.tempos;
-  // Un solo eval por línea, y antes de dibujar. Del mismo patrón espejo salen
-  // las dos cosas que lo necesitan: la cinta, que dibuja la vuelta larga de una
-  // vez, y el reloj, que a cada cuadro pregunta qué paso cae justo ahora. Los
-  // golpes quedan colgados del renglón, así que redibujar por un resize o por el
-  // cambio de luz no vuelve a consultarle nada a strudel.
+  // un solo eval por línea y antes de dibujar: los golpes quedan colgados del
+  // renglón, así que un resize o un cambio de luz no le preguntan nada a strudel
   if (motorListo) for (const x of r.renglones) {
     try { x.pat = eval(x.cotejo); } catch (e) { x.pat = null; }
     x.golpes = x.pat && golpesDe(x.pat, r.vueltas);
   }
-  // sólo las que de verdad suenan encienden palabras: las calladas y las que
-  // traducir() tuvo que saltear están escritas, pero no están sonando
+  // las calladas y las que traducir() salteó están escritas, pero no suenan
   const suenan = new Set(r.partes.map(p => p.nro));
   espejos = r.renglones.filter(x => x.pat && suenan.has(x.nro));
   pintar(r.marcas);

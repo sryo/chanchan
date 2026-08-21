@@ -5,7 +5,6 @@ botonSel.id = 'seleccion';
 document.body.appendChild(botonSel);
 let tokensSel = [];
 
-// los tokens que caen dentro de la selección, con su posición absoluta en el texto
 function tokensEnSeleccion() {
   const a = src.selectionStart, b = src.selectionEnd;
   if (a === b) return [];
@@ -14,8 +13,7 @@ function tokensEnSeleccion() {
   const out = [];
   marcasActuales.forEach((tks, l) => {
     for (const t of tks || []) {
-      // sólo los tipos que seccionesSeleccion() sabe editar: con otros el
-      // botón salía rotulado «2 undefined» y no hacía nada al apretarlo
+      // sólo los tipos que seccionesSeleccion() sabe editar
       if (!PLURAL[t.tipo]) continue;
       const ini = bases[l] + t.i;
       if (ini < b && ini + t.len > a) out.push({ ...t, l, abs: ini });
@@ -24,15 +22,10 @@ function tokensEnSeleccion() {
   return out.sort((x, y) => x.abs - y.abs);
 }
 
-// El resaltado y el cursor son de la parte sobre la que caen. Eran lo último que
-// seguía pintándose de un color ajeno encima de las palabras de un renglón, y
-// quedaba un lavado rojo sobre palabras verdes. ::selection es uno solo para todo el
-// textarea y no puede ir renglón por renglón, así que se tiñe mientras la
-// selección no se salga de una parte —que es como se selecciona casi siempre—; en
-// cuanto cruza de una a otra se queda sin dueño y cae en la tinta de la página.
-// Con el cursor solo el renglón es uno y siempre hay dueño, salvo mientras la
-// línea todavía no se entiende: ahí el cursor va en tinta común, y en cuanto el
-// idioma la reconoce toma color. Es un aviso gratis de que la línea compiló.
+// ::selection es uno solo para todo el textarea y no puede ir renglón por
+// renglón: se tiñe mientras la selección no se salga de una parte y cae en tinta
+// de página en cuanto cruza. El cursor siempre tiene dueño salvo que la línea no
+// se entienda todavía, así que tomar color es el aviso gratis de que compiló.
 function tenirTextarea() {
   const a = src.selectionStart, b = src.selectionEnd;
   const tocadas = [];
@@ -55,7 +48,7 @@ function mirarSeleccion() {
   }
   tokensSel = toks;
   pintarDeQuien(botonSel, toks);
-  botonSel.textContent = '▾ ' + toks.length + ' ' + PLURAL[[...tipos][0]];
+  botonSel.innerHTML = icono('chevron', 'chica') + toks.length + ' ' + PLURAL[[...tipos][0]];
   pegarA(botonSel, toks[toks.length - 1]);
 }
 
@@ -103,7 +96,7 @@ function seccionesSeleccion() {
   if (que === 'paso') return [
     { titulo: 'golpes', ops: Object.entries(SONIDOS).map(([p, [, d]]) =>
         ({ txt: p, desc: d, receta: recetaDe('golpe', p), hacer: () => aplicarAVarios(() => p) })) },
-    { titulo: 'o nada', pie: true, ops: [
+    { titulo: '', pie: true, ops: [
         { txt: '-', desc: 'este paso queda en silencio', hacer: () => aplicarAVarios(() => '-') },
         { txt: '_', desc: 'sigue sonando la anterior',   hacer: () => aplicarAVarios(() => '_') }] },
   ];

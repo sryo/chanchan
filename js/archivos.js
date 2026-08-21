@@ -1,30 +1,22 @@
 // ------------------------------------------------------------ pasar archivos
-// Un tema es texto, así que un archivo de tema es ese texto y nada más: no lleva
+// Un tema es texto, así que un archivo de tema es ese texto pelado: no lleva
 // encabezado ni nada que parsear, y el nombre del tema es el nombre del archivo.
-// Es lo mismo que ya viaja en el enlace, pero como algo que se puede mandar,
-// guardar en una carpeta y abrir con cualquier editor.
-//
-// El enlace y el archivo son la misma acción vista de dos maneras —llevarte el
-// tema—, y por eso los dos botones están pegados en la cabecera.
+// Lo mismo que viaja en el enlace, pero como algo que se manda y se guarda.
 const btnArchivo = document.getElementById('archivo');
 const EXT = '.txt';
 
 const nombreDeArchivo = f => f.name.replace(/\.[^.]*$/, '');
-// «/» y «:» no entran en un nombre de archivo en ningún sistema, y un tema se
-// puede llamar como quiera
+// «/» y «:» no entran en un nombre de archivo en ningún sistema
 const comoArchivo = nombre => (nombre.trim() || 'sin título').replace(/[\/:\\?%*|"<>]/g, '-') + EXT;
 
-// Lo mismo que ya pide temaPegado() para no tragarse un pegado cualquiera: sin
-// una línea con «toca» no hay tema, y abrirlo igual se llevaría puesto el que
-// está escrito.
+// sin una línea con «toca» no hay tema; lo mismo que pide temaPegado()
 const pareceUnTema = txt => /\btocan?\b/.test(txt);
 
 // ------------------------------------------------------------------ el handle
 // Guardar dos veces tiene que escribir el mismo archivo y no dejar una fila de
 // copias numeradas, así que el handle del archivo elegido queda acá, por nombre
 // de tema. No entra en localStorage —no es serializable—, así que dura lo que
-// dura la pestaña: al recargar, el primer guardado vuelve a preguntar dónde. Es
-// lo que hace cualquier editor y no hace falta explicarlo.
+// dura la pestaña: al recargar, el primer guardado vuelve a preguntar dónde.
 const handles = new Map();
 
 async function puedeEscribir(h) {
@@ -34,8 +26,7 @@ async function puedeEscribir(h) {
   return await h.requestPermission(opciones) === 'granted';
 }
 
-// Sin la API de archivos —Firefox, Safari— queda bajar una copia, que es lo que
-// se hacía siempre.
+// sin la API de archivos —Firefox, Safari— queda bajar una copia
 function bajarCopia(nombre, txt) {
   const url = URL.createObjectURL(new Blob([txt], { type: 'text/plain;charset=utf-8' }));
   const a = document.createElement('a');
@@ -71,9 +62,6 @@ async function guardarArchivo() {
 btnArchivo.addEventListener('click', guardarArchivo);
 
 // ------------------------------------------------------------------ abrirlos
-// Uno se abre y los demás quedan anotados: cargarTema() llama a guardar(), y
-// guardarYa() ya mete en «mis temas» todo lo que tenga nombre. Así soltar la
-// carpeta entera deja los temas en la lista y no hay que ir de a uno.
 async function abrirArchivos(entradas) {
   const leidos = [], sobran = [];
   for (const { nombre, archivo, handle } of entradas) {
@@ -120,10 +108,8 @@ async function elegirArchivo() {
 }
 
 // ------------------------------------------------------------------- soltarlos
-// Soltar es la manera corta y no hay ninguna zona a la que apuntar: vale la
-// página entera. Mientras hay algo encima, la hoja lo dice con un borde y nada
-// más — un cartel tapando el tema para avisar que se puede soltar un tema es
-// justamente lo que no hace falta.
+// Vale la página entera, no hay zona a la que apuntar. Un cartel tapando el tema
+// para avisar que se puede soltar un tema es justamente lo que no hace falta.
 let arrastres = 0;
 
 const marcarSoltadero = si => document.body.classList.toggle('soltando', si);

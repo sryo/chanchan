@@ -3,11 +3,8 @@
 // ranura de la plantilla tiene vocabulario cerrado, así que lo que se ofrece no es
 // una adivinanza sino toda la gramática legal en ese punto.
 
-// Ordena una lista de vocabulario por qué tan bien pega lo que se está tipeando:
-// idéntico, después lo que empieza igual, después lo que tiene alguna palabra que
-// empieza igual («corche» encuentra «en corcheas», que por prefijo de frase no
-// pegaría), y de última un Levenshtein para los errores de dedo. Sin prefijo
-// devuelve todo, que es el caso de «qué puede ir acá».
+// Ordena por qué tan bien pega lo tipeado. La pasada por palabra suelta es la que
+// hace que «corche» encuentre «en corcheas», que por prefijo de frase no pegaría.
 function candidatos(prefijo, lista, clave = x => x, soloPega) {
   const p = norm(prefijo || '');
   if (!p) return lista.slice();
@@ -159,8 +156,7 @@ function armarSecciones(r, soloPega) {
     const pelado = ws.join(' ');
     const plantilla = n => ({ ...op(articuloDe(n) + ' ' + n + ' ' + verboDe(n), null, 'una parte nueva'),
                               buscar: n });
-    // sin prefijo van sólo los arranques de siempre: 133 instrumentos sin filtrar
-    // son una lista que no se puede leer
+    // sin prefijo van sólo los arranques de siempre: ver REGLAS.md
     const partes = [...new Set(pelado
       ? [...DE_SIEMPRE, ...Object.values(INSTRUMENTOS).map(i => i.nombre)] : DE_SIEMPRE)];
     const tempo = { ...op('va a 92', null, 'el pulso del tema'),
@@ -173,11 +169,8 @@ function armarSecciones(r, soloPega) {
                filtrarPega([...partes.map(plantilla), tempo, seccion, forma], pelado, o => o.buscar));
   }
 
-  // Los nombres salen de los encabezados escritos, no de la forma: una sección
-  // recién abierta todavía no está en ninguna forma y es justo la que se busca.
   if (r.ranura === 'forma')
-    return sec('secciones', filtrar([...new Set(marcasActuales.flat()
-      .filter(x => x && x.tipo === 'seccion').map(x => x.nombre))].map(n => op(n))));
+    return sec('secciones', filtrar([...seccionesEscritas().values()].map(n => op(n))));
 
   if (r.ranura === 'nombre')
     return [...sec('partes de siempre', filtrarPega(DE_SIEMPRE.map(n => op(n)), r.prefijo, o => o.txt)),
@@ -259,9 +252,7 @@ function aceptarSugerencia(o) {
   reemplazarRango(desde, hasta, txt);
   // Aceptar una opción escribe el valor a mano, así que no dispara el «input» que
   // reabre esto. Y hay una que deja la cláusula a medio escribir a propósito:
-  // «cada cuatro vueltas» sin nada adentro. Volver a mirar es lo que la termina en
-  // el toque siguiente. Donde no falta nada no aparece: la regla de no molestar ya
-  // cierra el sugeridor cuando lo único que hay para ofrecer es lo que ya está.
+  // «cada cuatro vueltas» sin nada adentro; volver a mirar es lo que la termina.
   abrirSugeridor(false);
 }
 
@@ -328,7 +319,7 @@ src.addEventListener('keydown', e => {
 });
 src.addEventListener('input', () => abrirSugeridor(false));
 src.addEventListener('blur', cerrarSugeridor);
-addEventListener('mousedown', e => { if (!sugeridor.contains(e.target)) cerrarSugeridor(); });
+addEventListener('mousedown', e => { if (!dentroDe(e.target, sugeridor)) cerrarSugeridor(); });
 
 src.addEventListener('mousemove', e => {
   if (pidiendoCuadro) return;
@@ -340,7 +331,7 @@ src.addEventListener('mousemove', e => {
     const t = tieneMenu(bajo) ? bajo : null;
     const antes = señalado && señalado.l + ':' + señalado.i + ':' + señalado.m;
     const ahora = t && t.l + ':' + t.i + ':' + !!t.enManija;
-    // el cursor de resize sólo con Alt apretado, que es cuando de verdad arrastra
+    // el ns-resize de las notas pide Alt; el tempo se arrastra sin apretar nada
     src.style.cursor = !t ? ''
       : t.tipo === 'tempo' ? 'ew-resize'
       : e.altKey && arrastrable(t) ? 'ns-resize' : '';
@@ -352,15 +343,11 @@ src.addEventListener('mousemove', e => {
 });
 src.addEventListener('mouseleave', e => {
   // irse hacia el propio ▾, o hacia el menú que abrió, no es irse
-  const hacia = e.relatedTarget;
-  if (tokenDelMenu || (hacia && (hacia === manija || menu.contains(hacia)))) return;
+  if (tokenDelMenu || dentroDe(e.relatedTarget, manija, menu)) return;
   if (!señalado) return;
   señalado = null; pintar(marcasActuales); ponerManija(null);
 });
-// Con Alt apretado, arrastrar sobre una nota o sobre el tempo cambia el valor.
-// Va en mousedown y no en click para ganarle al textarea antes de que mueva el
-// cursor. Sin Alt no se intercepta nada: el click es del navegador, y el del ▾
-// lo recibe el propio botón, que está apilado por encima.
+// va en mousedown y no en click, para ganarle al textarea antes de que mueva el cursor
 let arrastre = null;
 const UMBRAL = 3;
 
@@ -399,7 +386,6 @@ function moverArrastre(dx, dy) {
   a.ultimo = texto;
   reemplazar({ ...a.t, len: a.len }, texto, a.grupo);   // el token cambia de largo al ganar «sostenido»
   a.len = texto.length;
-  // si está sonando ya se escucha en contexto; si no, se oye la nota suelta
   if (!sonando && a.t.tipo !== 'tempo')
     oir({ voces: [{ s: 'piano', note: nombreNota(a.semi, 0) }], dura: .3 });
 }
@@ -417,7 +403,7 @@ addEventListener('mouseup', () => { arrastre = null; });
 // el botón de la selección abre el menú en su propio mousedown, y este listener
 // corre después por burbujeo: sin exceptuarlo cierra lo que aquél acaba de abrir
 addEventListener('mousedown', e => {
-  if (!menu.contains(e.target) && e.target !== src && e.target !== botonSel && e.target !== manija) cerrarMenu();
+  if (!dentroDe(e.target, menu, src, botonSel, manija)) cerrarMenu();
 });
 addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMenu(); });
 src.addEventListener('input', cerrarMenu);

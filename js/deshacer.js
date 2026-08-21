@@ -25,7 +25,6 @@ function irA(i, cual) {
   mostrarDeshacer(historial[cual === 'deshacer' ? i + 1 : i].ancla, cual === 'deshacer');
 }
 
-// el botón vive pegado a la palabra que cambió y se va solo a los pocos segundos
 const botonDeshacer = document.createElement('button');
 botonDeshacer.id = 'deshacer';
 document.body.appendChild(botonDeshacer);
@@ -44,7 +43,8 @@ function contarParaIrse() {
 
 function mostrarDeshacer(ancla, esRehacer) {
   clearTimeout(relojDeshacer);
-  botonDeshacer.textContent = esRehacer ? '↷' : '↶';
+  // chico como el ▾: se sueldan de costado, así que la caja tiene que ser la misma
+  botonDeshacer.innerHTML = icono(esRehacer ? 'rehacer' : 'deshacer', 'chica');
   botonDeshacer.title = esRehacer ? 'rehacer' : 'deshacer';
   botonDeshacer.dataset.que = esRehacer ? 'rehacer' : 'deshacer';
   pintarDeQuien(botonDeshacer, ancla);
@@ -89,7 +89,6 @@ src.addEventListener('scroll', () => {
   hl.scrollLeft = src.scrollLeft;
   armarPuntos(marcasActuales, calladasActuales);
   cerrarMenu();
-  // al ▾ lo reacomoda cerrarMenu; el de deshacer se quedaba flotando lejos de
-  // su palabra hasta nueve segundos después
+  // al ▾ lo reacomoda cerrarMenu; al de deshacer hay que reacomodarlo acá
   acomodarColgantes();
 });

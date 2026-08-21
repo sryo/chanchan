@@ -1,14 +1,10 @@
 // ------------------------------------------------- qué se está tocando ahora
-// getTime() es el reloj de strudel en vueltas; a cada patrón espejo le
-// preguntamos qué paso cae justo ahí y prendemos esa palabra en el editor.
+// getTime() es el reloj de strudel, contado en vueltas
 let espejos = [];
 let claveActivos = '';
-// dónde cambia el pulso a lo largo de la forma, y cuál está puesto ahora
 let temposActuales = [], bpmPuesto = null;
 
-// El tempo no vive en el patrón, así que un tema que acelera no se puede armar
-// de una sola vez: se le va diciendo al reloj al cruzar cada borde. La aguja ya
-// sabe en qué vuelta estamos, y de la misma cuenta sale en qué sección.
+// decírselo directo al reloj es lo que deja arrastrar el número mientras suena
 function seguirTempo(t) {
   if (!temposActuales.length) return;
   const v = Math.max(1, vueltasActuales);
@@ -91,12 +87,10 @@ function correr(codigo) {
 }
 
 // ------------------------------------------------------------- tocar y parar
-const OJO_TOCAR = '<svg viewBox="0 0 24 24" width="17" height="17"><polygon points="7,4 20,12 7,20"/></svg>';
-const OJO_PARAR = '<svg viewBox="0 0 24 24" width="17" height="17">' +
-  '<rect x="6.5" y="4.5" width="4.6" height="15"/><rect x="13.9" y="4.5" width="4.6" height="15"/></svg>';
-
+// Macizo como el puntito del margen: lleno si suena, hueco si no. Y una forma
+// llena se agranda a veintidós sin que se le ensucien los pelos.
 function refrescarTransporte() {
-  btnTocar.innerHTML = sonando ? OJO_PARAR : OJO_TOCAR;
+  btnTocar.innerHTML = icono(sonando ? 'parar' : 'tocar', 'maciza');
   btnTocar.title = sonando ? 'parar' : 'tocar';
   btnTocar.setAttribute('aria-label', btnTocar.title);
 }

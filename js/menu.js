@@ -1,17 +1,12 @@
 // -------------------------------------------- cambiar una palabra sin teclado
-// El textarea está arriba y tapa todo, pero #hl es un espejo exacto: misma
-// fuente, mismo padding, mismo interlineado. Así que para saber qué palabra hay
-// abajo del mouse alcanza con probar contra los rectángulos de los spans.
 const menu = document.createElement('div');
 menu.id = 'menu';
 menu.className = 'panel';
 document.body.appendChild(menu);
 let pidiendoCuadro = false, relojFamilia;
 
-// El ▾ es un botón de verdad que flota por encima del texto (ver «la manija»,
-// más abajo). Igual hace falta saber sobre qué palabra está el mouse, y para eso
-// #hl es un espejo exacto del textarea —misma fuente, mismo padding, mismo
-// interlineado—, así que alcanza con probar contra los rectángulos de los spans.
+// Para saber sobre qué palabra está el mouse alcanza con probar contra los
+// rectángulos de los spans: #hl es un espejo exacto del textarea.
 // La franja a la derecha de un token cuenta como si fuera el token: es lo que
 // mantiene viva la palabra señalada mientras el mouse va hacia su botón.
 // Esa franja mide exactamente un espacio y ocupa el renglón entero de alto.
@@ -32,14 +27,11 @@ const anchoManija = () => { if (!_letra) medirTipografia(); return _letra; };
 const altoRenglon = () => { if (!_renglon) medirTipografia(); return _renglon; };
 
 
-// qué familia muestra la tercera columna; es estado del menú, no del documento
+// qué familia muestra la columna de detalle; es estado del menú, no del documento
 let familiaElegida = null;
 
 function tokenEn(x, y, conManija) {
   // la manija se guarda pero no corta la vuelta: el cuerpo de un token le gana a
-  // la franja del anterior, si no los primeros píxeles de una palabra abren el
-  // menú de la de al lado (entre dos tokens hay un espacio de 9,6px y la franja
-  // mide 14)
   let manija = null;
   for (const sp of hl.querySelectorAll('span[data-tipo]')) {
     // getClientRects y no getBoundingClientRect: el de una palabra que se parte en
@@ -88,7 +80,6 @@ function reemplazar(t, texto, grupo) {
   mostrarDeshacer({ l: t.l, i: t.i, len: texto.length }, false);
 }
 
-// una nota se escribe siempre en este orden, con las partes que tenga
 const armarNota = p => [p.raiz, p.altN, p.octN, p.acorde].filter(Boolean).join(' ');
 
 // altura como un número solo, para poder subirla y bajarla de a un semitono
@@ -115,7 +106,13 @@ function seccionesDe(t) {
   // van juntos al pie, con la puesta marcada igual que en las otras columnas.
   const golpes = Object.entries(SONIDOS).map(([p, [, desc]]) =>
     ({ txt: p, desc, nuevo: p, puesto: norm(hoy) === p, receta: recetaDe('golpe', p) }));
-  const alPie = { titulo: 'o nada', pie: true, ops: [
+  // Sin rótulo, y es el único del panel que no lo lleva: los demás nombran la
+  // dimensión que se elige adentro —notas, altura, acorde— y ésta no es una
+  // dimensión, es la salida, que las dos filas ya dicen enteras a la derecha. Y en
+  // versalitas de once píxeles con tracking una palabra de una letra deja de ser
+  // una palabra: «o nada» se leía «0 nada», y alguien vino a preguntar qué era.
+  // La franja se separa sola: cruza el panel entero y tiene su raya arriba.
+  const alPie = { titulo: '', pie: true, ops: [
     { txt: '-', desc: 'este paso queda en silencio', nuevo: '-', puesto: hoy === '-' },
     { txt: '_', desc: 'sigue sonando la anterior',   nuevo: '_', puesto: hoy === '_' },
   ] };
@@ -143,7 +140,6 @@ function seccionesDe(t) {
   }
 
   if (t.tipo === 'instrumento' && d.modo === 'sonido') {
-    // en una línea de golpes el sujeto no elige instrumento: elige la caja de ritmo
     const todas = [...new Map(Object.values(maquinas()).map(m => [m.banco, m])).values()];
     if (!todas.length) return null;
     const marcas = [...new Set(todas.map(m => m.marca))].sort();
@@ -162,8 +158,7 @@ function seccionesDe(t) {
     const pre = d.conEn ? 'en ' : '';
     const op = i => ({ txt: i.nombre, nuevo: pre + i.nombre,
       puesto: puesta === i, receta: recetaDe('instrumento', i.nombre) });
-    // 133 opciones apiladas eran nueve pantallas y media. Van en dos columnas
-    // dentro de la misma caja: las familias y la que esté elegida.
+    // dos columnas dentro de la misma caja: las familias y la que esté elegida
     const secs = [];
     const actual = norm(hoy.replace(/^en (un |una |el |la |los |las )?/, ''));
     const familias = [...FAMILIAS.map(f => f[0]), 'osciladores'];
@@ -183,10 +178,8 @@ function seccionesDe(t) {
     return [{ titulo: 'cómo', ops: MODIFICADORES.map(m =>
       ({ txt: m[0], desc: m[2], nuevo: m[0], puesto: norm(hoy) === norm(m[0]) })) }];
 
-  // El reparto euclidiano y las que envuelven a otra frase llevan números o una
-  // frase adentro. La de envolver va en dos columnas, como los instrumentos: a la
-  // izquierda cada cuánto, a la derecha qué hace. Las dos mitades se leen del
-  // texto y no de un estado, así que elegir una respeta lo que ya decía la otra.
+  // las dos mitades se leen del texto y no de un estado, así que elegir una
+  // respeta lo que ya decía la otra
   if (t.tipo === 'euclides') {
     const puesto = leerEuclides(hoy);
     return [{ titulo: 'el reparto', ops: EUCLIDES.map(([n, m]) => ({
@@ -220,16 +213,12 @@ function seccionesDe(t) {
       puesto: !!puesta && puesta.n === n && puesta.q === q })) }];
   }
 
-  // Un nombre de la línea de forma se cambia por otro de los que hay escritos: es
-  // reordenar el tema sin escribir, que es lo que el ▾ hace en todas las demás.
-  // Los nombres salen de los propios encabezados y no de la forma, así que las
-  // secciones que todavía no entraron también están en la lista.
+  // sólo se ofrecen las secciones que ya están escritas
   if (t.tipo === 'forma') {
-    const nombres = [...new Set(marcasActuales.flat()
-      .filter(x => x && x.tipo === 'seccion').map(x => x.nombre))];
-    if (!nombres.length) return null;
-    return [{ titulo: 'secciones', ops: nombres.map(x =>
-      ({ txt: x, nuevo: x, puesto: norm(hoy) === x })) }];
+    const vistas = seccionesEscritas();
+    if (!vistas.size) return null;
+    return [{ titulo: 'secciones', ops: [...vistas].map(([clave, escrito]) =>
+      ({ txt: escrito, nuevo: escrito, puesto: norm(hoy) === clave })) }];
   }
 
   if (t.tipo === 'tempo') {
@@ -260,23 +249,10 @@ function editable(x, y) {
 }
 
 // ------------------------------------------------------------- de quién es esto
-// Hay tres dueños posibles y cada uno tiene su color. Una palabra de una parte
-// se pinta con el instrumento de esa parte. La línea del tempo no es de ninguna
-// parte pero tampoco es de nadie: es del tema entero, y el tema ya tiene color
-// —el del botón de tocar y el del logo—, así que usa ése. Y lo que no es de
-// nadie, como una selección de varias palabras sueltas, se queda sin dueño y ahí
-// recién queda sin dueño, y ahí manda la tinta de la página.
-// Lo usan las tres cosas que cuelgan de una palabra —el ▾, su menú y lo que ese
-// menú marca como puesto—, así que las tres salen siempre del mismo color que la
-// palabra de la que cuelgan.
-const colorDelToken = t => !t ? null
-  : vozDeLinea(t.l) ? tintaDe(vozDeLinea(t.l))
-  : t.tipo === 'tempo' ? 'var(--marca-tinta)' : null;
+// sin parte no hay color: devuelve null y el que lo use se queda con la tinta
+// de la página
+const colorDelToken = t => t && vozDeLinea(t.l) ? tintaDe(vozDeLinea(t.l)) : null;
 
-// Vale igual para una palabra que para varias: una selección de notas de un
-// mismo renglón es tan de esa parte como una sola nota suya, y con más razón,
-// que son todas las que se van a cambiar de un saque. Recién cuando la selección
-// cruza de una parte a otra deja de ser de alguien y cae en la tinta de la página.
 function pintarDeQuien(el, t) {
   const colores = new Set((Array.isArray(t) ? t : [t]).map(colorDelToken));
   const [color] = colores;
@@ -284,17 +260,17 @@ function pintarDeQuien(el, t) {
   else el.style.removeProperty('--parte');
 }
 
-// pinta secciones en un panel y engancha lo que hace cada opción
 function pintarPanel(panel, secs, t, dueño = t) {
   pintarDeQuien(panel, dueño);
   panel.innerHTML = secs.filter(s => s.ops.length).map(s =>
     '<div class="sec' + (s.detalle ? ' detalle' : '') + (s.pie ? ' pie' : '') +
-    '"><h3>' + esc(s.titulo) + '</h3>' + s.ops.map((o, j) =>
+    '">' + (s.titulo ? '<h3>' + esc(s.titulo) + '</h3>' : '') + s.ops.map((o, j) =>
       '<div class="op' + (o.puesto ? ' puesto' : '') + (o.familia ? ' conSub' : '') +
       '" data-op="' + j + '" data-sec="' + secs.indexOf(s) + '">' +
       '<span>' + esc(o.txt) + '</span>' +
       (o.desc ? '<span class="d">' + esc(o.desc) + '</span>' : '') +
-      (o.familia ? '<span class="d">▸</span>' : '') + '</div>').join('') + '</div>').join('');
+      (o.familia ? '<span class="d">' + icono('chevron', 'chica derecha') + '</span>' : '') +
+      '</div>').join('') + '</div>').join('');
 
   // auto-fit crea tantas pistas de 118px como entren en la ventana y deja colapsar
   // las vacías, pero la franja del pie las abarca todas con 1/-1 y eso se lo
@@ -310,7 +286,6 @@ function pintarPanel(panel, secs, t, dueño = t) {
       clearTimeout(relojFamilia);
       if (o.receta) esperaOir = setTimeout(() => oir(o.receta), 120);
       // el panel no se mueve, así que abrir familia al pasar es seguro, salvo
-      // que el mouse venga cruzando en diagonal hacia el detalle
       if (o.familia) relojFamilia = setTimeout(() => {
         if (vaHaciaElDetalle()) return;
         verFamilia(o.familia, t);
@@ -328,7 +303,6 @@ function pintarPanel(panel, secs, t, dueño = t) {
   });
 }
 
-// debajo de lo que lo abrió, o arriba si no entra; y sin salirse de la ventana
 function acomodar(el, r) {
   const alto = el.offsetHeight, ancho = el.offsetWidth;
   const abajo = r.bottom + 4 + alto < innerHeight;
@@ -373,7 +347,7 @@ function vaHaciaElDetalle() {
   return dentroDelTriangulo(act, ant, { x: r.left, y: r.top }, { x: r.left, y: r.bottom });
 }
 
-// cambiar de familia repinta sólo la tercera columna; el panel se queda quieto
+// cambiar de familia repinta sólo la columna de detalle; el panel se queda quieto
 function verFamilia(fam, t) {
   if (fam === familiaElegida) return;
   familiaElegida = fam;
@@ -403,15 +377,9 @@ function cerrarMenu() {
 }
 
 // ---------------------------------------------------------------- la manija
-// El ▾ es un botón de verdad y no un dibujo del css. Adentro del renglón no
-// podía medir más que el espacio entre dos palabras —9,6px— y salía siempre
-// apretado; flotando por encima mide lo que necesita, igual que el de deshacer.
-// Y sobre todo puede quedarse quieto mientras el menú que abrió sigue abierto:
-// si se fuera al mover el mouse, el menú quedaría colgando de un botón que ya
-// no está.
 const manija = document.createElement('button');
 manija.id = 'manija';
-manija.textContent = '▾';
+manija.innerHTML = icono('chevron', 'chica');
 manija.title = 'qué otra cosa puede ir acá';
 document.body.appendChild(manija);
 let tokenDelMenu = null;

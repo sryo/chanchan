@@ -1,6 +1,5 @@
 // ---------------------------------------------------------------- texto
-// Lo que usa todo el resto para leer y comparar palabras. No sabe nada del
-// idioma: acá no hay ni una nota ni un instrumento.
+// no sabe nada del idioma: acá no hay ni una nota ni un instrumento
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
 const esc = s => s.replace(/[&<>]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c]));
 

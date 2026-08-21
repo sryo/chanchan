@@ -1,24 +1,20 @@
 // ------------------------------------------------------ que no se pierda
-// El tema es el texto, así que guardarlo es guardar el texto. El hash le gana al
-// guardado: si alguien te pasó un enlace, querés oír eso y no lo tuyo de ayer.
+// el hash le gana al guardado: si alguien te pasó un enlace, querés oír eso y no lo tuyo de ayer
 const CASA = 'chanchan';
 const CASA_VIEJA = 'tungatunga';        // el proyecto se llamaba así
 const GUARDADO = CASA;
 const GUARDADO_NOMBRE = CASA + ':nombre';
 
-// Lo que quedó guardado con el nombre viejo se lee igual, así nadie pierde el
-// tema que tenía abierto. Al primer guardado pasa solo a la clave nueva.
+// lo guardado con el nombre viejo se lee igual, así nadie pierde el tema al actualizar
 function recordado(clave) {
   try { return localStorage.getItem(clave) || localStorage.getItem(clave.replace(CASA, CASA_VIEJA)); }
   catch (e) { return null; }            // modo privado
 }
 
 // -------------------------------------------------------------- mis temas
-// El nombre es el guardado. En cuanto el tema tiene uno queda en la lista y se
-// vuelve a él desde el ▾; sin nombre no se pierde nada —la hoja abierta se
-// restaura igual al recargar—, pero es una sola, la última. Ponerle nombre es lo
-// que lo vuelve un tema entre otros, y es la misma palabra que ya viaja en el
-// enlace: no hay un «guardar» aparte que aprender.
+// El nombre es el guardado: en cuanto el tema tiene uno queda en la lista. No hay
+// un «guardar» aparte que aprender, y es la misma palabra que viaja en el enlace.
+// Sin nombre no se pierde nada, pero la hoja restaurada es una sola, la última.
 const GUARDADO_TEMAS = CASA + ':temas';
 const TOPE_TEMAS = 60;
 
@@ -31,13 +27,9 @@ function escribirTemas(lista) {
   catch (e) { /* modo privado, o lleno */ }
 }
 
-// El nombre es la identidad: dos temas con el mismo nombre son el mismo tema.
-// Renombrar tiene que mover la entrada y no dejar una nueva —si no, tecleando un
-// nombre queda una por cada letra—, pero irse a otro tema no puede borrar el que
-// se deja atrás, y las dos cosas llegan acá igual: con un nombre nuevo y el
-// anterior al lado. Las separa el texto: al renombrar el tema es el mismo.
-// Abrir un ejemplo y no tocarlo no lo hace tuyo: la lista de arriba sería un
-// espejo de la de abajo. En cuanto le cambiás una palabra, ahí sí es tuyo.
+// El nombre es la identidad —ver REGLAS.md—. Renombrar e irse a otro tema llegan
+// acá igual; las separa el texto: al renombrar el tema es el mismo. Y abrir un
+// ejemplo sin tocarlo no lo hace tuyo, la lista de arriba espejaría la de abajo.
 const esUnEjemplo = (nombre, txt) =>
   EJEMPLOS.some(e => e.nombre === nombre && conRenglonFinal(e.txt) === conRenglonFinal(txt));
 
@@ -47,9 +39,7 @@ function anotarTema(nombre, txt, nombreViejo) {
   const viejo = lista.find(t => t.nombre === nombreViejo);
   const renombre = !!viejo && viejo.txt === txt;
   const queda = lista.filter(t => t.nombre !== nombre && !(renombre && t.nombre === nombreViejo));
-  // cuándo se tocó por última vez: el orden de la lista ya es ése, pero sin
-  // decirlo. Los guardados de antes no lo traen y no muestran nada, que es la
-  // verdad: no sabemos cuándo fue.
+  // los guardados de antes no traen «t» y no muestran nada, que es la verdad
   queda.unshift({ nombre, txt, t: Date.now() });
   escribirTemas(queda.slice(0, TOPE_TEMAS));
 }
@@ -77,21 +67,17 @@ function guardar() {
   relojGuardar = setTimeout(guardarYa, 400);
 }
 
-// El nombre va adelante del texto, separado por dos puntos. Los dos puntos son
-// legales dentro de un fragmento, así que ningún navegador los toca, y
-// encodeURIComponent sí los escapa, así que el primero que aparece es siempre el
-// nuestro. Antes iba una barra vertical: el navegador la reescribía como «%7C»
-// al pasar por la barra de direcciones y entonces no se encontraba, y el enlace
-// entero terminaba adentro de la hoja como texto.
+// El nombre va adelante del texto, separado por dos puntos: son legales dentro de
+// un fragmento —ningún navegador los toca— y encodeURIComponent sí los escapa,
+// así que el primero que aparece es siempre el nuestro. Van siempre, aunque el
+// tema no tenga nombre. Antes iba una barra vertical y el navegador la reescribía
+// como «%7C» al pasar por la barra de direcciones: el enlace no se encontraba y
+// terminaba adentro de la hoja como texto.
 function armarHash() {
-  // Los dos puntos van siempre, aunque el tema no tenga nombre: así el primer
-  // separador literal del enlace es siempre el nuestro, y un tema que adentro
-  // tenga una barra vertical no se parte por la mitad al abrirlo.
   return encodeURIComponent(campoNombre.value.trim()) + ':' + encodeURIComponent(src.value);
 }
 
-// Dónde termina el nombre. Los enlaces viejos siguen abriendo: se buscan las
-// tres marcas y gana la que aparezca primero.
+// las tres marcas son por los enlaces viejos; los nuevos llevan sólo dos puntos
 const SEPARADORES = [[':', 1], ['|', 1], ['%7C', 3]];
 function cortarNombre(carga) {
   let mejor = null;
@@ -143,8 +129,7 @@ src.addEventListener('paste', e => {
 });
 
 // Un tema abierto termina en un renglón vacío: si no, para agregar una parte hay
-// que ir al final y apretar Enter antes de poder escribir. Se pone al abrir y no
-// en cada tecla — mantenerlo siempre pelearía con el que quiere borrarlo.
+// que apretar enter primero, y la hoja no dice que ahí se puede seguir.
 const conRenglonFinal = txt => txt.replace(/\n*$/, '\n');
 
 function temaInicial() {
@@ -166,8 +151,7 @@ function temaInicial() {
   } catch (e) { return { txt: EJEMPLOS[0].txt, nombre: EJEMPLOS[0].nombre }; }
 }
 
-// un input no se achica solo al contenido: se le mide el texto y se le da ese
-// ancho, para que el subrayado termine donde termina el nombre
+// un input no se achica solo al contenido, y el subrayado tiene que terminar donde termina el nombre
 function medirNombre() {
   const largo = (campoNombre.value || campoNombre.placeholder).length;
   campoNombre.style.width = Math.min(40, Math.max(6, largo)) + 'ch';
@@ -187,22 +171,14 @@ btnEnlace.addEventListener('click', async () => {
 const spanDe = a => a && hl.querySelector('span[data-l="' + a.l + '"][data-i="' + a.i + '"]');
 
 // ------------------------------------------- lo que cuelga de una palabra
-// Tres botones se posan sobre el borde derecho de un token: el ▾, el de
-// deshacer y el de la selección. Los tres elegían el mismo lugar, y como el ▾
-// vive donde está el mouse y el deshacer aparece sobre la palabra que se acaba
-// de cambiar, cambiar una palabra con el ▾ los encimaba siempre. Así que el
-// costado de la palabra tiene un solo dueño: el que cuelga solo queda donde
-// estaba, y los que comparten palabra se reparten la fila.
-//
-// El orden de la fila es el de esta lista, y no es casual: el ▾ va primero
-// porque es de la palabra —está mientras el mouse esté encima— y el deshacer es
-// del cambio, que es pasajero.
+// El orden de la fila es el de esta lista: el ▾ va primero porque es de la
+// palabra —está mientras el mouse esté encima— y el deshacer es del cambio, que
+// es pasajero.
 const SANGRIA_COLGANTE = 6;
 const colgantes = () => [manija, botonDeshacer, botonSel];
 
-// El ▾ se cuelga sin sangría: pegado a la palabra. El hueco que queda entre
-// los dos es el mismo que la franja de tokenEn(), que es lo que mantiene viva la
-// palabra señalada mientras el mouse va hacia su botón.
+// El ▾ se cuelga sin sangría: arranca donde arranca la franja que tokenEn() le
+// suma al token, que es lo que mantiene señalada la palabra al ir hacia el botón.
 function pegarA(el, ancla, sangria = SANGRIA_COLGANTE) {
   if (!spanDe(ancla)) { el.classList.remove('vivo'); el.colgadoDe = null; return false; }
   el.colgadoDe = ancla;
@@ -212,15 +188,6 @@ function pegarA(el, ancla, sangria = SANGRIA_COLGANTE) {
   return true;
 }
 
-// Se rehace la fila entera y no de a uno: el ▾ aparece y desaparece con el
-// mouse, así que el lugar que le toca al deshacer cambia sin que el deshacer se
-// entere. Sirve además para cuando la geometría se movió abajo de ellos —el
-// scroll, un resize—, que antes los dejaba flotando lejos de su palabra.
-//
-// Y los que salen de la misma palabra se sueldan: se tocan, comparten el borde
-// del medio y las esquinas de adentro se enderezan, así que de costado son una
-// sola pieza y no dos botones sueltos que casualmente quedaron cerca. Son una
-// sola cosa mientras hablen de la misma palabra, y dos en cuanto no.
 function acomodarColgantes() {
   const fila = new Map();
   for (const el of colgantes()) el.classList.remove('junta', 'juntado');
@@ -229,8 +196,7 @@ function acomodarColgantes() {
     const sp = spanDe(el.colgadoDe);
     // la palabra se fue: la borraron, o el renglón dejó de entenderse
     if (!sp) { el.classList.remove('vivo'); el.colgadoDe = null; continue; }
-    // el último renglón: si la palabra se parte, la unión daría una caja que
-    // arranca en el margen izquierdo y el cartelito saldría volando
+    // el último trozo de una palabra partida — ver REGLAS.md
     const cajas = sp.getClientRects();
     const r = cajas[cajas.length - 1] || sp.getBoundingClientRect();
     const clave = el.colgadoDe.l + ':' + el.colgadoDe.i;

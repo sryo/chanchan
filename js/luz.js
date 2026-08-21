@@ -1,8 +1,6 @@
 // ---------------------------------------------------------------- papel o tinta
-// La elección se guarda; sin elección manda el sistema. Los colores de los
-// instrumentos no se recalculan solos: hay que volver a pintarlos. Y el texto
-// también, desde que el nombre de la parte se pinta con el color de su parte:
-// eso sale de la rueda, que mira de qué lado está la luz, y no de la hoja.
+// Los colores de las partes salen de la rueda y no de la hoja, así que no se
+// recalculan solos: hay que volver a dibujar la cinta y a pintar el texto.
 document.getElementById('luz').addEventListener('click', () => {
   const cual = deNoche() ? 'claro' : 'oscuro';
   document.documentElement.dataset.luz = cual;
