@@ -9,6 +9,21 @@
     --tenue: #756e5d;
     --suave: #c6bda6;
     --punteo: #8a8069;
+    /* Los dos escalones que van abajo del texto, y son del editor. El silencio
+       se cuenta —es la grilla, es lo que dice en qué corchea estás—, así que
+       tiene que verse; el andamio es «la», «toca», «va a», que se leen una vez y
+       después estorban. Estaban al revés: el guión era lo más apagado de la
+       página y «toca» pesaba el doble que él. */
+    --silencio: #978f7b;
+    --andamio: #aba493;
+    /* Las dos puntas de la altura. No van de oscuro a claro sino de tinta a
+       aire: lo grave es la tinta plena de la página y lo agudo es esa misma
+       tinta dejando pasar el papel. Por eso «grave» es lo más oscuro de día y lo
+       más claro de noche —es el mismo gesto—, y por eso ninguno de los dos modos
+       se sale de lo suyo: la hoja clara nunca se ensombrece y la oscura nunca se
+       prende. Los tres escalones del medio se mezclan de éstos. */
+    --grave: #123540;
+    --agudo: #557884;
     --acento: #c4402a;
     --mal: #9e1f14;
     --vivo: #f0dcab;
@@ -39,6 +54,10 @@
     --tenue: #7c8a8e;
     --suave: #3f4c50;
     --punteo: #55646a;
+    --silencio: #515e62;
+    --andamio: #424d51;
+    --grave: #e8e0cd;
+    --agudo: #9f9886;
     --acento: #e8674b;
     --mal: #ff8f79;
     --vivo: #40311c;
@@ -72,7 +91,21 @@
      viéndose: pintado del color del fondo sobre gris claro no quedaba nada */
   body.cargando #tocar { background: var(--linea); cursor: progress; }
   body.cargando #tocar svg { fill: var(--tenue); }
-  .marca { display: flex; align-items: baseline; gap: 18px; min-width: 0; flex-wrap: wrap; }
+  /* El botón y el logo son una sola pieza y tienen que caer en la misma línea.
+     No caen solas: header centra la *caja* de la marca contra el botón, y esa
+     caja está torcida, porque adentro se alinea por línea de base con el logo
+     en 30px y el resto en 11 y 14. El corrimiento es la mitad de lo que sobra
+     de un lado — (lo que cuelga abajo de la base − el aire arriba de las
+     mayúsculas) / 2 —: (10,6 − 4,2)/2 = 3,2 con el logo en 30, y (10,6 − 3,2)/2
+     = 3,7 con el logo en 24. Los 10,6 son el campo del nombre con su padding y
+     su raya, que no cambian de tamaño; el aire de arriba es métrica de Antonio,
+     0,14em, que sí. Va uno solo para los dos anchos: medio píxel no se ve.
+     Con position:relative el flujo no se entera, así que el botón no se mueve y
+     la cinta, que se dibuja concéntrica con él, tampoco. */
+  .marca {
+    display: flex; align-items: baseline; gap: 18px; min-width: 0; flex-wrap: wrap;
+    position: relative; top: 3.5px;
+  }
   /* el enlace va pegado al nombre: es lo que se comparte, no un control aparte */
   .marca #enlace { margin-left: 8px; }
   h1 {
@@ -80,7 +113,15 @@
     margin: 0; font-weight: 600; letter-spacing: .01em; color: var(--marca);
   }
   h1 span { color: var(--marca-fin); }
-  .rayita { width: 1px; height: 19px; background: var(--linea); align-self: center; flex: none; }
+  /* Separan texto, así que se miden contra el texto: sin align-self heredan la
+     línea de base de la marca y, como un span vacío no tiene una propia,
+     flexbox se la saca del borde de abajo — quedan apoyadas justo sobre el
+     renglón. Centradas contra la caja caían casi en el mismo lugar, pero de
+     casualidad. */
+  /* una sola, y entre el nombre de la app y el del tema: son dos textos
+     parecidos y sin ella se leen como una frase sola. Entre el nombre y el ⚯ no
+     hace falta — un campo con subrayado punteado y un signo ya se distinguen. */
+  .rayita { width: 1px; height: 19px; background: var(--linea); flex: none; }
   /* El nombre del tema y el ▾ que abre los otros son una sola cosa: se escribe
      encima o se despliega, como un combo. El subrayado es de los dos y llega
      hasta el ▾, y el ancho lo pone el propio texto — un campo con ancho fijo
@@ -106,12 +147,15 @@
      «esto se cambia acá mismo». El cursor de arrastre horizontal es el único
      lugar donde se anuncia que además se tira de él. */
   #enlace {
-    background: none; border: 0; border-radius: 0;
-    border-bottom: 1px solid var(--punteo); padding: 0 0 2px;
-    color: var(--tenue); font-size: var(--letra-chica); letter-spacing: .16em; text-transform: uppercase;
+    background: none; border: 0; border-radius: 0; padding: 2px 5px;
+    color: var(--tenue); font-size: 15px; line-height: 1;   /* signo, no texto */
   }
-  #enlace:hover { color: var(--texto); border-bottom-color: var(--texto); }
-  #enlace.dicho { color: var(--marca); border-bottom-color: var(--marca); font-weight: 600; }
+  #enlace:hover { color: var(--texto); }
+  /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
+  #enlace.dicho {
+    color: var(--marca); font-size: var(--letra-chica);
+    letter-spacing: .1em; text-transform: uppercase;
+  }
   main { flex: 1; display: flex; min-height: 0; }
   .editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   .wrap { position: relative; flex: 1; min-height: 0; }
@@ -131,13 +175,35 @@
   /* el textarea va arriba con el texto transparente y lo que se lee sale de #hl,
      abajo: si la selección es opaca tapa el texto y no queda nada visible */
   #src::selection { background: color-mix(in oklab, var(--acento) 18%, transparent); }
+  /* Tres canales, y cada uno dice una sola cosa: el tono dice quién toca —sale
+     de la rueda y lo pone pintar(), porque la hoja no puede saberlo—, la luz
+     dice qué tan alto, y el peso dice si es el patrón o la frase que lo rodea.
+     El acento no está en esta lista a propósito: quedó para la interacción —el
+     cursor, la selección, el ▾, lo elegido en un menú—, que es lo que quiere
+     decir «acá estás vos». Antes pintaba además todas las notas del tema, y en
+     «a lo charly» eso son treinta y dos palabras de acento: donde todo grita, no
+     grita nada, y encima un error rojo se perdía entre ellas. */
   .t-sujeto { color: var(--texto); }
-  .t-verbo, .t-estructura { color: var(--tenue); }
-  .t-sonido { color: var(--texto); font-weight: 600; }
-  .t-nota { color: var(--acento); }
-  .t-silencio { color: var(--suave); }
+  .t-articulo, .t-verbo, .t-estructura { color: var(--andamio); }
+  .t-sonido, .t-nota { color: var(--texto); font-weight: 600; }
+  .t-silencio { color: var(--silencio); }
   .t-mod { color: var(--tenue); }
-  #hl span[data-tipo="tempo"] { color: var(--texto); font-weight: 600; }
+  /* La altura, en cinco escalones. Un bajo se ve hundido, una melodía que sube
+     se ve subir, y un pum y un do que caen a la misma altura se ven iguales. */
+  #hl [data-alto="1"] { color: var(--grave); }
+  #hl [data-alto="2"] { color: color-mix(in oklab, var(--grave) 75%, var(--agudo)); }
+  #hl [data-alto="3"] { color: color-mix(in oklab, var(--grave) 50%, var(--agudo)); }
+  #hl [data-alto="4"] { color: color-mix(in oklab, var(--grave) 25%, var(--agudo)); }
+  #hl [data-alto="5"] { color: var(--agudo); }
+  /* Lo que acompaña a la nota —el bemol, la octava, el acorde— un escalón por
+     debajo de ella y sin peso. Se mezcla con el papel desde el color que la nota
+     ya tiene, así que sigue a la altura sin repetir la rampa. */
+  .t-cola { font-weight: 400; color: color-mix(in oklab, currentColor 62%, var(--fondo)); }
+  /* El tempo es el nombre de la parte que no tiene parte: es el único renglón
+     que es de todas, y el tema entero ya tiene color —el del botón de tocar—,
+     así que lleva ése. Con la tinta común quedaba como el único valor del
+     documento sin dueño, y su ▾ y su menú, que sí lo tienen, no le pegaban. */
+  #hl span[data-tipo="tempo"] { color: var(--marca); font-weight: 600; }
   .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
   /* El subrayado quiere decir una sola cosa: «de esta palabra cuelga el ▾». Sale
      con el mouse en el botón y no en la palabra, porque el botón flota al lado y
@@ -187,10 +253,17 @@
     /* el mismo alto que el de deshacer: los dos son botones que aparecen al
        lado de una palabra, y de cerca se veía que no eran de la misma familia */
     height: 22px; padding: 0 6px; font-size: 10px; line-height: 1;   /* signo, no texto */
-    color: var(--acento); border-radius: 5px; opacity: .85;
+    /* El ▾ es de la palabra de la que cuelga, así que lleva su color, sea el de
+       su parte o el del tema: la palabra, el botón y el menú que abre quedan de
+       un solo color y se leen como un solo gesto en vez de tres cosas sueltas.
+       Quién lo pone es pintarDeQuien(); el acento es el último recurso, para
+       cuando la palabra no es de nadie. Que es un control no lo dice el color
+       sino la forma —aparece al pasar, tiene borde y tiene el signo—, así que el
+       tono queda libre para decir de quién es. */
+    color: var(--parte, var(--acento)); border-radius: 5px; opacity: .85;
   }
   #manija.vivo { display: flex; }
-  #manija:hover, #manija.encendido { opacity: 1; border-color: var(--acento); }
+  #manija:hover, #manija.encendido { opacity: 1; border-color: var(--parte, var(--acento)); }
   #deshacer:hover { opacity: 1; border-color: var(--acento); }
   .panel h3 {
     margin: 8px 14px 3px; font-size: var(--letra-chica); font-weight: 500;
@@ -203,7 +276,12 @@
   }
   .panel .op:hover { background: var(--realce); }
   .panel .op .d { margin-left: auto; color: var(--tenue); font-size: var(--letra-chica); }
-  .panel .op.puesto { color: var(--acento); }
+  /* Lo puesto es estado del documento, así que lo dice el color de la parte; el
+     acento queda para el estado tuyo —dónde está el teclado, dónde el mouse—, y
+     por eso lo elegido del sugeridor y el ▾ siguen siendo rojos. El peso va
+     además del color: en un monoespaciado no corre nada, y deja que lo puesto se
+     encuentre igual cuando a la parte le tocó un tono pálido. */
+  .panel .op.puesto { color: var(--parte, var(--acento)); font-weight: 600; }
   .t-activo {
     background: var(--vivo); border-radius: 3px;
     box-shadow: 0 0 0 2px var(--vivo);
@@ -225,19 +303,6 @@
   details summary::before { content: "▸ "; }
   details[open] summary::before { content: "▾ "; }
   #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
-  /* El tempo vive en el texto, como todo lo demás; esto es un atajo para ese
-     renglón, igual que los puntitos lo son para «callado». Va al pie y no a la
-     cabecera: arriba decía «va a 101» diez píxeles encima del renglón que dice
-     exactamente eso, y se leía como una impresión doble. Acá el número va solo y
-     la unidad lo nombra, que no es lo mismo que repetir la frase. */
-  #pulso {
-    flex: none; background: none; border: 0; border-radius: 0; padding: 4px 6px;
-    color: var(--texto); font-size: var(--letra-chica);
-    letter-spacing: .16em; text-transform: uppercase; cursor: ew-resize;
-  }
-  #pulso::after { content: ' tiempos por minuto'; color: var(--tenue); }
-  #pulso:hover, #pulso:focus-visible { outline: none; }
-  #pulso:hover::after, #pulso:focus-visible::after { color: var(--texto); }
   #luz {
     flex: none; margin-right: 44px; background: none; border: 0; padding: 4px 6px;
     color: var(--tenue); font-size: 14px; line-height: 1;   /* signo, no texto */
@@ -256,7 +321,10 @@
   .pista { color: var(--suave); margin: 26px 0 10px; }
   .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
   .ejemplos button { padding: 4px 11px; }
-  .ejemplos button:hover { border-color: var(--marca); color: var(--marca); }
+  /* con el acento y no con la marca: estos botones abren otros temas, y pintarlos
+     del color del tema abierto decía justo lo que no es. Además en la hoja vacía
+     no hay tema abierto, así que la marca ni siquiera tenía valor */
+  .ejemplos button:hover { border-color: var(--acento); color: var(--acento); }
   /* el canal de los puntitos queda entre la cinta y el texto */
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
   /* El punto es chico pero el botón no: la caja mide lo mismo que el ▾, así que
@@ -283,7 +351,11 @@
     flex: none; background: none; border: 0; border-radius: 0;
     padding: 0; font-size: 10px; line-height: 1; color: var(--tenue);   /* signo */
   }
-  #abrir:hover { color: var(--acento); }
+  /* el otro ▾ de la página: éste cuelga del nombre del tema, así que se pinta
+     del color del tema, igual que el de una palabra se pinta del de su parte */
+  #abrir:hover { color: var(--marca); }
+  /* y el tema abierto dentro de la lista, por lo mismo */
+  #temas .op.puesto { color: var(--marca); }
   #temas .op .d { text-transform: none; }
   @media (max-width: 720px) {
     :root { --sangria: 52px; --marco: 40px; }

@@ -58,7 +58,9 @@ function traducirLinea(texto, nro) {
   // el artículo queda suelto y el nombre entero es un solo blanco: es el que
   // elige el instrumento, así que el menú lo tiene que poder cambiar de una
   const iNombre = ws.length - sinArticulo.length;
-  for (const x of ws.slice(0, iNombre)) marcar(x.i, x.w.length, 'sujeto');
+  // el artículo va aparte del nombre: es gramática, no es quién toca, y con la
+  // misma tinta plena que «viola distorsionada» pesaba lo mismo que ella
+  for (const x of ws.slice(0, iNombre)) marcar(x.i, x.w.length, 'articulo');
   let sujetoTk = null;
   if (iNombre < iVerbo) {
     const a = ws[iNombre], z = ws[iVerbo - 1];
@@ -93,7 +95,7 @@ function traducirLinea(texto, nro) {
       pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'silencio', { tipo: 'paso' }));
       pasos.push('_'); lugares.push(null);
     } else if (SONIDOS[w]) {
-      pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'sonido', { tipo: 'paso' }));
+      pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'sonido', { tipo: 'paso', alto: ALTO_GOLPE[w] }));
       if (!primerGolpe) primerGolpe = w;
       if (modo === 'nota') { roto = true; error(pw[k].i, pw[k].w.length, 'no mezclés golpes con notas en la misma línea: hacé dos líneas.'); }
       pasos.push(SONIDOS[w][0]); lugares.push({ i: pw[k].i, len: pw[k].w.length });
@@ -114,7 +116,11 @@ function traducirLinea(texto, nro) {
         fin = pw[k2].i + pw[k2].w.length;
         k2++;
       }
-      pasoTk.push(marcar(pw[k].i, fin - pw[k].i, 'nota', { tipo: 'nota', raiz: w, altN, octN, acorde }));
+      // raizLen parte el token en dos para pintarlo: la nota adelante y lo que la
+      // acompaña atrás. «la muy grave sol muy grave» es cuatro quintos octava, y
+      // con todo del mismo peso la línea del bajo no se lee, se descifra.
+      pasoTk.push(marcar(pw[k].i, fin - pw[k].i, 'nota',
+        { tipo: 'nota', raiz: w, altN, octN, acorde, alto: altoDeOctava(oct), raizLen: pw[k].w.length }));
       lugares.push({ i: pw[k].i, len: fin - pw[k].i });
       if (acorde) {
         const raiz = GRADOS[NOTAS[w]] + (alt === '#' ? 1 : alt === 'b' ? -1 : 0);
@@ -213,6 +219,12 @@ function traducirLinea(texto, nro) {
   // notas el instrumento, igual que el sonido
   const voz = modo === 'sonido' ? primerGolpe
     : (instrumento || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO]).nombre;
+  // El color de la parte también baja al texto. El nombre se pinta con él —la
+  // franja de la cinta, el puntito del margen y la palabra pasan a ser una sola
+  // cosa, en vez de una clave que hay que ir a consultar al margen— y los pasos
+  // lo llevan puesto para teñir con él el realce de lo que está sonando.
+  if (sujetoTk) sujetoTk.voz = voz;
+  for (const t of pasoTk) t.voz = voz;
   const vueltas = mcm((alterna ? pasos.length : 1) * lento, vueltasMascara);
   return { tipo: 'parte', nro, nombre, voz, codigo, cotejo, lugares, callado, vueltas, tk, errs };
 }

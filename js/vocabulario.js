@@ -1,14 +1,17 @@
 // ---------------------------------------------------------------- vocabulario
+// La tabla va de grave a agudo, y ese orden después se lee: de él salen la luz
+// con la que el editor pinta cada golpe y el lugar de la percusión en la rueda
+// de colores. Mover una fila mueve un color, así que no es un orden cualquiera.
 const SONIDOS = {
   pum:  ['bd',  'bombo'],
-  tas:  ['sd',  'redoblante'],
-  chas: ['cp',  'palmas'],
-  chis: ['hh',  'hi-hat'],
-  tsss: ['oh',  'hi-hat abierto'],
-  toc:  ['rim', 'aro'],
   tum:  ['mt',  'tom'],
+  tas:  ['sd',  'redoblante'],
+  toc:  ['rim', 'aro'],
+  chas: ['cp',  'palmas'],
   chan: ['cr',  'platillo'],
   tin:  ['rd',  'ride'],
+  chis: ['hh',  'hi-hat'],
+  tsss: ['oh',  'hi-hat abierto'],
 };
 const NOTAS = { do:'c', re:'d', mi:'e', fa:'f', sol:'g', la:'a', si:'b' };
 const ALTERACIONES = { sostenido:'#', bemol:'b' };
@@ -25,6 +28,18 @@ const GRADOS = { c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
 const nombreNota = (semi, oct) => CROMATICA[((semi % 12) + 12) % 12] + (oct + Math.floor(semi / 12));
 const OCTAVAS = { 'muy grave':2, grave:3, agudo:5, 'muy agudo':6 };
 const OCTAVA_BASE = 4;
+
+// ------------------------------------------------------------------- la altura
+// Cinco escalones, los mismos para un tambor que para un do: es el único lugar
+// donde las dos maneras de escribir un paso se pueden comparar. El editor los
+// pinta con la luz de la tinta —lo grave pesa, lo agudo es aire—, así que un
+// bajo se ve hundido y una melodía que sube se ve subir sin leer las palabras.
+const ALTURAS = 5;
+const ALTO_GOLPE = {};
+Object.keys(SONIDOS).forEach((w, i, t) =>
+  ALTO_GOLPE[w] = 1 + Math.round(i / (t.length - 1) * (ALTURAS - 1)));
+// las octavas van de 2 a 6 y ya vienen ordenadas: alcanza con correrlas al uno
+const altoDeOctava = oct => Math.min(ALTURAS, Math.max(1, oct - 1));
 
 const GM = 'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/';
 

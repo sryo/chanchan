@@ -37,19 +37,29 @@ const MATIZ = {};
       // una familia nueva que no esté en la rueda entra con el tono del piano en
       // vez de quedarse sin color y romper el oklch
       tono: fam in TONO ? TONO[fam] : TONO['pianos'],
-      luz: 0.50 + 0.24 * (nombres.length > 1 ? j / (nombres.length - 1) : 0),
+      // dónde cae dentro de su familia, de 0 a 1; la luz que le toca a ese
+      // lugar la pone colorDe(), que es la que sabe sobre qué papel se dibuja
+      paso: nombres.length > 1 ? j / (nombres.length - 1) : 0,
     });
 }
 
-const CROMA = 0.135, CROMA_NOCHE = 0.15, NOCHE = -0.05;
+// La rampa de cada familia se acortó por las dos puntas sin moverse de lugar: el
+// medio quedó donde estaba, así que de día los colores siguen siendo claros y de
+// noche siguen siendo apagados — que es como tiene que ser, un papel no se
+// oscurece y una noche no se enciende. Lo que se fue son los extremos, que no
+// eran color sino ausencia: con la banda entera, el último instrumento de cada
+// familia (el clarinete, el timbal, los armónicos) se borraba contra la hoja
+// clara, y el primero se borraba contra la oscura. Media familia sin dibujar.
+// El sentido se conserva en los dos modos: el slap sigue más claro que el acústico.
+const RAMPA = { claro: [0.54, 0.70], oscuro: [0.49, 0.65] };
+const CROMA = { claro: 0.135, oscuro: 0.15 };
 const deNoche = () => document.documentElement.dataset.luz === 'oscuro';
 
 // El tono nunca cambia: una familia es la misma familia en los dos modos. De
-// noche baja un poco de luz y sube de saturación — aclararlos los volvía pasteles.
-//
+// noche sube un poco de saturación — con la croma del día quedaban lavados.
 function colorDe(voz) {
   const m = MATIZ[norm(voz || '')] || MATIZ[norm(INSTRUMENTO_POR_DEFECTO)];
-  const noche = deNoche();
-  const luz = Math.max(0.32, m.luz + (noche ? NOCHE : 0));
-  return 'oklch(' + luz.toFixed(3) + ' ' + (noche ? CROMA_NOCHE : CROMA) + ' ' + m.tono + ')';
+  const modo = deNoche() ? 'oscuro' : 'claro';
+  const [de, a] = RAMPA[modo];
+  return 'oklch(' + (de + (a - de) * m.paso).toFixed(3) + ' ' + CROMA[modo] + ' ' + m.tono + ')';
 }

@@ -216,8 +216,29 @@ function editable(x, y) {
   return tieneMenu(t) ? t : null;
 }
 
+// ------------------------------------------------------------- de quién es esto
+// Hay tres dueños posibles y cada uno tiene su color. Una palabra de una parte
+// se pinta con el instrumento de esa parte. La línea del tempo no es de ninguna
+// parte pero tampoco es de nadie: es del tema entero, y el tema ya tiene color
+// —el del botón de tocar y el del logo—, así que usa ése. Y lo que no es de
+// nadie, como una selección de varias palabras sueltas, se queda sin dueño y ahí
+// recién manda el acento, que es el color de lo tuyo.
+// Lo usan las tres cosas que cuelgan de una palabra —el ▾, su menú y lo que ese
+// menú marca como puesto—, así que las tres salen siempre del mismo color que la
+// palabra de la que cuelgan.
+const colorDelToken = t => !t ? null
+  : vozDeLinea(t.l) ? colorDe(vozDeLinea(t.l))
+  : t.tipo === 'tempo' ? 'var(--marca)' : null;
+
+function pintarDeQuien(el, t) {
+  const color = colorDelToken(t);
+  if (color) el.style.setProperty('--parte', color);
+  else el.style.removeProperty('--parte');
+}
+
 // pinta secciones en un panel y engancha lo que hace cada opción
 function pintarPanel(panel, secs, t) {
+  pintarDeQuien(panel, t);
   panel.innerHTML = secs.filter(s => s.ops.length).map(s =>
     '<div class="sec' + (s.detalle ? ' detalle' : '') + (s.pie ? ' pie' : '') +
     '"><h3>' + esc(s.titulo) + '</h3>' + s.ops.map((o, j) =>
@@ -366,6 +387,7 @@ function ponerManija(t) {
     return;
   }
   manija.classList.add('vivo');
+  pintarDeQuien(manija, quien);
   manija.style.left = Math.round(quien.r.right) + 'px';
   manija.style.top = Math.round(quien.r.top + (quien.r.height - manija.offsetHeight) / 2) + 'px';
   manija.classList.toggle('encendido', !!tokenDelMenu);

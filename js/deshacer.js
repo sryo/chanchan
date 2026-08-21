@@ -75,7 +75,7 @@ src.addEventListener('input', () => {
   registrar(src.value, null, 'tecla' + grupoTecla);
   clearTimeout(relojTecla);
   relojTecla = setTimeout(() => grupoTecla++, 600);
-  pintar(traducir(src.value).marcas);
+  repintarTexto();
 });
 let relojTecla;
 // uno solo, y en orden: primero el espejo, si no los puntitos miden contra

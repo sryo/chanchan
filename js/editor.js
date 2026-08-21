@@ -14,12 +14,17 @@ function avisar(msg) {
 }
 
 let relojDicho;
+// El botón es un signo y no una frase: copiar el enlace es una acción menor y
+// no se merece trece letras en versalitas al lado del logo. La palabra aparece
+// sólo cuando tiene algo para decir — al copiar, y por un segundo y medio.
+const ENLACE = '⚯';
+
 function decirEnElEnlace(txt) {
   btnEnlace.textContent = txt;
   btnEnlace.classList.add('dicho');
   clearTimeout(relojDicho);
   relojDicho = setTimeout(() => {
-    btnEnlace.textContent = 'copiar enlace';
+    btnEnlace.textContent = ENLACE;
     btnEnlace.classList.remove('dicho');
   }, 1800);
 }
@@ -63,8 +68,25 @@ function pintar(marcas) {
       const bajoElMouse = !(señalado && señalado.l === n && señalado.i === t.i) ? ''
         : enElBoton() ? ' t-manija' : '';
       const datos = t.tipo ? ' data-tipo="' + t.tipo + '" data-l="' + n + '" data-i="' + t.i + '" data-len="' + t.len + '"' : '';
-      out += '<span class="t-' + t.cls + vivo + editable + bajoElMouse + '"' + datos + '>' +
-        esc(l.substr(t.i, t.len)) + '</span>';
+      // La altura sale como dato pelado y el color se lo pone la hoja: son cinco
+      // escalones fijos, los mismos para un tambor que para un do.
+      const alto = t.alto ? ' data-alto="' + t.alto + '"' : '';
+      // Lo único que la hoja no puede saber es de qué parte es el renglón, que
+      // sale de la rueda y vive en js. El nombre se tiñe entero; el realce de lo
+      // que suena se tiñe sólo mientras suena, y por eso va como variable y no
+      // como color: la regla de .t-activo sigue siendo una sola.
+      const tinte = !t.voz ? ''
+        : t.cls === 'sujeto' ? ' style="color:' + colorDe(t.voz) + '"'
+        : vivo ? ' style="--vivo:color-mix(in oklab,' + colorDe(t.voz) + ' 30%,var(--fondo))"'
+        : '';
+      // la nota se parte en dos, la que se lee y la que la acompaña; el span de
+      // afuera es el que sigue midiendo para el ▾ y para el realce
+      const crudo = l.substr(t.i, t.len);
+      const cuerpo = t.raizLen && t.raizLen < t.len
+        ? esc(crudo.slice(0, t.raizLen)) + '<span class="t-cola">' + esc(crudo.slice(t.raizLen)) + '</span>'
+        : esc(crudo);
+      out += '<span class="t-' + t.cls + vivo + editable + bajoElMouse + '"' + datos + alto + tinte + '>' +
+        cuerpo + '</span>';
       cur = t.i + t.len;
     }
     return out + plano(cur, l.length);
@@ -102,6 +124,20 @@ function asegurarRenglonFinal() {
   src.setSelectionRange(a, z);
 }
 
+// El espejo y los puntitos son lo único que tiene que ir al ritmo del teclado:
+// no necesitan a strudel, cuestan medio milisegundo entre los dos, y son lo que
+// se ve moverse al apretar enter. Todo lo demás —el eval de cada línea, la
+// cinta que sale de él, y los errores— espera los 400 ms, que es exactamente lo
+// que ese retardo vino a proteger. Antes viajaban juntos y el texto bajaba un
+// renglón mientras los puntitos se quedaban arriba; peor, un click en ese rato
+// callaba la línea de al lado, porque el data-l todavía era el viejo.
+function repintarTexto() {
+  const r = traducir(src.value);
+  calladasActuales = r.calladas;
+  pintar(r.marcas);
+  armarPuntos(r.marcas, r.calladas, r.renglones);
+}
+
 function actualizar(reproducir) {
   asegurarRenglonFinal();
   guardar();
@@ -126,7 +162,6 @@ function actualizar(reproducir) {
   armarPuntos(r.marcas, r.calladas);
   dibujarCinta(r.renglones);
   pintarMarca(r.renglones);
-  refrescarPulso(r.bpm);
   cajaErr.innerHTML = r.errores.map(e =>
     '<p><b>línea ' + e.nro + ':</b> ' + esc(e.msg) + '</p>').join('');
   cajaJs.textContent = r.codigo || '(todavía no hay nada que tocar)';

@@ -300,9 +300,9 @@ src.addEventListener('mousemove', e => {
     const antes = señalado && señalado.l + ':' + señalado.i + ':' + señalado.m;
     const ahora = t && t.l + ':' + t.i + ':' + !!t.enManija;
     // el cursor de resize sólo con Alt apretado, que es cuando de verdad arrastra
-    src.style.cursor = !t || !e.altKey ? ''
+    src.style.cursor = !t ? ''
       : t.tipo === 'tempo' ? 'ew-resize'
-      : arrastrable(t) ? 'ns-resize' : '';
+      : e.altKey && arrastrable(t) ? 'ns-resize' : '';
     if (antes === ahora) return;
     señalado = t && { l: t.l, i: t.i, m: !!t.enManija };
     pintar(marcasActuales);
@@ -328,10 +328,13 @@ addEventListener('keyup', e => { if (e.key === 'Alt') src.style.cursor = ''; });
 
 src.addEventListener('mousedown', e => {
   cerrarMenu();
-  // el click del ▾ lo recibe el propio botón, que está por encima del textarea
-  if (!e.altKey) return;
+  // El click del ▾ lo recibe el propio botón, que está por encima del textarea.
+  // El tempo se arrastra sin apretar nada: es un número suelto y ahí no hay
+  // texto que uno quiera seleccionar arrastrando —para eso queda el doble
+  // click—. Las notas siguen pidiendo Alt, que es lo que las salva de pelearse
+  // con la selección en medio de una línea llena de palabras.
   const t = editable(e.clientX, e.clientY);
-  if (!t || !arrastrable(t)) return;
+  if (!t || !arrastrable(t) || (!e.altKey && t.tipo !== 'tempo')) return;
   e.preventDefault();
   const d = datosDe(t);
   arrastre = { t, x: e.clientX, y: e.clientY, movido: false, len: t.len,
