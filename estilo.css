@@ -25,7 +25,12 @@
     --grave: var(--texto);
     --agudo: #557884;
     --acento: #c4402a;
-    --mal: #9e1f14;
+    /* El error y el acento eran la misma tinta: dos grados de tono uno del otro,
+       porque los dos salieron de la segunda tinta de la ficha, que era una sola.
+       Y quieren decir cosas opuestas —uno es «acá estás vos» y el otro «esto no
+       lo entiendo»—, así que ahora el error se va al carmín: más frío, más hondo
+       y del otro lado del rojo que el ladrillo del acento. */
+    --mal: #9e122f;
     --vivo: #f0dcab;
     --realce: #ded2b7;
     --sombra: #1235401f;
@@ -64,7 +69,7 @@
     --andamio: #424d51;
     --agudo: #9f9886;
     --acento: #e8674b;
-    --mal: #ff8f79;
+    --mal: #e44065;
     --vivo: #40311c;
     --realce: #202a2e;
     --sombra: #0006;
@@ -134,7 +139,7 @@
     display: inline-flex; align-items: baseline; gap: 7px;
     border-bottom: 1px dotted var(--punteo); padding-bottom: 3px;
   }
-  .nombre:focus-within { border-bottom-color: var(--acento); }
+  .nombre:focus-within { border-bottom-color: var(--marca-tinta); }
   #nombre {
     font: inherit; color: var(--texto);
     background: none; border: 0; padding: 0; outline: none; min-width: 0;
@@ -174,11 +179,11 @@
   #hl { pointer-events: none; color: var(--texto); }
   #src {
     background: transparent; color: transparent;
-    caret-color: var(--acento); resize: none; outline: none;
+    caret-color: var(--parte, var(--acento)); resize: none; outline: none;
   }
   /* el textarea va arriba con el texto transparente y lo que se lee sale de #hl,
      abajo: si la selección es opaca tapa el texto y no queda nada visible */
-  #src::selection { background: color-mix(in oklab, var(--acento) 18%, transparent); }
+  #src::selection { background: color-mix(in oklab, var(--parte, var(--acento)) 18%, transparent); }
   /* Tres canales, y cada uno dice una sola cosa: el tono dice quién toca —sale
      de la rueda y lo pone pintar(), porque la hoja no puede saberlo—, la luz
      dice qué tan alto, y el peso dice si es el patrón o la frase que lo rodea.
@@ -228,7 +233,7 @@
   .panel.abierto { display: block; }
   .panel .op.conSub { padding-right: 8px; }
   #sugerencias { z-index: 12; max-height: 300px; }
-  #sugerencias .op.elegido { background: var(--realce); color: var(--acento); }
+  #sugerencias .op.elegido { background: var(--realce); color: var(--parte, var(--acento)); }
   /* las columnas las fija pintarPanel() con la cantidad real; acá iba un
      auto-fit que era justamente el error que ese cálculo vino a arreglar */
   #menu.columnas.abierto { display: grid; gap: 1px; padding: 0; background: var(--linea); }
@@ -245,7 +250,7 @@
   #seleccion {
     position: fixed; z-index: 11; display: none;
     padding: 1px 8px; border-radius: 5px;
-    border-color: var(--acento); color: var(--acento);
+    border-color: var(--parte, var(--acento)); color: var(--parte, var(--acento));
   }
   /* El ▾ flota por encima del texto, como el de deshacer: adentro del renglón
      no podía medir más que un espacio (9,6px) y salía siempre apretado. Acá se
@@ -268,7 +273,7 @@
   }
   #manija.vivo { display: flex; }
   #manija:hover, #manija.encendido { opacity: 1; border-color: var(--parte, var(--acento)); }
-  #deshacer:hover { opacity: 1; border-color: var(--acento); }
+  #deshacer:hover { opacity: 1; border-color: var(--parte, var(--acento)); }
   .panel h3 {
     margin: 8px 14px 3px; font-size: var(--letra-chica); font-weight: 500;
     text-transform: uppercase; letter-spacing: .12em; color: var(--tenue);

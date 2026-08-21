@@ -228,17 +228,22 @@ function editable(x, y) {
 // palabra de la que cuelgan.
 const colorDelToken = t => !t ? null
   : vozDeLinea(t.l) ? tintaDe(vozDeLinea(t.l))
-  : t.tipo === 'tempo' ? 'var(--marca)' : null;
+  : t.tipo === 'tempo' ? 'var(--marca-tinta)' : null;
 
+// Vale igual para una palabra que para varias: una selección de notas de un
+// mismo renglón es tan de esa parte como una sola nota suya, y con más razón,
+// que son todas las que se van a cambiar de un saque. Recién cuando la selección
+// cruza de una parte a otra deja de ser de alguien y ahí sí manda el acento.
 function pintarDeQuien(el, t) {
-  const color = colorDelToken(t);
-  if (color) el.style.setProperty('--parte', color);
+  const colores = new Set((Array.isArray(t) ? t : [t]).map(colorDelToken));
+  const [color] = colores;
+  if (colores.size === 1 && color) el.style.setProperty('--parte', color);
   else el.style.removeProperty('--parte');
 }
 
 // pinta secciones en un panel y engancha lo que hace cada opción
-function pintarPanel(panel, secs, t) {
-  pintarDeQuien(panel, t);
+function pintarPanel(panel, secs, t, dueño = t) {
+  pintarDeQuien(panel, dueño);
   panel.innerHTML = secs.filter(s => s.ops.length).map(s =>
     '<div class="sec' + (s.detalle ? ' detalle' : '') + (s.pie ? ' pie' : '') +
     '"><h3>' + esc(s.titulo) + '</h3>' + s.ops.map((o, j) =>

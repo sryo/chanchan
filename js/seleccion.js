@@ -24,11 +24,32 @@ function tokensEnSeleccion() {
   return out.sort((x, y) => x.abs - y.abs);
 }
 
+// El resaltado y el cursor son de la parte sobre la que caen. Eran lo último que
+// seguía pintándose de acento encima de las palabras de un renglón, y quedaba un
+// lavado rojo sobre palabras verdes. ::selection es uno solo para todo el
+// textarea y no puede ir renglón por renglón, así que se tiñe mientras la
+// selección no se salga de una parte —que es como se selecciona casi siempre—; en
+// cuanto cruza de una a otra se queda sin dueño y vuelve el acento. Con el cursor
+// solo el renglón es uno y siempre hay dueño, salvo mientras la línea todavía no
+// se entiende: ahí el cursor rojo es, de paso, que el idioma no la reconoció.
+function tenirTextarea() {
+  const a = src.selectionStart, b = src.selectionEnd;
+  const tocadas = [];
+  let ini = 0;
+  for (const [l, ln] of src.value.split('\n').entries()) {
+    if (ini <= b && ini + ln.length >= a) tocadas.push({ l, tipo: esTempo(ln) ? 'tempo' : '' });
+    ini += ln.length + 1;
+  }
+  pintarDeQuien(src, tocadas);
+}
+
 function mirarSeleccion() {
+  tenirTextarea();
   const toks = tokensEnSeleccion();
   const tipos = new Set(toks.map(t => t.tipo));
   if (toks.length < 2 || tipos.size > 1) { botonSel.classList.remove('vivo'); tokensSel = []; return; }
   tokensSel = toks;
+  pintarDeQuien(botonSel, toks);
   botonSel.textContent = '▾ ' + toks.length + ' ' + PLURAL[[...tipos][0]];
   pegarA(botonSel, toks[toks.length - 1]);
 }
@@ -93,7 +114,7 @@ botonSel.addEventListener('mousedown', e => {
   if (!secs) return;
   const r = botonSel.getBoundingClientRect();
   menu.classList.add('columnas');
-  pintarPanel(menu, secs, null);
+  pintarPanel(menu, secs, null, tokensSel);
   menu.classList.add('abierto');
   menu.style.top = (r.bottom + 4) + 'px';
   menu.style.left = Math.max(8, Math.min(r.left, innerWidth - menu.offsetWidth - 8)) + 'px';

@@ -259,7 +259,7 @@ function abrirSugeridor(aPedido) {
     return cerrarSugeridor();
   ops.forEach(o => { o.hacer = () => aceptarSugerencia(o); });
   sug = { desde: base + r.desde, hasta: base + r.hasta, ops, elegido: 0 };
-  pintarPanel(sugeridor, secs, null);
+  pintarPanel(sugeridor, secs, null, [{ l }]);
   sugeridor.classList.add('abierto');
   anclaCaret = { l, c: r.desde };
   pintar(marcasActuales);

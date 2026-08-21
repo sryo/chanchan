@@ -44,6 +44,7 @@ function mostrarDeshacer(ancla, esRehacer) {
   botonDeshacer.textContent = esRehacer ? '↷' : '↶';
   botonDeshacer.title = esRehacer ? 'rehacer' : 'deshacer';
   botonDeshacer.dataset.que = esRehacer ? 'rehacer' : 'deshacer';
+  pintarDeQuien(botonDeshacer, ancla);
   if (!pegarA(botonDeshacer, ancla)) return;
   contarParaIrse();
 }
