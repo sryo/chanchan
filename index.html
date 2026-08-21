@@ -1,0 +1,2008 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tungatunga</title>
+<style>
+  :root {
+    --fondo: #14120f;
+    --panel: #1c1917;
+    --linea: #2e2926;
+    --texto: #ece3d6;
+    --tenue: #8c8177;
+    --sonido: #e8a34a;
+    --nota: #7fc7a0;
+    --mod: #9aa8e0;
+    --estructura: #d1683f;
+    --mal: #e05252;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--fondo); color: var(--texto);
+    font: 15px/1.55 var(--mono);
+    display: flex; flex-direction: column;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 18px;
+    padding: 14px 20px; border-bottom: 1px solid var(--linea);
+    flex-wrap: wrap;
+  }
+  h1 { font-size: 17px; margin: 0; font-weight: 600; letter-spacing: .04em; }
+  h1 span { color: var(--sonido); }
+  .lema { color: var(--tenue); font-size: 13px; margin-right: auto; }
+  button {
+    font: inherit; font-size: 13px; color: var(--texto);
+    background: var(--panel); border: 1px solid var(--linea);
+    padding: 5px 13px; border-radius: 5px; cursor: pointer;
+  }
+  button:hover { border-color: var(--tenue); }
+  button.on { background: var(--sonido); border-color: var(--sonido); color: #14120f; }
+  .transporte { display: flex; align-items: center; gap: 10px; }
+  #estado { color: var(--tenue); font-size: 13px; min-width: 11ch; }
+  main { flex: 1; display: flex; min-height: 0; }
+  .editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .wrap { position: relative; flex: 1; min-height: 0; }
+  #hl, #src {
+    position: absolute; inset: 0; margin: 0;
+    padding: 20px; border: 0; overflow: auto;
+    font: inherit; font-size: 16px; line-height: 1.75;
+    white-space: pre-wrap; overflow-wrap: break-word;
+    tab-size: 2;
+  }
+  #hl { pointer-events: none; color: var(--texto); }
+  #src {
+    background: transparent; color: transparent;
+    caret-color: var(--sonido); resize: none; outline: none;
+  }
+  /* el textarea va arriba con el texto transparente y lo que se lee sale de #hl,
+     abajo: si la selección es opaca tapa el texto y no queda nada visible */
+  #src::selection { background: rgba(232, 163, 74, .18); }
+  .t-sujeto { color: var(--texto); }
+  .t-verbo, .t-estructura { color: var(--estructura); }
+  .t-sonido { color: var(--sonido); }
+  .t-nota { color: var(--nota); }
+  .t-silencio { color: var(--linea); }
+  .t-mod { color: var(--mod); }
+  .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
+  .t-editable {
+    text-decoration: underline dotted var(--linea);
+    text-underline-offset: 4px;
+  }
+  .t-senalado { text-decoration-color: currentColor; }
+  /* la caja la comparten el menú del ▾ y el sugeridor del teclado */
+  .panel {
+    position: fixed; z-index: 10; display: none;
+    background: var(--panel); border: 1px solid var(--linea);
+    border-radius: 6px; padding: 6px 0; min-width: 190px;
+    max-height: 80vh; max-width: calc(100vw - 16px);
+    overflow: auto; box-shadow: 0 8px 24px #0009;
+    font-size: 13px;
+  }
+  .panel.abierto { display: block; }
+  .panel .op.conSub { padding-right: 8px; }
+  #sugerencias { z-index: 12; max-height: 300px; }
+  #sugerencias .op.elegido { background: #2e2926; color: var(--sonido); }
+  #menu.columnas.abierto {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, max-content));
+    gap: 1px; padding: 0; background: var(--linea);
+  }
+  #menu.columnas .sec { background: var(--panel); padding: 6px 0; min-width: 118px; }
+  #menu.columnas .sec.detalle { min-width: 208px; }
+  /* el silencio no es una dimensión de la altura: cruza todo el ancho, abajo */
+  #menu.columnas .sec.pie { grid-column: 1 / -1; }
+  #deshacer {
+    position: fixed; z-index: 11; display: none;
+    padding: 1px 7px; font-size: 13px; line-height: 1.4;
+    border-radius: 5px; opacity: .85;
+  }
+  #deshacer.vivo, #seleccion.vivo { display: block; }
+  #seleccion {
+    position: fixed; z-index: 11; display: none;
+    padding: 1px 8px; font-size: 12px; border-radius: 5px;
+    border-color: var(--sonido); color: var(--sonido);
+  }
+  /* El ▾ va como pseudo-elemento del span: lo ubica el navegador, no puede quedar
+     mal puesto, y no ocupa lugar así que el espejo con el textarea no se corre.
+     Cuelga de .t-senalado y no de :hover porque #hl tiene pointer-events:none y
+     ahí :hover no se dispara nunca. Para dejarlo fijo en todos, cambiar el
+     selector por span[data-tipo]::after. */
+  #hl span.t-senalado { position: relative; }
+  #hl span.t-senalado::after {
+    content: '▾'; position: absolute; left: calc(100% + 1px); top: 50%;
+    transform: translateY(-50%);
+    /* entre dos palabras hay un solo espacio (9,6px): más ancho que esto y el
+       chip se come el arranque de la palabra siguiente */
+    width: 10px; height: 14px; line-height: 11px; text-align: center;
+    font-size: 8px; color: var(--sonido);
+    background: var(--panel); border: 1px solid var(--linea);
+    border-radius: 5px; opacity: .85;
+  }
+  /* el «encendido» no puede ir en :hover porque #hl no recibe eventos: lo
+     pone el mousemove cuando el mouse entra en la franja del ▾ */
+  #hl span.t-manija::after { opacity: 1; border-color: var(--sonido); }
+  #deshacer:hover { opacity: 1; border-color: var(--sonido); }
+  .panel h3 {
+    margin: 8px 14px 3px; font-size: 10px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: .12em; color: var(--tenue);
+  }
+  .panel h3:first-child { margin-top: 0; }
+  .panel .op {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 3px 14px; cursor: pointer;
+  }
+  .panel .op:hover { background: #24201d; }
+  .panel .op .d { margin-left: auto; color: var(--tenue); font-size: 12px; }
+  .panel .op.puesto { color: var(--sonido); }
+  .t-activo {
+    background: #4a3a24; border-radius: 3px;
+    box-shadow: 0 0 0 2px #4a3a24;
+  }
+  .abajo { border-top: 1px solid var(--linea); background: var(--panel); font-size: 13px; }
+  #errores:not(:empty) { padding: 10px 20px; border-bottom: 1px solid var(--linea); }
+  #errores p { margin: 0 0 4px; color: var(--mal); }
+  #errores b { color: var(--texto); font-weight: 600; }
+  details summary { padding: 8px 20px; cursor: pointer; color: var(--tenue); list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: "▸ "; }
+  details[open] summary::before { content: "▾ "; }
+  #js { margin: 0; padding: 0 20px 14px; color: var(--tenue); font-size: 12.5px; white-space: pre-wrap; }
+  aside {
+    width: 264px; flex: none; border-left: 1px solid var(--linea);
+    background: var(--panel); overflow: auto; padding: 16px 0 40px;
+  }
+  aside h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .13em;
+    color: var(--tenue); margin: 20px 18px 8px; font-weight: 500;
+  }
+  aside h2:first-child { margin-top: 0; }
+  .item {
+    display: flex; gap: 8px; align-items: baseline;
+    padding: 2px 18px; cursor: pointer; font-size: 13px;
+  }
+  .item:hover { background: #24201d; }
+  .item .p { flex: none; }
+  .item .d { color: var(--tenue); font-size: 12px; margin-left: auto; text-align: right; }
+  .molde { padding: 2px 18px; color: var(--tenue); font-size: 12.5px; }
+  .molde b { color: var(--estructura); font-weight: 400; }
+  .ejemplos { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 18px; }
+  .ejemplos button { font-size: 12px; padding: 3px 9px; }
+  #puntos { position: absolute; left: 0; top: 0; bottom: 0; width: 20px; pointer-events: none; z-index: 3; }
+  .punto {
+    position: absolute; left: 6px; width: 9px; height: 9px; padding: 0;
+    border-radius: 50%; pointer-events: auto;
+    background: var(--tenue); border: 0; opacity: .5; cursor: pointer;
+  }
+  .punto:hover { opacity: 1; }
+  .punto.callado { background: transparent; box-shadow: inset 0 0 0 1px var(--tenue); }
+  aside details summary { padding: 3px 18px; font-size: 12.5px; }
+  aside details summary::-webkit-details-marker { display: none; }
+  aside details[open] { padding-bottom: 6px; }
+  @media (max-width: 720px) {
+    main { flex-direction: column; }
+    aside { width: auto; border-left: 0; border-top: 1px solid var(--linea); max-height: 45vh; }
+  }
+</style>
+<body>
+<header>
+  <h1>tunga<span>tunga</span></h1>
+  <div class="lema">escribí música en castellano</div>
+  <div class="transporte">
+    <button id="tocar">tocar</button>
+    <button id="enlace" title="copiar un enlace con este tema adentro">copiar enlace</button>
+    <span id="estado">cargando…</span>
+  </div>
+</header>
+<main>
+  <section class="editor">
+    <div class="wrap">
+      <pre id="hl" aria-hidden="true"></pre>
+      <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+    </div>
+    <div class="abajo">
+      <div id="errores"></div>
+      <details>
+        <summary>ver el strudel que sale de esto</summary>
+        <pre id="js"></pre>
+      </details>
+    </div>
+  </section>
+  <aside id="voc"></aside>
+</main>
+
+<script src="https://unpkg.com/@strudel/web@1.3.0"></script>
+<script>
+// ---------------------------------------------------------------- vocabulario
+const SONIDOS = {
+  pum:  ['bd',  'bombo'],
+  tas:  ['sd',  'redoblante'],
+  chas: ['cp',  'palmas'],
+  chis: ['hh',  'hi-hat'],
+  tsss: ['oh',  'hi-hat abierto'],
+  toc:  ['rim', 'aro'],
+  tum:  ['mt',  'tom'],
+  chan: ['cr',  'platillo'],
+  tin:  ['rd',  'ride'],
+};
+const NOTAS = { do:'c', re:'d', mi:'e', fa:'f', sol:'g', la:'a', si:'b' };
+const ALTERACIONES = { sostenido:'#', bemol:'b' };
+const ACORDES = {
+  mayor:      [0, 4, 7],
+  menor:      [0, 3, 7],
+  quinta:     [0, 7],        // la viola distorsionada toca dos notas, no tres
+  séptima:    [0, 4, 7, 10], // el acorde del boogie: do séptima = do mi sol si bemol
+  disminuido: [0, 3, 6],
+};
+const CROMATICA = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
+const GRADOS = { c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
+// strudel no entiende «do mayor» como acorde: hay que darle las tres notas juntas
+const nombreNota = (semi, oct) => CROMATICA[((semi % 12) + 12) % 12] + (oct + Math.floor(semi / 12));
+const OCTAVAS = { 'muy grave':2, grave:3, agudo:5, 'muy agudo':6 };
+const OCTAVA_BASE = 4;
+
+const GM = 'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/';
+
+// El nombre de la parte elige el instrumento: «la viola toca» ya suena a viola.
+// Son los 128 del General MIDI, agrupados como los agrupa el propio GM.
+// Muestras: soundfont FluidR3 (CC-BY 3.0) vía gleitz.github.io/midi-js-soundfonts.
+const FAMILIAS = [
+  ['pianos', {
+    'piano de concierto':'acoustic_grand_piano', 'piano brillante':'bright_acoustic_piano',
+    'piano de cola':'electric_grand_piano', 'piano de bar':'honkytonk_piano',
+    'piano eléctrico':'electric_piano_1', 'piano dulce':'electric_piano_2',
+    'clavecín':'harpsichord', 'clavinet':'clavinet' }],
+  ['láminas', {
+    'celesta':'celesta', 'campanitas':'glockenspiel', 'cajita de música':'music_box',
+    'vibráfono':'vibraphone', 'marimba':'marimba', 'xilofón':'xylophone',
+    'campanas':'tubular_bells', 'salterio':'dulcimer' }],
+  ['órganos', {
+    'órgano':'drawbar_organ', 'órgano percusivo':'percussive_organ',
+    'órgano de rock':'rock_organ', 'órgano de iglesia':'church_organ',
+    'armonio':'reed_organ', 'acordeón':'accordion',
+    'armónica':'harmonica', 'bandoneón':'tango_accordion' }],
+  ['violas', {
+    'viola criolla':'acoustic_guitar_nylon', 'viola':'acoustic_guitar_steel',
+    'viola de jazz':'electric_guitar_jazz', 'viola eléctrica':'electric_guitar_clean',
+    'viola muteada':'electric_guitar_muted', 'viola saturada':'overdriven_guitar',
+    'viola distorsionada':'distortion_guitar', 'armónicos':'guitar_harmonics' }],
+  ['bajos', {
+    'bajo acústico':'acoustic_bass', 'bajo':'electric_bass_finger',
+    'bajo con púa':'electric_bass_pick', 'bajo sin trastes':'fretless_bass',
+    'bajo slap':'slap_bass_1', 'bajo slap dos':'slap_bass_2',
+    'bajo sintético':'synth_bass_1', 'bajo sintético dos':'synth_bass_2' }],
+  ['cuerdas', {
+    'violín':'violin', 'viola de arco':'viola', 'chelo':'cello',
+    'contrabajo':'contrabass', 'cuerdas trémolo':'tremolo_strings',
+    'pizzicato':'pizzicato_strings', 'arpa':'orchestral_harp', 'timbal':'timpani' }],
+  ['conjuntos', {
+    'cuerdas':'string_ensemble_1', 'cuerdas suaves':'string_ensemble_2',
+    'cuerdas sintéticas':'synth_strings_1', 'cuerdas sintéticas dos':'synth_strings_2',
+    'coro':'choir_aahs', 'voces':'voice_oohs', 'coro sintético':'synth_choir',
+    'golpe de orquesta':'orchestra_hit' }],
+  ['metales', {
+    'trompeta':'trumpet', 'trombón':'trombone', 'tuba':'tuba',
+    'trompeta con sordina':'muted_trumpet', 'corno':'french_horn',
+    'bronces':'brass_section', 'bronces sintéticos':'synth_brass_1',
+    'bronces sintéticos dos':'synth_brass_2' }],
+  ['cañas', {
+    'saxo soprano':'soprano_sax', 'saxo alto':'alto_sax', 'saxo':'tenor_sax',
+    'saxo barítono':'baritone_sax', 'oboe':'oboe', 'corno inglés':'english_horn',
+    'fagot':'bassoon', 'clarinete':'clarinet' }],
+  ['flautas', {
+    'flautín':'piccolo', 'flauta':'flute', 'flauta dulce':'recorder',
+    'siku':'pan_flute', 'botella':'blown_bottle', 'shakuhachi':'shakuhachi',
+    'silbido':'whistle', 'ocarina':'ocarina' }],
+  ['solistas', {
+    'solista cuadrado':'lead_1_square', 'solista sierra':'lead_2_sawtooth',
+    'solista calíope':'lead_3_calliope', 'solista soplado':'lead_4_chiff',
+    'solista charango':'lead_5_charang', 'solista voz':'lead_6_voice',
+    'solista en quintas':'lead_7_fifths', 'solista grave':'lead_8_bass__lead' }],
+  ['colchones', {
+    'colchón':'pad_1_new_age', 'colchón tibio':'pad_2_warm',
+    'colchón polifónico':'pad_3_polysynth', 'colchón coral':'pad_4_choir',
+    'colchón frotado':'pad_5_bowed', 'colchón metálico':'pad_6_metallic',
+    'colchón halo':'pad_7_halo', 'colchón barrido':'pad_8_sweep' }],
+  ['efectos', {
+    'lluvia':'fx_1_rain', 'banda de sonido':'fx_2_soundtrack', 'cristal':'fx_3_crystal',
+    'atmósfera':'fx_4_atmosphere', 'brillo':'fx_5_brightness', 'duendes':'fx_6_goblins',
+    'ecos':'fx_7_echoes', 'ciencia ficción':'fx_8_scifi' }],
+  ['del mundo', {
+    'sitar':'sitar', 'banjo':'banjo', 'shamisen':'shamisen', 'koto':'koto',
+    'kalimba':'kalimba', 'gaita':'bagpipe', 'violín folk':'fiddle', 'shanai':'shanai' }],
+  ['percusión afinada', {
+    'campanilla':'tinkle_bell', 'agogó':'agogo', 'tambores de acero':'steel_drums',
+    'caja china':'woodblock', 'taiko':'taiko_drum', 'tom melódico':'melodic_tom',
+    'tambor sintético':'synth_drum', 'platillo al revés':'reverse_cymbal' }],
+  ['ruidos', {
+    'roce de cuerdas':'guitar_fret_noise', 'respiración':'breath_noise', 'mar':'seashore',
+    'pájaros':'bird_tweet', 'teléfono':'telephone_ring', 'helicóptero':'helicopter',
+    'aplausos':'applause', 'disparo':'gunshot' }],
+];
+
+// Los que no salen del soundfont. El piano de dough-samples tiene 29 muestras y
+// suena mejor que el del GM, así que «piano» es ése. Los osciladores no dependen
+// de la red: si el soundfont no carga, siempre queda algo con qué sonar.
+const SIN_GM = {
+  'piano':      { fam:'pianos',      sonido:'piano',    cola:'' },
+  'zumbido':    { fam:'osciladores', sonido:'sine',     cola:'.attack(.05).release(.3)' },
+  'sierra':     { fam:'osciladores', sonido:'sawtooth', cola:'.lpf(1800)' },
+  'cuadrada':   { fam:'osciladores', sonido:'square',   cola:'.lpf(1800)' },
+  'triangular': { fam:'osciladores', sonido:'triangle', cola:'' },
+};
+
+const ALIAS = {
+  'guitarra':'viola', 'guitarra criolla':'viola criolla', 'guitarra española':'viola criolla',
+  'guitarra eléctrica':'viola eléctrica', 'saxofón':'saxo', 'violonchelo':'chelo',
+  'organo':'órgano', 'fueye':'bandoneón', 'timbales':'timbal', 'teclado':'piano',
+};
+
+const INSTRUMENTO_POR_DEFECTO = 'piano';
+const MAQUINA = 'linndrum';
+
+// Las cajas de ritmo salen del pack que ya se carga. Se leen del propio strudel
+// en vez de escribirlas a mano, así la lista siempre es la que de verdad hay.
+const MARCAS = ['rolandcompurhythm', 'roland', 'akai', 'korg', 'yamaha', 'boss', 'casio',
+  'alesis', 'linn', 'emu', 'oberheim', 'sequentialcircuits', 'simmons', 'mfb', 'doepfer',
+  'sakata', 'univox', 'soundmaster'];
+const ALIAS_MAQUINA = { '808':'rolandtr808', '909':'rolandtr909', '606':'rolandtr606',
+  '707':'rolandtr707', '505':'rolandtr505', 'dmx':'oberheimdmx', 'mpc':'akaimpc60' };
+let _maquinas = null;
+
+function maquinas() {
+  if (_maquinas) return _maquinas;
+  const piezas = ['bd', 'sd', 'hh'];
+  const tiene = {};
+  try {
+    for (const n of Object.keys(strudel.soundMap.get())) {
+      const m = n.match(/^([a-z0-9]+)_([a-z]+)$/);
+      if (m && piezas.includes(m[2])) (tiene[m[1]] = tiene[m[1]] || new Set()).add(m[2]);
+    }
+  } catch (e) { return {}; }
+  const listas = Object.entries(tiene).filter(([, v]) => v.size === 3).map(([k]) => k);
+  if (!listas.length) return {};
+  _maquinas = {};
+  for (const n of listas.sort()) {
+    const marca = MARCAS.find(x => n.startsWith(x)) || 'otras';
+    const modelo = marca === 'otras' ? n : (n.slice(marca.length) || marca);
+    _maquinas[norm(marca + ' ' + modelo)] = { nombre: marca + ' ' + modelo, marca, banco: n };
+  }
+  for (const [corto, largo] of Object.entries(ALIAS_MAQUINA)) {
+    const halla = Object.values(_maquinas).find(m => m.banco === largo);
+    if (halla) _maquinas[corto] = halla;
+  }
+  return _maquinas;
+}
+const maquinaDe = n => maquinas()[norm(n)];
+
+const MODIFICADORES = [
+  ['al doble',            '.fast(2)',           'el doble de rápido'],
+  ['a la mitad',          '.slow(2)',           'la mitad de rápido'],
+  ['a un cuarto',         '.slow(4)',           'cuatro veces más lento'],
+  ['a un octavo',         '.slow(8)',           'ocho veces más lento'],
+  // separan el qué del cuándo: la nota la pone la línea, el pulso lo ponen estos
+  ['en negras',           '.struct("x*4")',     'cada nota, cuatro veces por vuelta'],
+  ['en corcheas',         '.struct("x*8")',     'cada nota, ocho veces por vuelta'],
+  ['sincopado',           '.struct("x ~ ~ x ~ ~ x ~")', 'en el uno, la y de dos y el cuatro'],
+  ['callado',             'mute',               'no suena, pero queda escrito'],
+  ['bajito',              '.gain(.45)',         'más callado'],
+  ['fuerte',              '.gain(1.3)',         'más alto'],
+  ['apagado',             '.lpf(500)',          'como detrás de una puerta'],
+  ['brillante',           '.hpf(700)',          'más filoso'],
+  ['con eco',             '.room(.6)',          'suena en una sala grande'],
+  ['al revés',            '.rev',               'de atrás para adelante'],
+  ['con swing',           '.swingBy(1/3, 4)',   'desparejo, arrastrado'],
+  ['perdiendo golpes',    '.degradeBy(.3)',     'de a ratos falta uno'],
+  ['de un lado al otro',  '.pan(sine)',         'se mueve entre los parlantes'],
+  ['una por vuelta',      '<>',                 'en vez de sonar juntos, se turnan'],
+];
+
+const SUJETOS_BANDA = ['la banda', 'el tema', 'la cancion'];
+
+// ---------------------------------------------------------------- utilidades
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+const esc = s => s.replace(/[&<>]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c]));
+// «séptima» se busca sin tilde, como sale escrito de cualquier teclado apurado
+const ACORDE = Object.fromEntries(Object.entries(ACORDES).map(([k, v]) => [norm(k), v]));
+
+// el nombre que strudel va a ver: sin tildes, sin espacios, una sola palabra
+const apodo = s => norm(s).replace(/[^a-z0-9]/g, '');
+const INSTRUMENTOS = {};
+for (const [fam, tabla] of FAMILIAS)
+  for (const [nombre, gm] of Object.entries(tabla))
+    INSTRUMENTOS[norm(nombre)] = { nombre, gm, fam, sonido: apodo(nombre), cola: '' };
+for (const [nombre, o] of Object.entries(SIN_GM))
+  INSTRUMENTOS[norm(nombre)] = { nombre, ...o };
+for (const [de, a] of Object.entries(ALIAS))
+  INSTRUMENTOS[norm(de)] = INSTRUMENTOS[norm(a)];
+const instrumentoDe = n => INSTRUMENTOS[norm(n)];
+
+function distancia(a, b) {
+  const m = [];
+  for (let i = 0; i <= b.length; i++) m[i] = [i];
+  for (let j = 0; j <= a.length; j++) m[0][j] = j;
+  for (let i = 1; i <= b.length; i++)
+    for (let j = 1; j <= a.length; j++)
+      m[i][j] = b[i-1] === a[j-1] ? m[i-1][j-1]
+        : Math.min(m[i-1][j-1] + 1, m[i][j-1] + 1, m[i-1][j] + 1);
+  return m[b.length][a.length];
+}
+
+// Los alias van aparte: INSTRUMENTOS[«guitarra»] apunta al mismo objeto que
+// «viola», así que su .nombre es «viola» y la palabra que el usuario escribió no
+// aparecería nunca en esta lista.
+const TODAS_LAS_PALABRAS = () => [
+  ...Object.keys(SONIDOS), ...Object.keys(NOTAS), ...Object.keys(ALTERACIONES), ...Object.keys(ACORDES),
+  ...Object.keys(OCTAVAS), ...new Set(Object.values(INSTRUMENTOS).map(i => i.nombre)), ...Object.keys(ALIAS),
+  ...MODIFICADORES.map(m => m[0]),
+];
+
+function parecida(palabra) {
+  const p = norm(palabra);
+  let mejor = null, min = Infinity;
+  for (const c of TODAS_LAS_PALABRAS()) {
+    const d = distancia(p, norm(c));
+    if (d < min) { min = d; mejor = c; }
+  }
+  return min <= Math.max(2, Math.floor(p.length / 3)) ? mejor : null;
+}
+
+// Ordena una lista de vocabulario por qué tan bien pega lo que se está tipeando:
+// idéntico, después lo que empieza igual, después lo que tiene alguna palabra que
+// empieza igual («corche» encuentra «en corcheas», que por prefijo de frase no
+// pegaría), y de última un Levenshtein para los errores de dedo. Sin prefijo
+// devuelve todo, que es el caso de «qué puede ir acá».
+function candidatos(prefijo, lista, clave = x => x, soloPega) {
+  const p = norm(prefijo || '');
+  if (!p) return lista.slice();
+  const pega = [], parecidas = [];
+  for (const c of lista) {
+    const n = norm(clave(c));
+    if (n === p) pega.push([c, 0, n.length]);
+    else if (n.startsWith(p)) pega.push([c, 1, n.length]);
+    else if (n.split(' ').some(w => w.startsWith(p))) pega.push([c, 2, n.length]);
+    else {
+      const d = distancia(p, n);
+      if (d <= Math.max(2, Math.floor(p.length / 3))) parecidas.push([c, d, n.length]);
+    }
+  }
+  // el Levenshtein es la red de última hora: si algo empieza como lo tipeado, los
+  // errores de dedo sólo agregan ruido («sinc» traía «si», «tin» y «siku»)
+  const cual = pega.length ? pega : (soloPega ? [] : parecidas);
+  return cual.sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
+}
+
+// En qué ranura de la plantilla cae el cursor, y qué pedazo de texto reemplazaría
+// una sugerencia. No lo puede contestar el parser: traducirLinea compila líneas
+// enteras, y hacerlo consciente del cursor obligaría a manejar entrada a medio
+// escribir en cada una de sus ramas. Con ubicar el verbo y cortar por comas alcanza.
+function ranuraEn(linea, col) {
+  const ws = palabras(linea, 0);
+  const trozo = (a, z) => ({ desde: a, hasta: z, prefijo: linea.slice(a, z).trim() });
+  // la palabra suelta bajo el cursor, para las ranuras que van palabra por palabra
+  const palabraEn = () => trozo(
+    col - linea.slice(0, col).match(/[^\s,]*$/)[0].length,
+    col + linea.slice(col).match(/^[^\s,]*/)[0].length);
+
+  if (SUJETOS_BANDA.includes(norm(ws.slice(0, 2).map(x => x.w).join(' ')))) {
+    const m = linea.match(/(\d+(?:[.,]\d+)?)/);
+    return { ranura: 'tempo', ...(m ? trozo(m.index, m.index + m[1].length) : palabraEn()) };
+  }
+
+  const iVerbo = ws.findIndex(x => /^(toca|tocan)$/i.test(x.w));
+  if (iVerbo < 0) return { ranura: 'linea', ...trozo(0, linea.length) };
+
+  const finVerbo = ws[iVerbo].i + ws[iVerbo].w.length;
+  if (col <= finVerbo) {
+    // el nombre de la parte es un solo blanco: del artículo (si hay) al verbo
+    const prim = ws[/^(el|la|los|las)$/i.test(ws[0].w) ? 1 : 0];
+    const a = prim && prim.i < ws[iVerbo].i ? prim.i : ws[iVerbo].i;
+    return { ranura: 'nombre', ...trozo(a, Math.max(a, ws[iVerbo].i - 1)) };
+  }
+
+  const cl = [];
+  let pos = finVerbo;
+  for (const t of linea.slice(finVerbo).split(',')) { cl.push({ txt: t, i: pos }); pos += t.length + 1; }
+  const cual = cl.findIndex(c => col >= c.i && col <= c.i + c.txt.length);
+  const c = cl[cual < 0 ? cl.length - 1 : cual];
+
+  // el modo lo fija el primer paso reconocido, y decide qué es legal más adelante:
+  // «en <caja de ritmo>» sólo vale con golpes, «en <instrumento>» sólo con notas
+  const pw = palabras(cl[0].txt, cl[0].i);
+  const modo = pw.some(x => SONIDOS[norm(x.w)]) ? 'sonido'
+             : pw.some(x => NOTAS[norm(x.w)]) ? 'nota' : null;
+
+  if (cual > 0) {
+    // las cláusulas se matchean enteras («al doble», «en un piano»), así que el
+    // prefijo es toda la cláusula y no la última palabra
+    const a = c.i + c.txt.length - c.txt.replace(/^\s+/, '').length;
+    return { ranura: 'clausula', modo, ...trozo(a, c.i + c.txt.length) };
+  }
+
+  const previa = pw.filter(x => x.i + x.w.length < col).pop();
+  const n = previa && norm(previa.w);
+  const trasNota = !!n && !!(NOTAS[n] || ALTERACIONES[n] || ACORDE[n] || OCTAVAS[n] || n === 'muy');
+  return { ranura: 'paso', modo, trasNota, ...palabraEn() };
+}
+
+function palabras(txt, base) {
+  const out = [], re = /\S+/g;
+  let m;
+  while ((m = re.exec(txt))) out.push({ w: m[0], i: base + m.index });
+  return out;
+}
+
+// ---------------------------------------------------------------- el traductor
+// Cada línea se convierte en un patrón de strudel. Los tokens que salen de acá
+// sirven para las dos cosas: pintar el editor y armar el código.
+function traducirLinea(texto, nro) {
+  const tk = [], errs = [];
+  let roto = false;
+  const marcar = (i, len, cls, dato) => { const t = { i, len, cls, ...dato }; tk.push(t); return t; };
+  const error = (i, len, msg) => { marcar(i, len, 'mal', { tipo: 'mal' }); errs.push({ nro, msg }); };
+
+  if (!texto.trim()) return { tipo: 'vacia', tk, errs };
+
+  const ws = palabras(texto, 0);
+  const sinArticulo = ws[0] && /^(el|la|los|las)$/i.test(ws[0].w) ? ws.slice(1) : ws;
+
+  // ---- la banda va a 92 tiempos por minuto
+  const dos = norm(ws.slice(0, 2).map(x => x.w).join(' '));
+  if (SUJETOS_BANDA.includes(dos)) {
+    const m = texto.match(/(\d+(?:[.,]\d+)?)/);
+    if (!/\bva a\b/.test(norm(texto)) || !m) {
+      error(0, texto.length, 'para el tempo escribí «la banda va a 92 tiempos por minuto».');
+      return { tipo: 'mala', tk, errs };
+    }
+    // sólo el número lleva menú y arrastre: si el token fuera toda la frase no
+    // habría dónde poner el cursor en esta línea
+    if (m.index > 0) marcar(0, m.index, 'estructura');
+    marcar(m.index, m[1].length, 'estructura', { tipo: 'tempo' });
+    const finNum = m.index + m[1].length;
+    if (finNum < texto.length) marcar(finNum, texto.length - finNum, 'estructura');
+    return { tipo: 'tempo', bpm: parseFloat(m[1].replace(',', '.')), tk, errs };
+  }
+
+  // ---- la <parte> toca <pasos>[, <modificador>]*
+  const iVerbo = ws.findIndex(x => /^(toca|tocan)$/i.test(x.w));
+  if (iVerbo < 0) {
+    error(0, texto.length, 'no entiendo la línea. Va «la bata toca pum - tas -» o «la banda va a 92 tiempos por minuto».');
+    return { tipo: 'mala', tk, errs };
+  }
+  // el artículo queda suelto y el nombre entero es un solo blanco: es el que
+  // elige el instrumento, así que el menú lo tiene que poder cambiar de una
+  const iNombre = ws.length - sinArticulo.length;
+  for (const x of ws.slice(0, iNombre)) marcar(x.i, x.w.length, 'sujeto');
+  let sujetoTk = null;
+  if (iNombre < iVerbo) {
+    const a = ws[iNombre], z = ws[iVerbo - 1];
+    sujetoTk = marcar(a.i, z.i + z.w.length - a.i, 'sujeto', { tipo: 'instrumento' });
+  }
+  marcar(ws[iVerbo].i, ws[iVerbo].w.length, 'verbo');
+
+  const desde = ws[iVerbo].i + ws[iVerbo].w.length;
+  const resto = texto.slice(desde);
+
+  // partir en cláusulas por coma, guardando la posición de cada una
+  const clausulas = [];
+  let pos = 0;
+  for (const trozo of resto.split(',')) {
+    clausulas.push({ txt: trozo, i: desde + pos });
+    pos += trozo.length + 1;
+  }
+
+  const nombre = ws.slice(ws.length - sinArticulo.length, iVerbo).map(x => x.w).join(' ') || 'parte';
+
+  // ---- los pasos
+  const pasos = [], lugares = [], pasoTk = [];
+  let modo = null;
+  const pw = palabras(clausulas[0].txt, clausulas[0].i);
+  for (let k = 0; k < pw.length; k++) {
+    const w = norm(pw[k].w);
+    if (w === '-' || w === '.') {
+      pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'silencio', { tipo: 'paso' }));
+      pasos.push('-'); lugares.push(null);
+    } else if (w === '_') {
+      // no es un paso nuevo: estira el anterior, como la ligadura de una partitura
+      pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'silencio', { tipo: 'paso' }));
+      pasos.push('_'); lugares.push(null);
+    } else if (SONIDOS[w]) {
+      pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'sonido', { tipo: 'paso' }));
+      if (modo === 'nota') { roto = true; error(pw[k].i, pw[k].w.length, 'no mezclés golpes con notas en la misma línea: hacé dos líneas.'); }
+      pasos.push(SONIDOS[w][0]); lugares.push({ i: pw[k].i, len: pw[k].w.length });
+      modo = 'sonido';
+    } else if (NOTAS[w]) {
+      let oct = OCTAVA_BASE, alt = '', acorde = '', fin = pw[k].i + pw[k].w.length;
+      let altN = '', octN = '';
+      // se comen las palabras que acompañan a la nota: bemol, sostenido, grave, muy agudo…
+      let k2 = k + 1;
+      while (k2 < pw.length) {
+        const n2 = norm(pw[k2].w);
+        if (ALTERACIONES[n2]) { alt = ALTERACIONES[n2]; altN = n2; }
+        else if (ACORDE[n2]) { acorde = n2; }
+        else if (OCTAVAS[n2]) { oct = OCTAVAS[n2]; octN = n2; }
+        else if (n2 === 'muy' && k2 + 1 < pw.length && OCTAVAS['muy ' + norm(pw[k2+1].w)]) {
+          octN = 'muy ' + norm(pw[k2+1].w); oct = OCTAVAS[octN]; k2++;
+        } else break;
+        fin = pw[k2].i + pw[k2].w.length;
+        k2++;
+      }
+      pasoTk.push(marcar(pw[k].i, fin - pw[k].i, 'nota', { tipo: 'nota', raiz: w, altN, octN, acorde }));
+      lugares.push({ i: pw[k].i, len: fin - pw[k].i });
+      if (acorde) {
+        const raiz = GRADOS[NOTAS[w]] + (alt === '#' ? 1 : alt === 'b' ? -1 : 0);
+        pasos.push('[' + ACORDE[acorde].map(iv => nombreNota(raiz + iv, oct)).join(',') + ']');
+      } else {
+        pasos.push(NOTAS[w] + alt + oct);
+      }
+      if (modo === 'sonido') { roto = true; error(pw[k].i, fin - pw[k].i, 'no mezclés golpes con notas en la misma línea: hacé dos líneas.'); }
+      modo = 'nota';
+      k = k2 - 1;
+    } else {
+      const s = parecida(pw[k].w);
+      error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Mirá la lista de la derecha.'));
+    }
+  }
+  // recién acá se sabe si la línea es de golpes o de notas
+  for (const t of pasoTk) t.modo = modo;
+  if (sujetoTk) sujetoTk.modo = modo;
+  if (!pasos.length) {
+    error(clausulas[0].i, Math.max(1, clausulas[0].txt.length), 'falta qué tocar: «' + nombre + ' toca pum - tas -».');
+    return { tipo: 'mala', tk, errs };
+  }
+
+  // ---- los modificadores
+  let cola = '', instrumento = null, alterna = false, callado = false, maquina = MAQUINA;
+  for (const c of clausulas.slice(1)) {
+    const n = norm(c.txt);
+    if (!n) continue;
+    const cw = palabras(c.txt, c.i);
+    const rango = [cw[0].i, cw[cw.length-1].i + cw[cw.length-1].w.length - cw[0].i];
+    const inst = n.match(/^en (?:un |una |el |la |los |las )?(.+)$/);
+    const caja = inst && modo === 'sonido' ? maquinaDe(inst[1]) : null;
+    if (caja) {
+      maquina = caja.banco;
+      marcar(rango[0], rango[1], 'mod', { tipo: 'instrumento', conEn: true, modo: 'sonido' });
+      continue;
+    }
+    if (inst && instrumentoDe(inst[1])) {
+      instrumento = instrumentoDe(inst[1]);
+      marcar(rango[0], rango[1], 'mod', { tipo: 'instrumento', conEn: true });
+      continue;
+    }
+    const mod = MODIFICADORES.find(m => norm(m[0]) === n);
+    if (mod) {
+      if (mod[1] === '<>') alterna = true;
+      else if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
+      else cola += mod[1];
+      marcar(rango[0], rango[1], 'mod', { tipo: 'modificador' });
+      continue;
+    }
+    const s = parecida(c.txt);
+    error(rango[0], rango[1], 'no conozco «' + c.txt.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Mirá la lista de la derecha.'));
+  }
+
+  if (modo === 'sonido' && instrumento)
+    errs.push({ nro, msg: 'los golpes ya traen su sonido: «en ' + instrumento.nombre + '» sólo sirve con notas.' });
+
+  if (roto) return { tipo: 'mala', tk, errs };
+  const patron = alterna ? '<' + pasos.join(' ') + '>' : pasos.join(' ');
+  let codigo;
+  if (modo === 'nota') {
+    const ins = instrumento || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO];
+    codigo = 'note("' + patron + '").sound("' + ins.sonido + '")' + ins.cola + cola;
+  } else {
+    codigo = 's("' + patron + '").bank("' + maquina + '")' + cola;
+  }
+  // el mismo patrón pero con el número de paso adentro: sirve para preguntarle
+  // a strudel cuál se está tocando ahora sin adivinar la cuenta a mano
+  const espejo = pasos.map((x, k) => (x === '-' || x === '_') ? x : k).join(' ');
+  const cotejo = 'n("' + (alterna ? '<' + espejo + '>' : espejo) + '")' + cola;
+  return { tipo: 'parte', nro, nombre, codigo, cotejo, lugares, callado, tk, errs };
+}
+
+function traducir(fuente) {
+  const lineas = fuente.split('\n');
+  const partes = [], errores = [], marcas = [], calladas = new Set();
+  let bpm = 90;
+  lineas.forEach((l, n) => {
+    const r = traducirLinea(l, n + 1);
+    marcas.push(r.tk);
+    errores.push(...r.errs);
+    if (r.tipo === 'tempo') bpm = r.bpm;
+    if (r.tipo === 'parte' && r.callado) calladas.add(n);
+    if (r.tipo === 'parte' && !r.callado) partes.push(r);
+  });
+  // cada parte se prueba sola: si una falla, se cae ella y no el tema entero
+  if (motorListo) {
+    for (let i = partes.length - 1; i >= 0; i--) {
+      try { eval(partes[i].codigo).queryArc(0, 1); }
+      catch (e) {
+        errores.push({ nro: partes[i].nro, msg: 'strudel no pudo con esta línea, la salteo: ' + String(e.message || e) });
+        partes.splice(i, 1);
+      }
+    }
+  }
+  let codigo = '';
+  if (partes.length) {
+    codigo = 'setcpm(' + bpm + '/4)\n';
+    codigo += partes.length === 1
+      ? partes[0].codigo
+      : 'stack(\n' + partes.map(p => '  ' + p.codigo + ', // ' + p.nombre).join('\n') + '\n)';
+  }
+  return { codigo, errores, marcas, partes, calladas, bpm };
+}
+
+// ---------------------------------------------------------------- el editor
+const src = document.getElementById('src');
+const hl = document.getElementById('hl');
+const cajaErr = document.getElementById('errores');
+const cajaJs = document.getElementById('js');
+const estado = document.getElementById('estado');
+const btnTocar = document.getElementById('tocar');
+
+let marcasActuales = [], calladasActuales = new Set();
+// dónde deja pintar() el ancla del sugeridor: {l, c} o null. Apunta al arranque de
+// lo que se va a reemplazar y no al cursor — es como alinean los editores, y de
+// paso cae en un borde de token, donde el html de la línea ya se corta solo.
+let anclaCaret = null;
+let activos = new Set();
+let señalado = null;
+
+function pintar(marcas) {
+  marcasActuales = marcas;
+  const lineas = src.value.split('\n');
+  hl.innerHTML = lineas.map((l, n) => {
+    const tk = (marcas[n] || []).slice().sort((a, b) => a.i - b.i);
+    let out = '', cur = 0;
+    // El sugeridor no tiene de dónde colgarse: no hay geometría del cursor en
+    // ningún lado, y no se puede calcular con el ancho del monoespaciado porque
+    // las líneas largas se parten solas (pre-wrap). Un span vacío acá adentro
+    // mide exacto, no corre el texto, y se rehace en cada pintada.
+    const anc = anclaCaret && anclaCaret.l === n ? anclaCaret.c : -1;
+    let ancPuesto = false;
+    const plano = (a, z) => {
+      if (ancPuesto || anc < a || anc > z) return esc(l.slice(a, z));
+      ancPuesto = true;
+      return esc(l.slice(a, anc)) + '<span id="ancla"></span>' + esc(l.slice(anc, z));
+    };
+    for (const t of tk) {
+      if (t.i < cur) continue;
+      out += plano(cur, t.i);
+      if (!ancPuesto && anc >= t.i && anc <= t.i + t.len) { ancPuesto = true; out += '<span id="ancla"></span>'; }
+      const vivo = activos.has(n + ':' + t.i) ? ' t-activo' : '';
+      // la marca de hover se aplica desde acá y no tocando el nodo: pintar()
+      // reconstruye el html todo el tiempo mientras suena y se la llevaría puesta
+      // el subrayado va siempre: se ve de una qué se puede tocar, sin llenar
+      // la pantalla de flechitas (en «la gruta» serían 53)
+      const editable = t.tipo && t.tipo !== 'mal' ? ' t-editable' : '';
+      const bajoElMouse = !(señalado && señalado.l === n && señalado.i === t.i) ? ''
+        : señalado.m ? ' t-senalado t-manija' : ' t-senalado';
+      const datos = t.tipo ? ' data-tipo="' + t.tipo + '" data-l="' + n + '" data-i="' + t.i + '" data-len="' + t.len + '"' : '';
+      out += '<span class="t-' + t.cls + vivo + editable + bajoElMouse + '"' + datos + '>' + esc(l.substr(t.i, t.len)) + '</span>';
+      cur = t.i + t.len;
+    }
+    return out + plano(cur, l.length);
+  }).join('\n') + '\n';
+  hl.scrollTop = src.scrollTop;
+}
+
+let ultimoCodigo = '';
+let sonando = false;
+let motorListo = false;
+
+function actualizar(reproducir) {
+  guardar();
+  const r = traducir(src.value);
+  calladasActuales = r.calladas;
+  pintar(r.marcas);
+  armarPuntos(r.marcas, r.calladas);
+  espejos = motorListo ? r.partes.map(p => {
+    try { return { nro: p.nro, lugares: p.lugares, pat: eval(p.cotejo) }; } catch (e) { return null; }
+  }).filter(Boolean) : [];
+  cajaErr.innerHTML = r.errores.map(e =>
+    '<p><b>línea ' + e.nro + ':</b> ' + esc(e.msg) + '</p>').join('');
+  cajaJs.textContent = r.codigo || '(todavía no hay nada que tocar)';
+  if (reproducir && sonando && r.codigo && r.codigo !== ultimoCodigo) {
+    ultimoCodigo = r.codigo;
+    correr(r.codigo);
+  }
+  return r;
+}
+
+// ------------------------------------------------- qué se está tocando ahora
+// getTime() es el reloj de strudel en vueltas; a cada patrón espejo le
+// preguntamos qué paso cae justo ahí y prendemos esa palabra en el editor.
+let espejos = [];
+let claveActivos = '';
+
+function seguir() {
+  requestAnimationFrame(seguir);
+  const nuevos = new Set();
+  if (sonando && espejos.length) {
+    let t;
+    try { t = getTime(); } catch (e) { t = null; }
+    if (t != null) for (const e of espejos) {
+      let haps;
+      try { haps = e.pat.queryArc(t, t + 0.0001); } catch (err) { continue; }
+      for (const h of haps) {
+        const p = e.lugares[h.value && h.value.n];
+        if (p) nuevos.add((e.nro - 1) + ':' + p.i);
+      }
+    }
+  }
+  const clave = [...nuevos].sort().join('|');
+  if (clave === claveActivos) return;
+  claveActivos = clave;
+  activos = nuevos;
+  pintar(marcasActuales);
+}
+
+// strudel corta el reloj pero no las notas que ya salieron: sin apagar el
+// audio, «parar» deja sonando la cola de los acordes largos y del eco.
+function silenciar() {
+  hush();
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === 'running') ctx.suspend();
+}
+
+function despertar() {
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === 'suspended') return ctx.resume();
+}
+
+function correr(codigo) {
+  try {
+    evaluate(codigo);
+    estado.textContent = 'sonando';
+  } catch (e) {
+    sonando = false;
+    refrescarTransporte();
+    estado.textContent = 'algo falló';
+    cajaErr.innerHTML += '<p><b>strudel:</b> ' + esc(String(e.message || e)) + '</p>';
+  }
+}
+
+// ------------------------------------------------- silenciar una línea
+// «callado» es una palabra del idioma y no un estado escondido de la interfaz:
+// acá el texto es el tema, así que si mandás un enlace tiene que sonar igual.
+// Los puntitos del margen son un atajo para escribirla.
+const puntos = document.createElement('div');
+puntos.id = 'puntos';
+document.querySelector('.wrap').appendChild(puntos);
+
+// el parser acepta «callado» en cualquier cláusula, así que preguntarle a él y
+// no a una regex que lo exige al final: si no, «pum, callado, fuerte» sale
+// silenciado por el compilador y el puntito lo muestra sonando
+const sacarCallado = ln => ln.replace(/\s*,\s*callado\b/i, '');
+const ponerCallado = ln => sacarCallado(ln) + ', callado';
+
+function lineasQueSuenan(marcas) {
+  return marcas.map((tks, l) =>
+    (tks || []).some(t => t.tipo && t.tipo !== 'tempo' && t.tipo !== 'mal') ? l : -1)
+    .filter(l => l >= 0);
+}
+
+function armarPuntos(marcas, calladas) {
+  const caja = hl.getBoundingClientRect();
+  puntos.innerHTML = '';
+  for (const l of lineasQueSuenan(marcas)) {
+    const sp = hl.querySelector('span[data-l="' + l + '"]');
+    if (!sp) continue;
+    const sr = sp.getBoundingClientRect();
+    const y = sr.top - caja.top;
+    if (y < 0 || y > caja.height) continue;
+    const b = document.createElement('button');
+    b.className = 'punto' + (calladas.has(l) ? ' callado' : '');
+    b.dataset.l = l;
+    b.title = 'silenciar · may+click deja sólo ésta';
+    puntos.appendChild(b);
+    // centrado contra el alto real del renglón: si cambia la fuente sigue andando
+    b.style.top = (y + (sr.height - b.offsetHeight) / 2) + 'px';
+  }
+}
+
+puntos.addEventListener('mousedown', e => {
+  const b = e.target.closest('.punto');
+  if (!b) return;
+  e.preventDefault();
+  alternarCallado(+b.dataset.l, e.shiftKey);
+});
+
+function alternarCallado(l, solo) {
+  const lineas = src.value.split('\n');
+  const partes = lineasQueSuenan(marcasActuales);
+  if (solo) {
+    const otras = partes.filter(i => i !== l);
+    // si ya estaban todas calladas, el mismo gesto las devuelve
+    const todasMudas = otras.every(i => calladasActuales.has(i));
+    otras.forEach(i => { lineas[i] = todasMudas ? sacarCallado(lineas[i]) : ponerCallado(lineas[i]); });
+    lineas[l] = sacarCallado(lineas[l]);
+  } else {
+    lineas[l] = calladasActuales.has(l) ? sacarCallado(lineas[l]) : ponerCallado(lineas[l]);
+  }
+  src.value = lineas.join('\n');
+  registrar(src.value, null);      // solo o silencio, un solo paso para atrás
+  actualizar(true);
+}
+
+
+// ------------------------------------------------------ que no se pierda
+// El tema es el texto, así que guardarlo es guardar el texto. El hash le gana al
+// guardado: si alguien te pasó un enlace, querés oír eso y no lo tuyo de ayer.
+const GUARDADO = 'tungatunga';
+let relojGuardar;
+
+function guardar() {
+  clearTimeout(relojGuardar);
+  relojGuardar = setTimeout(() => {
+    try { localStorage.setItem(GUARDADO, src.value); } catch (e) { /* modo privado */ }
+  }, 400);
+}
+
+function textoInicial() {
+  if (location.hash.length > 1) {
+    try { return decodeURIComponent(location.hash.slice(1)); } catch (e) { /* hash roto */ }
+  }
+  try { return localStorage.getItem(GUARDADO) || EJEMPLOS[0].txt; } catch (e) { return EJEMPLOS[0].txt; }
+}
+
+document.getElementById('enlace').addEventListener('click', async () => {
+  location.hash = encodeURIComponent(src.value);
+  try {
+    await navigator.clipboard.writeText(location.href);
+    estado.textContent = 'enlace copiado';
+  } catch (e) { estado.textContent = 'el enlace quedó en la barra'; }
+});
+
+// El span se rehace en cada pintada, así que lo que se ancle a un token tiene
+// que volver a buscarlo por posición en vez de guardarse el nodo.
+const spanDe = a => a && hl.querySelector('span[data-l="' + a.l + '"][data-i="' + a.i + '"]');
+
+function pegarA(el, ancla) {
+  const sp = spanDe(ancla);
+  if (!sp) { el.classList.remove('vivo'); return false; }
+  // el último renglón: si la palabra se parte, la unión daría una caja que arranca
+  // en el margen izquierdo y el cartelito saldría volando
+  const cajas = sp.getClientRects();
+  const r = cajas[cajas.length - 1] || sp.getBoundingClientRect();
+  el.style.left = (r.right + 6) + 'px';
+  el.style.top = (r.top - 3) + 'px';
+  el.classList.add('vivo');
+  return true;
+}
+
+// --------------------------------------------------------------- deshacer
+// Instantáneas del texto entero: un tema son unos cientos de caracteres, no hace
+// falta nada más fino. El ctrl+Z nativo no sirve acá — asignar src.value le borra
+// el historial de una, y eso pasa en cada cambio del menú y en cada ejemplo.
+const historial = [];
+let puntero = -1, grupoTecla = 0, aplicando = false;
+
+function registrar(txt, ancla, grupo) {
+  if (aplicando) return;
+  const arriba = historial[puntero];
+  // un arrastre entero, o una ráfaga de tecleo, son un solo paso para atrás
+  if (grupo && arriba && arriba.grupo === grupo) { arriba.txt = txt; arriba.ancla = ancla; return; }
+  historial.length = puntero + 1;          // al cambiar algo se pierde el rehacer
+  historial.push({ txt, ancla, grupo });
+  puntero = historial.length - 1;
+}
+
+function irA(i, cual) {
+  if (i < 0 || i >= historial.length) return;
+  puntero = i;
+  aplicando = true;
+  src.value = historial[i].txt;
+  actualizar(true);
+  aplicando = false;
+  mostrarDeshacer(historial[cual === 'deshacer' ? i + 1 : i].ancla, cual === 'deshacer');
+}
+
+// el botón vive pegado a la palabra que cambió y se va solo a los pocos segundos
+const botonDeshacer = document.createElement('button');
+botonDeshacer.id = 'deshacer';
+document.body.appendChild(botonDeshacer);
+let relojDeshacer;
+
+function mostrarDeshacer(ancla, esRehacer) {
+  clearTimeout(relojDeshacer);
+  botonDeshacer.textContent = esRehacer ? '↷' : '↶';
+  botonDeshacer.title = esRehacer ? 'rehacer' : 'deshacer';
+  botonDeshacer.dataset.que = esRehacer ? 'rehacer' : 'deshacer';
+  if (!pegarA(botonDeshacer, ancla)) return;
+  relojDeshacer = setTimeout(() => botonDeshacer.classList.remove('vivo'), 4000);
+}
+
+botonDeshacer.addEventListener('mousedown', e => {
+  e.preventDefault();
+  botonDeshacer.dataset.que === 'rehacer' ? rehacer() : deshacer();
+});
+
+const deshacer = () => irA(puntero - 1, 'deshacer');
+const rehacer  = () => irA(puntero + 1, 'rehacer');
+
+addEventListener('keydown', e => {
+  if (!(e.metaKey || e.ctrlKey) || norm(e.key) !== 'z') return;
+  e.preventDefault();
+  e.shiftKey ? rehacer() : deshacer();
+});
+
+let reloj;
+src.addEventListener('input', () => {
+  clearTimeout(reloj);
+  reloj = setTimeout(() => actualizar(true), 400);
+  registrar(src.value, null, 'tecla' + grupoTecla);
+  clearTimeout(relojTecla);
+  relojTecla = setTimeout(() => grupoTecla++, 600);
+  pintar(traducir(src.value).marcas);
+});
+let relojTecla;
+// uno solo, y en orden: primero el espejo, si no los puntitos miden contra
+// geometría vieja porque se posicionan a partir de los spans de #hl
+src.addEventListener('scroll', () => {
+  hl.scrollTop = src.scrollTop;
+  hl.scrollLeft = src.scrollLeft;
+  armarPuntos(marcasActuales, calladasActuales);
+  cerrarMenu();
+});
+
+function refrescarTransporte() {
+  btnTocar.textContent = sonando ? 'parar' : 'tocar';
+  btnTocar.classList.toggle('on', sonando);
+}
+
+btnTocar.addEventListener('click', () => {
+  if (sonando) {
+    sonando = false;
+    ultimoCodigo = '';
+    silenciar();
+    estado.textContent = 'en silencio';
+  } else {
+    const r = actualizar(false);
+    if (!r.codigo) { estado.textContent = 'escribí algo primero'; return; }
+    sonando = true;
+    ultimoCodigo = r.codigo;
+    Promise.resolve(despertar()).then(() => correr(r.codigo));
+  }
+  refrescarTransporte();
+});
+
+// ---------------------------------------------------------------- oír de a uno
+// superdough es el mismo motor que usa el reloj, pero llamado a mano no le pisa
+// el patrón a nadie: se puede probar un sonido sin cortar el tema que está yendo.
+const RECETAS = [];
+let esperaOir;
+
+// una sola fuente de verdad para «a qué suena esto»: la comparten la barra y el menú
+function recetaDe(que, clave) {
+  if (que === 'golpe' && SONIDOS[clave])
+    return { voces: [{ s: SONIDOS[clave][0], bank: MAQUINA, release: .25 }], dura: .4 };
+  if (que === 'nota' && NOTAS[clave])
+    return { voces: [{ s: 'piano', note: NOTAS[clave] + OCTAVA_BASE }], dura: .4 };
+  if (que === 'acorde' && ACORDE[norm(clave)])
+    return { voces: ACORDE[norm(clave)].map(i => ({ s: 'piano', note: nombreNota(i, OCTAVA_BASE) })), dura: .5 };
+  if (que === 'octava' && OCTAVAS[clave])
+    return { voces: [{ s: 'piano', note: 'c' + OCTAVAS[clave] }], dura: .4 };
+  if (que === 'alteracion')
+    // se oye contra el do, si no no se entiende medio tono de qué
+    return { voces: [{ s:'piano', note:'c4' }, { s:'piano', note: clave === 'bemol' ? 'b3' : 'c#4', en:.35 }], dura: .3 };
+  if (que === 'maquina')
+    return { voces: [{ s: 'bd', bank: clave, release: .25 },
+                     { s: 'sd', bank: clave, release: .25, en: .22 }], dura: .35 };
+  if (que === 'instrumento') {
+    const ins = instrumentoDe(clave);
+    return ins && { voces: [{ s: ins.sonido, note: ins.fam === 'bajos' ? 'c2' : 'c4' }], dura: .45 };
+  }
+  return null;
+}
+
+const precalentados = new Set();
+let vueltaOir = 0;
+
+// La muestra se baja recién cuando se usa, y superdough agenda la nota a 30 ms:
+// la primera vez el mp3 llega a los ~280 ms, con el momento ya pasado, y no suena
+// nada. Así que la primera vez se dispara muda y se espera su promesa, que resuelve
+// cuando el buffer está listo; recién ahí suena de verdad.
+async function oir(receta) {
+  if (!motorListo || !receta) return;
+  const mia = ++vueltaOir;
+  try {
+    await despertar();
+    let ctx = getAudioContext();
+    const frios = receta.voces.filter(v => !precalentados.has(v.s));
+    if (frios.length) {
+      frios.forEach(v => precalentados.add(v.s));
+      await Promise.all(frios.map(v =>
+        strudel.superdough({ ...v, gain: 0 }, ctx.currentTime + .001, .01)));
+      // si mientras bajaba el mouse se fue a otra cosa, ésta ya no va
+      if (mia !== vueltaOir) return;
+      ctx = getAudioContext();
+    }
+    const ahora = ctx.currentTime;   // después del await ya avanzó
+    for (const voz of receta.voces)
+      // el release corto es lo que corta la cola: sin él la muestra sigue sonando
+      // como un segundo y medio después de lo que dura la nota, y si vas
+      // recorriendo la lista se te encima con la siguiente
+      strudel.superdough({ gain: .8, release: .12, ...voz }, ahora + .03 + (voz.en || 0), receta.dura);
+  } catch (e) { /* si falla la muestra, mejor mudo que roto */ }
+}
+
+// un ratito de espera para que barrer la lista con el mouse no dispare todo
+function alPasar(el) {
+  el.addEventListener('mouseenter', () => {
+    clearTimeout(esperaOir);
+    esperaOir = setTimeout(() => oir(RECETAS[el.dataset.oir]), 180);
+  });
+  el.addEventListener('mouseleave', () => clearTimeout(esperaOir));
+}
+
+
+// -------------------------------------------- cambiar una palabra sin teclado
+// El textarea está arriba y tapa todo, pero #hl es un espejo exacto: misma
+// fuente, mismo padding, mismo interlineado. Así que para saber qué palabra hay
+// abajo del mouse alcanza con probar contra los rectángulos de los spans.
+const menu = document.createElement('div');
+menu.id = 'menu';
+menu.className = 'panel';
+document.body.appendChild(menu);
+let pidiendoCuadro = false, relojFamilia;
+
+// El ▾ que abre el menú lo dibuja el CSS como ::after del propio span, así que lo
+// ubica el navegador y no puede quedar mal puesto. El click no lo recibe el
+// pseudo-elemento (el textarea está apilado encima y le gana), así que se resuelve
+// como todo lo demás acá: la franja a la derecha del token cuenta como manija.
+const ANCHO_MANIJA = 14;
+
+
+// qué familia muestra la tercera columna; es estado del menú, no del documento
+let familiaElegida = null;
+
+function tokenEn(x, y, conManija) {
+  // la manija se guarda pero no corta la vuelta: el cuerpo de un token le gana a
+  // la franja del anterior, si no los primeros píxeles de una palabra abren el
+  // menú de la de al lado (entre dos tokens hay un espacio de 9,6px y la franja
+  // mide 14)
+  let manija = null;
+  for (const sp of hl.querySelectorAll('span[data-tipo]')) {
+    // getClientRects y no getBoundingClientRect: el de una palabra que se parte en
+    // dos renglones devuelve la unión, una caja ancha que cubre medio editor donde
+    // la palabra no está, y se roba los clicks de todo lo que tenga encima
+    for (const r of sp.getClientRects()) {
+      if (y < r.top || y > r.bottom) continue;
+      const d = { l: +sp.dataset.l, i: +sp.dataset.i, len: +sp.dataset.len, tipo: sp.dataset.tipo, r };
+      if (x >= r.left && x <= r.right) return d;
+      // la franja de la derecha es donde el css dibuja el ▾
+      if (conManija && !manija && x > r.right && x <= r.right + ANCHO_MANIJA) manija = { ...d, enManija: true };
+    }
+  }
+  return manija;
+}
+
+const datosDe = t => (marcasActuales[t.l] || []).find(x => x.i === t.i) || {};
+const textoDe = t => src.value.split('\n')[t.l].substr(t.i, t.len);
+
+// el sujeto de una línea de golpes no se toca: la caja va como cláusula al final
+function ponerClausula(l, texto) {
+  const lineas = src.value.split('\n');
+  const vieja = (marcasActuales[l] || []).find(x => x.tipo === 'instrumento' && x.conEn);
+  lineas[l] = vieja
+    ? lineas[l].slice(0, vieja.i) + texto + lineas[l].slice(vieja.i + vieja.len)
+    : lineas[l] + ', ' + texto;
+  src.value = lineas.join('\n');
+  registrar(src.value, { l, i: vieja ? vieja.i : lineas[l].length - texto.length, len: texto.length });
+  actualizar(true);
+}
+
+function reemplazar(t, texto, grupo) {
+  const lineas = src.value.split('\n');
+  lineas[t.l] = lineas[t.l].slice(0, t.i) + texto + lineas[t.l].slice(t.i + t.len);
+  src.value = lineas.join('\n');
+  registrar(src.value, { l: t.l, i: t.i, len: texto.length }, grupo);
+  actualizar(true);
+  mostrarDeshacer({ l: t.l, i: t.i, len: texto.length }, false);
+}
+
+// una nota se escribe siempre en este orden, con las partes que tenga
+const armarNota = p => [p.raiz, p.altN, p.octN, p.acorde].filter(Boolean).join(' ');
+
+// altura como un número solo, para poder subirla y bajarla de a un semitono
+const OCT_NOMBRE = Object.fromEntries(Object.entries(OCTAVAS).map(([k, v]) => [v, k]));
+const SEMI_MIN = 12 * 2, SEMI_MAX = 12 * 6 + 11;   // de do muy grave a si muy agudo
+const semiDe = d => GRADOS[NOTAS[d.raiz]] +
+  (d.altN === 'sostenido' ? 1 : d.altN === 'bemol' ? -1 : 0) +
+  12 * (d.octN ? OCTAVAS[d.octN] : OCTAVA_BASE);
+
+function notaDesdeSemi(semi, acorde) {
+  const oct = Math.floor(semi / 12), clase = ((semi % 12) + 12) % 12;
+  const exacta = Object.entries(NOTAS).find(([, en]) => GRADOS[en] === clase);
+  const abajo = exacta || Object.entries(NOTAS).find(([, en]) => GRADOS[en] === clase - 1);
+  return [abajo[0], exacta ? '' : 'sostenido',
+          oct === OCTAVA_BASE ? '' : OCT_NOMBRE[oct], acorde].filter(Boolean).join(' ');
+}
+
+const arrastrable = t => t && (t.tipo === 'tempo' || (t.tipo === 'nota' && datosDe(t).raiz));
+
+function seccionesDe(t) {
+  const d = datosDe(t), hoy = textoDe(t);
+  const golpes = Object.entries(SONIDOS).map(([p, [, desc]]) =>
+    ({ txt: p, desc, nuevo: p, receta: recetaDe('golpe', p) }));
+  const alPie = { titulo: 'que no suene', pie: true,
+                  ops: [{ txt: '–  este paso queda en silencio', nuevo: '-' }] };
+  const duracion = { titulo: 'duración',
+                     ops: [{ txt: 'sigue la anterior', nuevo: '_' }] };
+
+  if (t.tipo === 'paso' && d.modo !== 'nota')
+    return [{ titulo: 'golpes', ops: golpes }, duracion, alPie];
+
+  if (t.tipo === 'paso' || t.tipo === 'nota') {
+    const p = { raiz: d.raiz || 'do', altN: d.altN || '', octN: d.octN || '', acorde: d.acorde || '' };
+    const con = (campo, val) => armarNota({ ...p, [campo]: val });
+    return [
+      { titulo: 'nota',      ops: Object.keys(NOTAS).map(x =>
+          ({ txt: x, nuevo: con('raiz', x), puesto: p.raiz === x, receta: recetaDe('nota', x) })) },
+      { titulo: 'medio tono', ops: [{ txt: 'sin alterar', nuevo: con('altN', ''), puesto: !p.altN }].concat(
+          Object.keys(ALTERACIONES).map(x =>
+          ({ txt: x, nuevo: con('altN', x), puesto: p.altN === x, receta: recetaDe('alteracion', x) }))) },
+      { titulo: 'altura',    ops: [{ txt: 'normal', nuevo: con('octN', ''), puesto: !p.octN }].concat(
+          Object.keys(OCTAVAS).map(x =>
+          ({ txt: x, nuevo: con('octN', x), puesto: p.octN === x, receta: recetaDe('octava', x) }))) },
+      { titulo: 'acorde',    ops: [{ txt: 'una nota sola', nuevo: con('acorde', ''), puesto: !p.acorde }].concat(
+          Object.keys(ACORDES).map(x =>
+          ({ txt: x, nuevo: con('acorde', x), puesto: norm(p.acorde) === norm(x), receta: recetaDe('acorde', x) }))) },
+      duracion,
+      alPie,
+    ];
+  }
+
+  if (t.tipo === 'instrumento' && d.modo === 'sonido') {
+    // en una línea de golpes el sujeto no elige instrumento: elige la caja de ritmo
+    const todas = [...new Map(Object.values(maquinas()).map(m => [m.banco, m])).values()];
+    if (!todas.length) return null;
+    const marcas = [...new Set(todas.map(m => m.marca))].sort();
+    const puesta = d.conEn ? maquinaDe(hoy.replace(/^en (un |una |el |la |los |las )?/, '')) : null;
+    const marca = marcas.includes(familiaElegida) ? familiaElegida
+      : ((puesta || {}).marca || 'roland');
+    return [
+      { titulo: 'marcas', ops: marcas.map(x => ({ txt: x, familia: x, puesto: x === marca })) },
+      { titulo: marca, detalle: true, ops: todas.filter(m => m.marca === marca).map(m =>
+          ({ txt: m.nombre, clausula: 'en una ' + m.nombre,
+             puesto: !!puesta && puesta.banco === m.banco, receta: recetaDe('maquina', m.banco) })) },
+    ];
+  }
+
+  if (t.tipo === 'instrumento') {
+    const pre = d.conEn ? 'en ' : '';
+    const op = i => ({ txt: i.nombre, nuevo: pre + i.nombre,
+      puesto: puesta === i, receta: recetaDe('instrumento', i.nombre) });
+    // 133 opciones apiladas eran nueve pantallas y media. Van en dos columnas
+    // dentro de la misma caja: las familias y la que esté elegida.
+    const secs = [];
+    const actual = norm(hoy.replace(/^en (un |una |el |la |los |las )?/, ''));
+    const familias = [...FAMILIAS.map(f => f[0]), 'osciladores'];
+    const deFamilia = fam => [...new Set(Object.values(INSTRUMENTOS))].filter(i => i.fam === fam);
+    // se abre en la familia del instrumento que ya tiene la línea: caés en contexto
+    const puesta = instrumentoDe(actual);   // «en un piano» y «en piano» son el mismo
+    const suya = (puesta || {}).fam;
+    const fam = familias.includes(familiaElegida) ? familiaElegida : (suya || familias[0]);
+
+    secs.push({ titulo: 'familias', ops: familias.map(f =>
+      ({ txt: f, familia: f, puesto: f === fam })) });
+    secs.push({ titulo: fam, detalle: true, ops: deFamilia(fam).map(op) });
+    return secs;
+  }
+
+  if (t.tipo === 'modificador')
+    return [{ titulo: 'cómo', ops: MODIFICADORES.map(m =>
+      ({ txt: m[0], desc: m[2], nuevo: m[0], puesto: norm(hoy) === norm(m[0]) })) }];
+
+  if (t.tipo === 'tempo') {
+    const n = parseFloat(hoy.replace(',', '.')) || 90;
+    return [{ titulo: 'tiempos por minuto', ops: [-10, -5, -1, 1, 5, 10].map(paso =>
+      ({ txt: (paso > 0 ? '+' : '') + paso, desc: Math.max(20, n + paso) + '',
+         nuevo: String(Math.max(20, n + paso)) })) }];
+  }
+
+  if (t.tipo === 'mal') {
+    const s = parecida(hoy);
+    return s ? [{ titulo: '¿será…?', ops: [{ txt: s, nuevo: s }] }] : null;
+  }
+  return null;
+}
+
+// Barato a propósito: corre en cada cuadro del hover, y seccionesDe() arma el
+// menú entero (hasta 133 instrumentos, o un Levenshtein contra todo el
+// vocabulario si el token es un error). «mal» es el único que hay que preguntar.
+const CON_MENU = ['tempo', 'paso', 'nota', 'instrumento', 'modificador'];
+const tieneMenu = t => !!t &&
+  (CON_MENU.includes(t.tipo) || (t.tipo === 'mal' && !!seccionesDe(t)));
+
+function editable(x, y) {
+  const t = tokenEn(x, y);
+  return tieneMenu(t) ? t : null;
+}
+
+// --------------------------------------------- editar varios de una vez
+const PLURAL = { nota: 'notas', paso: 'pasos', modificador: 'modificadores' };
+const botonSel = document.createElement('button');
+botonSel.id = 'seleccion';
+document.body.appendChild(botonSel);
+let tokensSel = [];
+
+// los tokens que caen dentro de la selección, con su posición absoluta en el texto
+function tokensEnSeleccion() {
+  const a = src.selectionStart, b = src.selectionEnd;
+  if (a === b) return [];
+  const bases = []; let acum = 0;
+  for (const ln of src.value.split('\n')) { bases.push(acum); acum += ln.length + 1; }
+  const out = [];
+  marcasActuales.forEach((tks, l) => {
+    for (const t of tks || []) {
+      if (!t.tipo || t.tipo === 'mal' || t.tipo === 'tempo') continue;
+      const ini = bases[l] + t.i;
+      if (ini < b && ini + t.len > a) out.push({ ...t, l, abs: ini });
+    }
+  });
+  return out.sort((x, y) => x.abs - y.abs);
+}
+
+function mirarSeleccion() {
+  const toks = tokensEnSeleccion();
+  const tipos = new Set(toks.map(t => t.tipo));
+  if (toks.length < 2 || tipos.size > 1) { botonSel.classList.remove('vivo'); tokensSel = []; return; }
+  tokensSel = toks;
+  botonSel.textContent = '▾ ' + toks.length + ' ' + PLURAL[[...tipos][0]];
+  pegarA(botonSel, toks[toks.length - 1]);
+}
+
+// se reescribe de derecha a izquierda: si no, cada cambio corre los offsets que siguen
+function aplicarAVarios(fn) {
+  let txt = src.value;
+  for (const t of tokensSel.slice().sort((a, b) => b.abs - a.abs)) {
+    const nuevo = fn(t);
+    if (nuevo != null) txt = txt.slice(0, t.abs) + nuevo + txt.slice(t.abs + t.len);
+  }
+  src.value = txt;
+  registrar(src.value, null);      // toda la operación es un paso solo
+  actualizar(true);
+  botonSel.classList.remove('vivo');
+}
+
+function transponer(delta) {
+  const notas = tokensSel.filter(t => t.raiz);
+  if (!notas.length) return;
+  const semis = notas.map(semiDe);
+  // el recorte se calcula para el grupo entero: recortando nota por nota se
+  // romperían los intervalos y la melodía quedaría aplastada
+  const d = delta > 0 ? Math.min(delta, SEMI_MAX - Math.max(...semis))
+                      : Math.max(delta, SEMI_MIN - Math.min(...semis));
+  if (!d) return;
+  aplicarAVarios(t => t.raiz ? notaDesdeSemi(semiDe(t) + d, t.acorde || '') : null);
+}
+
+function seccionesSeleccion() {
+  const que = tokensSel[0].tipo;
+  if (que === 'nota') return [
+    { titulo: 'transponer', ops: [['+1 octava',12],['+1 tono',2],['+1 semitono',1],
+        ['−1 semitono',-1],['−1 tono',-2],['−1 octava',-12]]
+        .map(([txt, d]) => ({ txt, hacer: () => transponer(d) })) },
+    { titulo: 'altura', detalle: true, ops: [{ txt: 'normal', v: '' }]
+        .concat(Object.keys(OCTAVAS).map(v => ({ txt: v, v })))
+        .map(o => ({ txt: o.txt, hacer: () => aplicarAVarios(t => armarNota({ ...t, octN: o.v })) })) },
+    { titulo: 'acorde', ops: [{ txt: 'una nota sola', v: '' }]
+        .concat(Object.keys(ACORDES).map(v => ({ txt: v, v })))
+        .map(o => ({ txt: o.txt, hacer: () => aplicarAVarios(t => armarNota({ ...t, acorde: o.v })) })) },
+    { titulo: 'medio tono', ops: [{ txt: 'sin alterar', v: '' }]
+        .concat(Object.keys(ALTERACIONES).map(v => ({ txt: v, v })))
+        .map(o => ({ txt: o.txt, hacer: () => aplicarAVarios(t => armarNota({ ...t, altN: o.v })) })) },
+  ];
+  if (que === 'paso') return [
+    { titulo: 'poner en todos', ops: Object.entries(SONIDOS).map(([p, [, d]]) =>
+        ({ txt: p, desc: d, receta: recetaDe('golpe', p), hacer: () => aplicarAVarios(() => p) })) },
+    { titulo: 'o nada', ops: [{ txt: '-', hacer: () => aplicarAVarios(() => '-') },
+                              { txt: '_', hacer: () => aplicarAVarios(() => '_') }] },
+  ];
+  if (que === 'modificador') return [
+    { titulo: 'poner en todos', ops: MODIFICADORES.map(m =>
+        ({ txt: m[0], desc: m[2], hacer: () => aplicarAVarios(() => m[0]) })) }];
+  return null;
+}
+
+botonSel.addEventListener('mousedown', e => {
+  e.preventDefault();
+  const secs = seccionesSeleccion();
+  if (!secs) return;
+  const r = botonSel.getBoundingClientRect();
+  menu.classList.add('columnas');
+  pintarPanel(menu, secs, null);
+  menu.classList.add('abierto');
+  menu.style.top = (r.bottom + 4) + 'px';
+  menu.style.left = Math.max(8, Math.min(r.left, innerWidth - menu.offsetWidth - 8)) + 'px';
+});
+
+document.addEventListener('selectionchange', () => { if (document.activeElement === src) mirarSeleccion(); });
+
+// pinta secciones en un panel y engancha lo que hace cada opción
+function pintarPanel(panel, secs, t) {
+  panel.innerHTML = secs.filter(s => s.ops.length).map(s =>
+    '<div class="sec' + (s.detalle ? ' detalle' : '') + (s.pie ? ' pie' : '') +
+    '"><h3>' + esc(s.titulo) + '</h3>' + s.ops.map((o, j) =>
+      '<div class="op' + (o.puesto ? ' puesto' : '') + (o.familia ? ' conSub' : '') +
+      '" data-op="' + j + '" data-sec="' + secs.indexOf(s) + '">' +
+      '<span>' + esc(o.txt) + '</span>' +
+      (o.desc ? '<span class="d">' + esc(o.desc) + '</span>' : '') +
+      (o.familia ? '<span class="d">▸</span>' : '') + '</div>').join('') + '</div>').join('');
+
+  // auto-fit crea tantas pistas de 118px como entren en la ventana y deja colapsar
+  // las vacías, pero la franja del pie las abarca todas con 1/-1 y eso se lo
+  // impide: el menú terminaba midiendo la pantalla entera con el contenido a un
+  // tercio. Se fija la cantidad real de columnas.
+  const columnas = secs.filter(x => x.ops.length && !x.pie).length;
+  panel.style.gridTemplateColumns = 'repeat(' + columnas + ', minmax(118px, max-content))';
+
+  panel.querySelectorAll('.op').forEach(el => {
+    const o = secs[+el.dataset.sec].ops[+el.dataset.op];
+    el.addEventListener('mouseenter', () => {
+      clearTimeout(esperaOir);
+      clearTimeout(relojFamilia);
+      if (o.receta) esperaOir = setTimeout(() => oir(o.receta), 120);
+      // el panel no se mueve, así que abrir familia al pasar es seguro, salvo
+      // que el mouse venga cruzando en diagonal hacia el detalle
+      if (o.familia) relojFamilia = setTimeout(() => {
+        if (vaHaciaElDetalle()) return;
+        verFamilia(o.familia, t);
+      }, 80);
+    });
+    el.addEventListener('mouseleave', () => { clearTimeout(esperaOir); clearTimeout(relojFamilia); });
+    el.addEventListener('mousedown', e => {
+      e.preventDefault();
+      if (o.hacer) { o.hacer(); return cerrarMenu(); }
+      if (o.familia) return verFamilia(o.familia, t);
+      if (o.clausula) { ponerClausula(t.l, o.clausula); return cerrarMenu(); }
+      reemplazar(t, o.nuevo);
+      cerrarMenu();
+    });
+  });
+}
+
+// debajo de lo que lo abrió, o arriba si no entra; y sin salirse de la ventana
+function acomodar(el, r) {
+  const alto = el.offsetHeight, ancho = el.offsetWidth;
+  const abajo = r.bottom + 4 + alto < innerHeight;
+  el.style.top = (abajo ? r.bottom + 4 : Math.max(4, r.top - alto - 4)) + 'px';
+  el.style.left = Math.max(8, Math.min(r.left, innerWidth - ancho - 8)) + 'px';
+}
+
+// ------------------------------------------------- el triángulo de seguridad
+// Yendo en diagonal desde una familia hacia la columna de al lado se cruzan otras
+// familias, y cada una cambiaría el detalle abajo del mouse. Mientras el puntero
+// va dentro del triángulo que forman su posición anterior y el borde cercano de
+// la columna de detalle, se entiende que va hacia ahí y no se cambia de familia.
+// Hace falta un rastro y no una sola posición: dos mousemove seguidos están a
+// milisegundos, y con el vértice pegado al punto el triángulo se abre tanto que
+// bloquea todo, incluso bajar derecho por la columna.
+const rastro = [];
+const PLAZO_TRIANGULO = 300;   // sin esto, apoyar el mouse y esperar no haría nada
+const VENTANA_RASTRO = 200;    // cuánto para atrás se mira para sacar la dirección
+
+menu.addEventListener('mousemove', e => {
+  const ahora = performance.now();
+  rastro.push({ x: e.clientX, y: e.clientY, t: ahora });
+  while (rastro.length > 2 && ahora - rastro[0].t > VENTANA_RASTRO) rastro.shift();
+});
+
+// punto dentro del triángulo por el signo de los tres productos cruzados
+const dentroDelTriangulo = (p, a, b, c) => {
+  const cruz = (u, v, w) => (v.x - u.x) * (w.y - u.y) - (v.y - u.y) * (w.x - u.x);
+  const d1 = cruz(a, b, p), d2 = cruz(b, c, p), d3 = cruz(c, a, p);
+  return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+};
+
+function vaHaciaElDetalle() {
+  if (rastro.length < 2) return false;
+  const act = rastro[rastro.length - 1], ant = rastro[0];
+  if (performance.now() - act.t > PLAZO_TRIANGULO) return false;  // se destraba solo
+  if (act.x <= ant.x) return false;          // no está avanzando hacia el detalle
+  const det = menu.querySelector('.sec.detalle');
+  if (!det) return false;
+  const r = det.getBoundingClientRect();
+  if (act.x >= r.left) return false;         // ya llegó
+  return dentroDelTriangulo(act, ant, { x: r.left, y: r.top }, { x: r.left, y: r.bottom });
+}
+
+// cambiar de familia repinta sólo la tercera columna; el panel se queda quieto
+function verFamilia(fam, t) {
+  if (fam === familiaElegida) return;
+  familiaElegida = fam;
+  pintarPanel(menu, seccionesDe(t), t);
+}
+
+function abrirMenu(t) {
+  const secs = seccionesDe(t);
+  if (!secs) return;
+  // las notas van en columnas: apiladas son 738 px y hay que scrollear para
+  // llegar a «acorde», que es justo lo que más se cambia
+  menu.classList.toggle('columnas',
+    t.tipo === 'instrumento' || t.tipo === 'nota' || t.tipo === 'paso');
+  pintarPanel(menu, secs, t);
+  menu.classList.add('abierto');
+  acomodar(menu, t.r);
+}
+
+function cerrarMenu() {
+  clearTimeout(relojFamilia);
+  familiaElegida = null;
+  menu.classList.remove('abierto');
+}
+
+// --------------------------------------------------------------- el sugeridor
+// Autocompletar y «sugerir siguiente» son la misma cosa con el prefijo vacío: cada
+// ranura de la plantilla tiene vocabulario cerrado, así que lo que se ofrece no es
+// una adivinanza sino toda la gramática legal en ese punto.
+const sugeridor = document.createElement('div');
+sugeridor.id = 'sugerencias';
+sugeridor.className = 'panel';
+document.body.appendChild(sugeridor);
+
+let sug = null;
+
+// al revés que ALIAS_MAQUINA: de banco a los apodos con que uno la escribe
+const APODOS_MAQUINA = {};
+for (const [apodo2, banco] of Object.entries(ALIAS_MAQUINA))
+  (APODOS_MAQUINA[banco] = APODOS_MAQUINA[banco] || []).push(apodo2);
+
+// «bajo con púa» es masculino y «flauta dulce» femenina: manda el sustantivo, que
+// es la primera palabra, no la última.
+const cabeza = n => n.split(' ')[0];
+// los plurales en -es no dicen el género, y el parser se come el artículo igual;
+// pero la lista de sugerencias es lo que enseña cómo se escribe el idioma
+const GENERO = { voz: 'la', voces: 'las', bronces: 'los', duendes: 'los', tambores: 'los' };
+const articuloDe = n => {
+  const c = cabeza(n);
+  return GENERO[norm(c)] || (/(cion|sion|dad|tad)$/.test(norm(c)) ? 'la'
+    : /as$/.test(c) ? 'las' : /os$/.test(c) ? 'los' : /a$/.test(c) ? 'la' : 'el');
+};
+const verboDe = n => ['los', 'las'].includes(articuloDe(n)) ? 'tocan' : 'toca';
+const unDe = n => articuloDe(n).startsWith('la') ? 'en una ' : 'en un ';
+
+// Mismas listas que el menú del ▾, pero para insertar en el cursor y no para
+// reemplazar un token ya parseado: acá la opción lleva «pone», no «nuevo».
+function seccionesEnCaret(r) {
+  // dos pasadas: primero exigiendo que algo empiece de verdad como lo tipeado, y
+  // sólo si no hay nada se acepta el Levenshtein. Si no, cada sección dispara su
+  // propia red de errores de dedo y «do sost» termina ofreciendo «sol».
+  const secs = armarSecciones(r, true);
+  return secs.length ? secs : armarSecciones(r, false);
+}
+
+function armarSecciones(r, soloPega) {
+  const op = (txt, pone, desc, receta) => ({ txt, desc, receta, pone: pone == null ? txt : pone });
+  const filtrar = (ops, pref, clave) =>
+    candidatos(pref === undefined ? r.prefijo : pref, ops, clave || (o => o.txt), soloPega);
+  // el nombre de la parte es texto libre: «la bata» no está mal escrito, así que
+  // acá el Levenshtein no corrige nada, sólo ofrece pisar la línea con otra cosa
+  const filtrarPega = (ops, pref, clave) => candidatos(pref, ops, clave, true);
+  const sec = (titulo, ops) => ops.length ? [{ titulo, ops }] : [];
+  // «melodía», «bata» o «voz» no son instrumentos, pero son lo que uno escribe;
+  // el nombre libre cae en el piano por defecto
+  const DE_SIEMPRE = ['melodía', 'bata', 'bajo', 'piano', 'platillos', 'voz'];
+
+  // los alias van aparte: comparten objeto con el instrumento al que apuntan, así
+  // que por .nombre nunca aparecerían («guitarra» dice «viola»)
+  const instrumentos = () => [...new Set(Object.values(INSTRUMENTOS))]
+    .map(i => op(i.nombre, i.nombre, i.fam, recetaDe('instrumento', i.nombre)))
+    .concat(Object.keys(ALIAS).map(a => op(a, a, ALIAS[a], recetaDe('instrumento', a))));
+
+  if (r.ranura === 'linea') {
+    // el prefijo es la línea entera, pero lo único que se elige acá es el nombre de
+    // la parte. Matchear la plantilla completa haría que «la» pegue con «la arpa
+    // toca» por el artículo, y que «la bata toc» pegue con «la gaita toca» por
+    // Levenshtein — y aceptarlo pisaría la línea entera.
+    const ws = norm(r.prefijo).split(/\s+/).filter(Boolean);
+    if (/^(el|la|los|las)$/.test(ws[0] || '')) ws.shift();
+    if (ws.length > 1 && 'tocan'.startsWith(ws[ws.length - 1])) ws.pop();
+    const pelado = ws.join(' ');
+    const plantilla = n => ({ ...op(articuloDe(n) + ' ' + n + ' ' + verboDe(n), null, 'una parte nueva'),
+                              buscar: n });
+    // sin prefijo van sólo los arranques de siempre: 133 instrumentos sin filtrar
+    // son una lista que no se puede leer
+    const partes = [...new Set(pelado
+      ? [...DE_SIEMPRE, ...Object.values(INSTRUMENTOS).map(i => i.nombre)] : DE_SIEMPRE)];
+    const tempo = { ...op('la banda va a 92 tiempos por minuto', null, 'el pulso del tema'),
+                    buscar: 'banda va a 92 tiempos por minuto' };
+    return sec('empezar una línea',
+               filtrarPega([...partes.map(plantilla), tempo], pelado, o => o.buscar));
+  }
+
+  if (r.ranura === 'nombre')
+    return [...sec('partes de siempre', filtrarPega(DE_SIEMPRE.map(n => op(n)), r.prefijo, o => o.txt)),
+            ...sec('o un instrumento', filtrarPega(instrumentos(), r.prefijo, o => o.txt))];
+
+  if (r.ranura === 'paso') {
+    const secs = [];
+    const sufijos = [
+      ...Object.keys(ALTERACIONES).map(w => op(w, w, 'medio tono', recetaDe('alteracion', w))),
+      ...Object.keys(OCTAVAS).map(w => op(w, w, 'otra altura', recetaDe('octava', w))),
+      ...Object.keys(ACORDES).map(w => op(w, w, 'notas juntas', recetaDe('acorde', w))),
+    ];
+    if (r.modo !== 'sonido' && r.trasNota) secs.push(...sec('seguir la nota', filtrar(sufijos)));
+    if (r.modo !== 'nota') secs.push(...sec('golpes', filtrar(Object.entries(SONIDOS)
+      .map(([w, [, d]]) => op(w, w, d, recetaDe('golpe', w))))));
+    if (r.modo !== 'sonido') secs.push(...sec('notas', filtrar(Object.keys(NOTAS)
+      .map(w => op(w, w, null, recetaDe('nota', w))))));
+    secs.push(...sec('o', filtrar([op('-', null, 'este paso no suena'),
+                                   op('_', null, 'sigue sonando la anterior')])));
+    return secs;
+  }
+
+  if (r.ranura === 'clausula') {
+    const mods = MODIFICADORES.map(m => op(m[0], null, m[2]));
+    // «en un viol» no empieza como «en una viola»: el artículo no coincide. Se
+    // matchea contra el nombre pelado y se le saca la preposición a lo tipeado.
+    // el artículo puede ser lo último tipeado («en un ») o venir pegado a una
+    // palabra que empieza igual («en laúd»), así que se exige espacio o fin; y va
+    // de más largo a más corto para que «una» no matchee como «un» + «a»
+    const m = norm(r.prefijo).match(/^en\s*(?:(?:una|un|los|las|el|la)(?:\s+|$))?\s*(.*)$/);
+    const pelado = m ? m[1] : r.prefijo;
+    const conEn = r.modo === 'sonido'
+      ? [...new Map(Object.values(maquinas()).map(m2 => [m2.banco, m2])).values()]
+          .map(m2 => ({ ...op('en una ' + m2.nombre, null, m2.marca, recetaDe('maquina', m2.banco)),
+                        // «808» tiene que encontrar la «roland tr808»
+                        buscar: m2.nombre + ' ' + (APODOS_MAQUINA[m2.banco] || []).join(' ') }))
+      : instrumentos().map(o => ({ ...op(unDe(o.txt) + o.txt, null, o.desc, o.receta), buscar: o.txt }));
+    return [...sec('cómo', filtrar(mods)),
+            ...sec(r.modo === 'sonido' ? 'en qué caja' : 'en qué instrumento',
+                   filtrar(conEn, pelado, o => o.buscar))];
+  }
+  return [];
+}
+
+function reemplazarRango(desde, hasta, txt) {
+  const l = src.value.slice(0, desde).split('\n').length - 1;
+  const i = desde - (src.value.lastIndexOf('\n', desde - 1) + 1);
+  src.value = src.value.slice(0, desde) + txt + src.value.slice(hasta);
+  src.selectionStart = src.selectionEnd = desde + txt.length;
+  src.focus();
+  // sin grupo: aceptar una sugerencia es su propio paso de deshacer y no se funde
+  // con la ráfaga de tecleo de alrededor
+  registrar(src.value, { l, i, len: txt.length });
+  actualizar(true);
+  mostrarDeshacer({ l, i, len: txt.length }, false);
+}
+
+function aceptarSugerencia(o) {
+  if (!sug || !o) return;
+  const { desde, hasta } = sug;
+  let txt = o.pone;
+  const finLinea = hasta >= src.value.length || src.value[hasta] === '\n';
+  if (finLinea && !/\s$/.test(txt)) txt += ' ';
+  cerrarSugeridor();
+  reemplazarRango(desde, hasta, txt);
+}
+
+function marcarElegido() {
+  const ops = sugeridor.querySelectorAll('.op');
+  ops.forEach((el, k) => el.classList.toggle('elegido', k === sug.elegido));
+  if (ops[sug.elegido]) ops[sug.elegido].scrollIntoView({ block: 'nearest' });
+}
+
+function cerrarSugeridor() {
+  if (!sug) return;
+  sug = null;
+  anclaCaret = null;
+  sugeridor.classList.remove('abierto');
+  pintar(marcasActuales);
+}
+
+function abrirSugeridor(aPedido) {
+  if (src.selectionStart !== src.selectionEnd) return cerrarSugeridor();
+  const pos = src.selectionStart;
+  const l = src.value.slice(0, pos).split('\n').length - 1;
+  const base = src.value.lastIndexOf('\n', pos - 1) + 1;
+  const linea = src.value.split('\n')[l];
+  const r = ranuraEn(linea, pos - base);
+  const secs = r ? seccionesEnCaret(r) : [];
+  const ops = secs.flatMap(x => x.ops);
+  // no molestar: solo aparece con una palabra ya empezada, y nunca si lo único que
+  // hay para ofrecer es lo que ya está escrito
+  if (!ops.length ||
+      (!aPedido && (r.prefijo.length < 2 ||
+                    (ops.length === 1 && norm(ops[0].txt) === norm(r.prefijo)))))
+    return cerrarSugeridor();
+  ops.forEach(o => { o.hacer = () => aceptarSugerencia(o); });
+  sug = { desde: base + r.desde, hasta: base + r.hasta, ops, elegido: 0 };
+  pintarPanel(sugeridor, secs, null);
+  sugeridor.classList.add('abierto');
+  anclaCaret = { l, c: r.desde };
+  pintar(marcasActuales);
+  const sp = hl.querySelector('#ancla');
+  if (!sp) return cerrarSugeridor();
+  acomodar(sugeridor, sp.getBoundingClientRect());
+  marcarElegido();
+}
+
+src.addEventListener('keydown', e => {
+  if (e.key === 'Tab' && !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey) {
+    e.preventDefault();
+    return sug ? aceptarSugerencia(sug.ops[sug.elegido]) : abrirSugeridor(true);
+  }
+  if (!sug) return;
+  if (e.key === 'Enter') { e.preventDefault(); return aceptarSugerencia(sug.ops[sug.elegido]); }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    sug.elegido = (sug.elegido + (e.key === 'ArrowDown' ? 1 : -1) + sug.ops.length) % sug.ops.length;
+    return marcarElegido();
+  }
+  // Escape no corta la propagación a propósito: el listener de window también
+  // cierra el menú del ▾, y cerrar uno ya cerrado no hace nada
+  if (['Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) cerrarSugeridor();
+});
+src.addEventListener('input', () => abrirSugeridor(false));
+src.addEventListener('blur', cerrarSugeridor);
+addEventListener('mousedown', e => { if (!sugeridor.contains(e.target)) cerrarSugeridor(); });
+
+src.addEventListener('mousemove', e => {
+  if (pidiendoCuadro) return;
+  pidiendoCuadro = true;
+  requestAnimationFrame(() => {
+    pidiendoCuadro = false;
+    if (arrastre) return;
+    const bajo = tokenEn(e.clientX, e.clientY, true);
+    const t = tieneMenu(bajo) ? bajo : null;
+    const antes = señalado && señalado.l + ':' + señalado.i + ':' + señalado.m;
+    const ahora = t && t.l + ':' + t.i + ':' + !!t.enManija;
+    // el cursor de resize sólo con Alt apretado, que es cuando de verdad arrastra
+    src.style.cursor = !t || !e.altKey ? ''
+      : t.tipo === 'tempo' ? 'ew-resize'
+      : arrastrable(t) ? 'ns-resize' : '';
+    if (antes === ahora) return;
+    señalado = t && { l: t.l, i: t.i, m: !!t.enManija };
+    pintar(marcasActuales);
+  });
+});
+src.addEventListener('mouseleave', () => {
+  if (!señalado) return;
+  señalado = null; pintar(marcasActuales);
+});
+// mousedown y no click: hay que ganarle al textarea antes de que mueva el cursor.
+// Y además es donde arranca el arrastre: si te movés cambia el valor, si soltás
+// sin moverte abre el menú, así el click sigue haciendo lo de siempre.
+let arrastre = null;
+const UMBRAL = 3;
+
+// soltar Alt sin mover el mouse tiene que limpiar el cursor de resize
+addEventListener('keyup', e => { if (e.key === 'Alt') src.style.cursor = ''; });
+
+src.addEventListener('mousedown', e => {
+  cerrarMenu();
+  if (!e.altKey) {
+    // el único click que se intercepta es el de la manija: el resto es del navegador
+    const m = tokenEn(e.clientX, e.clientY, true);
+    if (m && m.enManija && tieneMenu(m)) { e.preventDefault(); abrirMenu(m); }
+    return;
+  }
+  const t = editable(e.clientX, e.clientY);
+  if (!t || !arrastrable(t)) return;
+  e.preventDefault();
+  const d = datosDe(t);
+  arrastre = { t, x: e.clientX, y: e.clientY, movido: false, len: t.len,
+               grupo: 'tira' + Date.now(),
+               acorde: d.acorde || '',
+               base: t.tipo === 'tempo' ? (parseFloat(textoDe(t).replace(',', '.')) || 90)
+                 : semiDe(d) };
+});
+
+function moverArrastre(dx, dy) {
+  const a = arrastre;
+  let texto;
+  if (a.t.tipo === 'tempo') {
+    texto = String(Math.min(400, Math.max(20, Math.round(a.base + dx / 4))));
+  } else {
+    const semi = Math.min(SEMI_MAX, Math.max(SEMI_MIN, a.base + Math.round(-dy / 10)));
+    texto = notaDesdeSemi(semi, a.acorde);
+    a.semi = semi;
+  }
+  if (texto === a.ultimo) return;
+  a.ultimo = texto;
+  reemplazar({ ...a.t, len: a.len }, texto, a.grupo);   // el token cambia de largo al ganar «sostenido»
+  a.len = texto.length;
+  // si está sonando ya se escucha en contexto; si no, se oye la nota suelta
+  if (!sonando && a.t.tipo !== 'tempo')
+    oir({ voces: [{ s: 'piano', note: nombreNota(a.semi, 0) }], dura: .3 });
+}
+
+addEventListener('mousemove', e => {
+  if (!arrastre) return;
+  const dx = e.clientX - arrastre.x, dy = e.clientY - arrastre.y;
+  if (!arrastre.movido && Math.hypot(dx, dy) < UMBRAL) return;
+  if (!arrastrable(arrastre.t)) return;
+  arrastre.movido = true;
+  moverArrastre(dx, dy);
+});
+
+addEventListener('mouseup', () => { arrastre = null; });
+// el botón de la selección abre el menú en su propio mousedown, y este listener
+// corre después por burbujeo: sin exceptuarlo cierra lo que aquél acaba de abrir
+addEventListener('mousedown', e => {
+  if (!menu.contains(e.target) && e.target !== src && e.target !== botonSel) cerrarMenu();
+});
+addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMenu(); });
+src.addEventListener('input', cerrarMenu);
+
+// ---------------------------------------------------------------- la barra lateral
+// Se arma sola desde el diccionario, así nunca queda desactualizada.
+function insertar(txt) {
+  const p = src.selectionStart;
+  src.value = src.value.slice(0, p) + txt + src.value.slice(src.selectionEnd);
+  src.selectionStart = src.selectionEnd = p + txt.length;
+  src.focus();
+  registrar(src.value, null);
+  actualizar(true);
+}
+
+function armarVocabulario() {
+  const voc = document.getElementById('voc');
+  const items = filas => filas.map(([p, d, cls, receta]) => {
+    const oye = receta ? ' data-oir="' + (RECETAS.push(receta) - 1) + '"' : '';
+    return '<div class="item" data-ins="' + p + '"' + oye + '><span class="p t-' + (cls || 'texto') + '">' + p +
+      '</span><span class="d">' + d + '</span></div>';
+  }).join('');
+  const bloque = (titulo, filas) => '<h2>' + titulo + '</h2>' + items(filas);
+  // 128 instrumentos sueltos serían una guía telefónica: van por familia y plegados
+  const grupo = (titulo, filas) =>
+    '<details><summary>' + titulo + '</summary>' + items(filas) + '</details>';
+
+  voc.innerHTML =
+    '<h2>el molde</h2>' +
+    '<div class="molde">la <b>&lt;parte&gt;</b> toca <b>&lt;pasos&gt;</b>, <b>&lt;cómo&gt;</b></div>' +
+    '<div class="molde">la banda va a <b>&lt;n&gt;</b> tiempos por minuto</div>' +
+    bloque('golpes', Object.entries(SONIDOS).map(([p, [s, d]]) =>
+        [p, d, 'sonido', recetaDe('golpe', p)])
+      .concat([['-', 'silencio', 'silencio'], ['_', 'sigue sonando', 'silencio']])) +
+    bloque('notas', Object.entries(NOTAS).map(([p, n]) =>
+        [p, '', 'nota', recetaDe('nota', p)])
+      // las alteraciones se oyen contra el do, si no no se entiende medio tono de qué
+      .concat([['sostenido', 'medio tono', 'nota', recetaDe('alteracion', 'sostenido')],
+               ['bemol',     'medio tono', 'nota', recetaDe('alteracion', 'bemol')]])
+      .concat(Object.entries(ACORDES).map(([p, iv]) => [p, iv.length + ' notas juntas', 'nota',
+        recetaDe('acorde', p)]))
+      .concat(Object.entries(OCTAVAS).map(([p, o]) => [p, 'otra altura', 'nota',
+        recetaDe('octava', p)]))) +
+    '<h2>instrumentos</h2>' +
+    '<div class="molde">el nombre de la parte elige el instrumento</div>' +
+    '<div class="molde">pasá el mouse por encima para oírlo</div>' +
+    [...FAMILIAS.map(f => f[0]), 'osciladores'].map(fam =>
+      grupo(fam, [...new Set(Object.values(INSTRUMENTOS))].filter(i => i.fam === fam)
+        .map(i => [i.nombre, i.gm || i.sonido, 'mod',
+          // los graves se prueban abajo, si no no se les oye el cuerpo
+          recetaDe('instrumento', i.nombre)]))).join('') +
+    bloque('cómo', MODIFICADORES.map(m => [m[0], m[2], 'mod'])) +
+    '<h2>ejemplos</h2><div class="ejemplos" id="ejemplos"></div>';
+
+  voc.querySelectorAll('.item').forEach(el => {
+    el.addEventListener('click', () => insertar(el.dataset.ins + ' '));
+    if (el.dataset.oir) alPasar(el);
+  });
+
+  const cajaEj = document.getElementById('ejemplos');
+  EJEMPLOS.forEach((e, i) => {
+    const b = document.createElement('button');
+    b.textContent = e.nombre;
+    b.addEventListener('click', () => { src.value = e.txt; registrar(src.value, null); actualizar(true); });
+    cajaEj.appendChild(b);
+  });
+}
+
+const EJEMPLOS = [
+  // Cada uno sale de abrir el midi de un tema real y copiar el esqueleto: el
+  // tempo, la tonalidad, la vuelta entera de acordes y en qué corchea cae cada
+  // golpe de la batería. No está el tema (no hay melodía ni letra), está la
+  // base sobre la que el tema está armado, con la estrofa y el estribillo uno
+  // atrás del otro.
+  //   charly      → Demoliendo Hoteles: cuatro compases de do (el boogie es de
+  //                 un acorde solo) y ahí recién fa do re re.
+  //   spinetta    → Muchacha (ojos de papel): la frase de ocho, con el bajo
+  //                 bajando la-sol-fa-re y volviendo por sol do si.
+  //   ricotero    → Ji Ji Ji: el riff de re, dos compases por acorde, y el
+  //                 estribillo que se va a fa do si bemol re en quintas.
+  //   soda        → Persiana Americana: la estrofa va mi menor y do turnándose,
+  //                 el estribillo re do sol mi menor.
+  //   babasónicos → Putita: la-do-fa-do en la estrofa, fa-mi-la-do en el otro.
+  { nombre: 'a lo charly', txt:
+`la banda va a 155 tiempos por minuto
+
+la bata toca pum tas pum tas
+los platillos tocan chis chis chis chis, al doble
+el bajo toca do grave do grave do grave do grave fa grave do grave re grave re grave, una por vuelta, en corcheas
+la viola distorsionada toca do quinta do quinta do quinta do quinta fa quinta do quinta re quinta re quinta, una por vuelta, en corcheas
+el piano toca do séptima do séptima do séptima do séptima fa mayor do mayor re mayor re mayor, una por vuelta` },
+
+  { nombre: 'a lo spinetta', txt:
+`la banda va a 140 tiempos por minuto
+
+el piano toca la menor mi menor fa mayor re menor sol séptima sol séptima do mayor sol mayor, una por vuelta, con eco
+el bajo toca la muy grave sol muy grave fa muy grave re muy grave sol muy grave sol muy grave do grave si muy grave, una por vuelta
+la viola criolla toca mi la do mi, con eco, bajito` },
+
+  { nombre: 'ricotero', txt:
+`la banda va a 169 tiempos por minuto
+
+la bata toca pum tas pum tas
+los platillos tocan chis chis chis chis
+el bajo toca re grave mi grave do sostenido grave re grave fa grave do grave si bemol grave re grave, una por vuelta, a la mitad, fuerte
+el pedal toca - - - la muy grave, en un bajo, bajito
+la viola distorsionada toca re menor mi menor do sostenido disminuido re menor fa quinta do quinta si bemol quinta re quinta, una por vuelta, a la mitad` },
+
+  { nombre: 'a lo soda', txt:
+`la banda va a 101 tiempos por minuto
+
+la bata toca pum - tas pum - pum tas -
+el ride toca tin tin tin tin, al doble, bajito
+las palmas tocan - - chas - - - chas -
+el bajo toca mi muy grave do grave mi muy grave do grave re grave do grave sol muy grave mi muy grave, una por vuelta, sincopado
+la viola eléctrica toca mi menor do mayor mi menor do mayor re mayor do mayor sol mayor mi menor, una por vuelta, con eco, de un lado al otro` },
+
+  { nombre: 'a lo babasónicos', txt:
+`la banda va a 89 tiempos por minuto
+
+la bata toca pum - tas pum - - tas -
+los platillos tocan chis chis chis chis, al doble, bajito
+el bajo toca la muy grave do grave fa muy grave do grave fa muy grave mi muy grave la muy grave do grave, una por vuelta, apagado
+el piano toca la menor do mayor fa mayor do mayor fa mayor mi mayor la menor do mayor, una por vuelta, con eco, bajito` },
+
+  // Grieg, «En la gruta del rey de la montaña», 1875: dominio público, así que
+  // acá no hay esqueleto, está el tema entero nota por nota. Del midi salen la
+  // tonalidad (mi menor, con la melodía arrancando en si), las dos frases de
+  // dieciséis negras y el bajo que va de a dos: mi si mi si do sol mi si.
+  // Grieg lo escribió para que se vaya acelerando; acá se acelera a mano,
+  // subiendo el número de arriba mientras suena.
+  { nombre: 'la gruta', txt:
+`la banda va a 138 tiempos por minuto
+
+la melodía toca si grave do sostenido re mi fa sostenido re fa sostenido - sol re sol - fa sostenido re fa sostenido - si grave do sostenido re mi fa sostenido re fa sostenido - sol re sol - re - - -, a un octavo, en pizzicato, fuerte
+el contrabajo toca mi muy grave si muy grave mi muy grave si muy grave do grave sol grave mi muy grave si muy grave, a un cuarto
+los timbales tocan mi muy grave - - -, bajito` },
+
+  { nombre: 'tunga tunga', txt:
+`la banda va a 132 tiempos por minuto
+
+el bombo toca pum - pum -
+el bajo toca do grave - sol grave -
+el piano toca - do mayor - do mayor, bajito
+los platillos tocan chis chis chis chis, al doble, bajito` },
+];
+
+// ---------------------------------------------------------------- arranque
+armarVocabulario();
+seguir();
+refrescarTransporte();
+src.value = textoInicial();
+registrar(src.value, null);
+actualizar(false);
+
+const MUESTRAS = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
+const CROMA_GM = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+// Una muestra cada tres semitonos, de do1 a do7: strudel afina las del medio y no
+// se llega a notar. Registrar es instantáneo, cada mp3 baja recién cuando suena.
+function muestrario(gm) {
+  const m = {};
+  for (let semi = 12; semi <= 84; semi += 3) {
+    const n = CROMA_GM[semi % 12] + Math.floor(semi / 12);
+    m[n] = gm + '-mp3/' + n + '.mp3';
+  }
+  return m;
+}
+const MUESTRAS_GM = Object.fromEntries(
+  [...new Set(Object.values(INSTRUMENTOS))].filter(i => i.gm)
+    .map(i => [i.sonido, muestrario(i.gm)]));
+
+initStrudel({
+  prebake: () => Promise.all([
+    samples(MUESTRAS + 'tidal-drum-machines.json'),
+    samples(MUESTRAS + 'piano.json'),
+    samples(MUESTRAS_GM, GM),
+  ]).then(() => { motorListo = true; if (!sonando) estado.textContent = 'listo'; })
+    .catch(() => { estado.textContent = 'no cargaron los sonidos'; }),
+});
+</script>

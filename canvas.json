@@ -1,0 +1,15 @@
+{
+  "artboards": [
+    {
+      "file": "Ficha.dc.html",
+      "x": 879,
+      "y": 1100,
+      "w": 1280,
+      "h": 820,
+      "title": "03 · Ficha"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
