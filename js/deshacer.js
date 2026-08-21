@@ -36,7 +36,10 @@ const VIDA_DESHACER = 9000;
 // va — irse justo cuando estabas yendo a apretarlo era la mitad del problema
 function contarParaIrse() {
   clearTimeout(relojDeshacer);
-  relojDeshacer = setTimeout(() => botonDeshacer.classList.remove('vivo'), VIDA_DESHACER);
+  relojDeshacer = setTimeout(() => {
+    botonDeshacer.classList.remove('vivo');
+    acomodarColgantes();
+  }, VIDA_DESHACER);
 }
 
 function mostrarDeshacer(ancla, esRehacer) {
@@ -86,4 +89,7 @@ src.addEventListener('scroll', () => {
   hl.scrollLeft = src.scrollLeft;
   armarPuntos(marcasActuales, calladasActuales);
   cerrarMenu();
+  // al ▾ lo reacomoda cerrarMenu; el de deshacer se quedaba flotando lejos de
+  // su palabra hasta nueve segundos después
+  acomodarColgantes();
 });

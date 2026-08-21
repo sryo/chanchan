@@ -175,11 +175,18 @@ function maquinas() {
 }
 const maquinaDe = n => maquinas()[norm(n)];
 
+// La cuarta columna, cuando está, es cada cuántas vueltas el modificador vuelve
+// al principio. No es lo mismo que «.slow(2)», que estira la línea: «rodando»
+// dura lo mismo pero tarda cuatro vueltas en repetirse. La cinta necesita ese
+// número para dibujar la forma entera; sin él muestra una vuelta y la variación
+// aparece de la nada.
 const MODIFICADORES = [
   ['al doble',            '.fast(2)',           'el doble de rápido'],
   ['a la mitad',          '.slow(2)',           'la mitad de rápido'],
   ['a un cuarto',         '.slow(4)',           'cuatro veces más lento'],
   ['a un octavo',         '.slow(8)',           'ocho veces más lento'],
+  ['cada golpe dos veces',  '.ply(2)',          'cada paso suena dos veces seguidas'],
+  ['cada golpe tres veces', '.ply(3)',          'cada paso suena tres veces seguidas'],
   // separan el qué del cuándo: la nota la pone la línea, el pulso lo ponen estos
   ['en negras',           '.struct("x*4")',     'cada nota, cuatro veces por vuelta'],
   ['en corcheas',         '.struct("x*8")',     'cada nota, ocho veces por vuelta'],
@@ -187,13 +194,30 @@ const MODIFICADORES = [
   ['callado',             'mute',               'no suena, pero queda escrito'],
   ['bajito',              '.gain(.45)',         'más callado'],
   ['fuerte',              '.gain(1.3)',         'más alto'],
+  // cuánto dura cada nota, que no es lo mismo que cada cuánto entra
+  ['corto',               '.clip(.3)',          'cada nota dura un suspiro'],
+  ['largo',               '.clip(2)',           'cada nota se estira sobre la siguiente'],
+  ['entrando despacio',   '.attack(.3)',        'no arranca de golpe, aparece'],
+  ['que se apaga',        '.release(1.2)',      'la cola tarda en irse'],
   ['apagado',             '.lpf(500)',          'como detrás de una puerta'],
   ['brillante',           '.hpf(700)',          'más filoso'],
+  ['que se abre',         '.lpf(sine.range(300, 4000).slow(4))', 'el filtro respira, abriendo y cerrando'],
+  ['con voz',             '.vowel("<a e i o u>")', 'una vocal distinta por vuelta'],
+  ['roto',                '.crush(4)',          'como si entrara en un aparato viejo'],
+  ['sucio',               '.distort(1).postgain(.6)', 'saturado, al borde'],
+  ['temblando',           '.vib(5).vibmod(.3)', 'la afinación tiembla'],
   ['con eco',             '.room(.6)',          'suena en una sala grande'],
+  ['repicando',           '.delay(.5).delaytime(.125).delayfeedback(.4)', 'se repite y se va apagando'],
   ['al revés',            '.rev',               'de atrás para adelante'],
+  ['de ida y vuelta',     '.palindrome()',      'una vuelta como está y la que sigue al revés', 2],
+  ['rodando',             '.iter(4)',           'cada vuelta arranca un paso más adelante', 4],
   ['con swing',           '.swingBy(1/3, 4)',   'desparejo, arrastrado'],
   ['perdiendo golpes',    '.degradeBy(.3)',     'de a ratos falta uno'],
   ['de un lado al otro',  '.pan(sine)',         'se mueve entre los parlantes'],
+  ['cruzado',             '.jux(rev)',          'a un parlante como está, al otro al revés'],
+  // el acorde ya lo arma la línea: esto elige si suena junto o de a una nota
+  ['arpegiado',           '.arp("0 1 2 3")',    'el acorde se desarma en notas, subiendo'],
+  ['arpegiado bajando',   '.arp("2 1 0")',      'el acorde se desarma en notas, bajando'],
   ['una por vuelta',      '<>',                 'en vez de sonar juntos, se turnan'],
 ];
 
@@ -230,7 +254,137 @@ const mascaraDe = (n, q) => '.mask("<' + ('1 '.repeat(n) + '0 '.repeat(q)).trim(
 // los repartos que se ofrecen sin tener que escribir los números
 const ARREGLOS = [[1, 1], [2, 2], [4, 4], [8, 8], [3, 1], [1, 3], [2, 6], [6, 2]];
 
+// -------------------------------------------------------- el reparto euclidiano
+// «tres en ocho» acomoda tres golpes en ocho pasos lo más parejo que se puede. Es
+// hermano de «en negras»: pone el pulso, no la nota. Con dos números salen casi
+// todos los ritmos que uno ya conoce de oído —el tresillo, la clave, el chacarera—
+// sin tener que escribirlos paso por paso.
+const PASOS_MAX = 32;
+const EUCLIDES = [[3, 8], [5, 8], [3, 4], [5, 16], [7, 16], [2, 3]];
+const fraseEuclides = (n, m) => enLetras(n) + ' en ' + enLetras(m);
+
+function leerEuclides(texto) {
+  const t = norm(texto).match(/^(\S+) en (\S+)$/);
+  if (!t) return null;
+  const n = cuantasVueltas(t[1]), m = cuantasVueltas(t[2]);
+  return n >= 2 && m > n && m <= PASOS_MAX ? { n, m, codigo: '.struct("x(' + n + ',' + m + ')")' } : null;
+}
+
+// ------------------------------------------------- las que envuelven a otra frase
+// Hasta acá una línea sonaba idéntica en cada vuelta. Éstas son las que la dejan
+// respirar: adentro llevan otra frase de la tabla, y la aplican de a ratos. Sirven
+// todas menos las dos que no son código —«callado», que saca la línea del stack
+// antes de que haya cola, y «una por vuelta», que arma el patrón y no lo modifica.
+const VECES = [
+  ['de vez en cuando', '.rarely',       'una de cada cuatro vueltas, más o menos'],
+  ['a veces',          '.sometimes',    'la mitad de las veces'],
+  ['casi siempre',     '.almostAlways', 'casi todas'],
+  ['casi nunca',       '.almostNever',  'muy de tanto en tanto'],
+];
+
+// Los «cada cuánto» que se ofrecen armados, para no tener que escribir el número.
+const ENVOLTURAS = [2, 3, 4, 8].map(k => 'cada ' + enLetras(k) + ' vueltas')
+  .concat(VECES.map(v => v[0]));
+
+// Una frase que envuelve se escribe en dos tiempos —primero cada cuánto, después
+// qué—, así que hace falta saber dónde termina una mitad y empieza la otra. Se
+// mide por palabras y no cortando el string: «de vez en cuando» son cuatro y
+// «a veces» dos, y normalizar el texto entero movería los índices.
+function partirEnvoltura(texto, base = 0) {
+  const ws = palabras(texto, base);
+  for (let k = Math.min(4, ws.length); k >= 2; k--) {
+    const frase = ws.slice(0, k).map(x => norm(x.w)).join(' ');
+    const cada = frase.match(/^cada (\S+) vueltas?$/);
+    const vale = cada ? cuantasVueltas(cada[1]) >= 2 : VECES.some(v => norm(v[0]) === frase);
+    if (!vale) continue;
+    const fin = ws[k - 1].i + ws[k - 1].w.length;
+    return { frase: ws.slice(0, k).map(x => x.w).join(' '), fin,
+             dentro: ws.slice(k).map(x => x.w).join(' ') };
+  }
+  return null;
+}
+
+const modificadorDe = t => MODIFICADORES.find(m => norm(m[0]) === norm(t));
+const envolvible = mod => !!mod && mod[1] !== 'mute' && mod[1] !== '<>';
+// «.gain(.45)» pasa a ser «x => x.gain(.45)». Anda igual con «.rev», que es un
+// getter y no una llamada: a la flecha eso no le cambia nada.
+const comoFuncion = codigo => 'x => x' + codigo;
+
+// Las dos devuelven, además del código, cada cuántas vueltas vuelven al principio:
+// «cada cuatro vueltas» repite a las cuatro, y si lo que lleva adentro tiene su
+// propio período, la línea entera es el mínimo común múltiplo de los dos. Sin ese
+// número la cinta dibuja una sola vuelta y la variación aparece de la nada.
+function leerCada(texto) {
+  const t = norm(texto).match(/^cada (\S+) vueltas?\s*(.*)$/);
+  if (!t) return null;
+  const n = cuantasVueltas(t[1]);
+  if (!(n >= 2 && n <= VUELTAS_MAX)) return { falla: 'numero' };
+  const mod = modificadorDe(t[2]);
+  if (!envolvible(mod)) return { falla: mod ? 'centinela' : 'dentro', dentro: t[2] };
+  return { codigo: '.every(' + n + ', ' + comoFuncion(mod[1]) + ')', vueltas: n, adentro: mod[3] || 1 };
+}
+
+function leerVeces(texto) {
+  const n = norm(texto);
+  for (const [frase, fn] of VECES) {
+    const cabeza = norm(frase);
+    if (n !== cabeza && !n.startsWith(cabeza + ' ')) continue;
+    const resto = n.slice(cabeza.length).trim();
+    const mod = modificadorDe(resto);
+    if (!envolvible(mod)) return { falla: mod ? 'centinela' : 'dentro', dentro: resto };
+    return { codigo: fn + '(' + comoFuncion(mod[1]) + ')', vueltas: 1, adentro: mod[3] || 1 };
+  }
+  return null;
+}
+
 const SUJETOS_BANDA = ['la banda', 'el tema', 'la cancion'];
+const SUJETO_BANDA = /^(?:la banda |el tema |la cancion )?/;
+
+// ------------------------------------------------------------- la forma
+// Hasta acá un tema era una sola vuelta repetida para siempre, y lo único que
+// cambiaba con el tiempo era el arreglo, que es una compuerta que prende y apaga
+// cada tantas vueltas. Con eso no se puede decir «estos cuatro compases y
+// después esos ocho», que es de lo que están hechas las canciones: el ejemplo
+// «ricotero» tenía la estrofa y el estribillo de Ji Ji Ji apretados en una línea
+// sola porque no había otro lugar donde ponerlos.
+//
+// Son dos frases. Una abre un bloque con nombre y termina en dos puntos; las
+// líneas que siguen son de ese bloque. La otra dice el orden, y una sección se
+// repite repitiendo el nombre, como en un papelito de ensayo.
+//
+// El nombre es una palabra sola: en la línea de forma los nombres van separados
+// por espacios y no hay otra manera de saber dónde termina uno.
+
+// cuántas vueltas puede durar un tema entero: es lo que la cinta dibuja de punta
+// a punta, y más que esto no se ve como una forma, se ve como una tira
+const VUELTAS_FORMA = 256;
+
+function leerSeccion(texto) {
+  if (/\b(toca|tocan)\b/i.test(texto)) return null;
+  const m = texto.match(/^\s*(.*?)\s*:\s*$/);
+  if (!m) return null;
+  const cuerpo = norm(m[1]).replace(SUJETO_BANDA, '').replace(/^(?:el|la|los|las) /, '');
+  if (!cuerpo) return { falla: 'sinNombre' };
+  const dura = cuerpo.match(/^(\S+)\s+dura\s+(\S+)\s+vueltas?$/);
+  const nombre = dura ? dura[1] : cuerpo;
+  if (!/^[a-z0-9]+$/.test(nombre)) return { falla: 'nombre', nombre };
+  if (!dura) return { nombre, vueltas: null };
+  const v = cuantasVueltas(dura[2]);
+  if (!(v >= 1 && v <= VUELTAS_FORMA)) return { falla: 'dura', nombre };
+  return { nombre, vueltas: v };
+}
+
+// «va estrofa estrofa estribillo». El sujeto se puede callar, igual que en el
+// tempo, y lo que decide cuál de las dos es lo que sigue a «va»: un «a» con un
+// número atrás es el tempo, cualquier otra cosa es la forma. Se pide el número y
+// no sólo el «a» porque una sección se puede llamar «a», y entonces «va a b c»
+// es una forma de tres; el «va a» pelado sigue siendo el tempo a medio escribir.
+function leerForma(texto) {
+  if (/\b(toca|tocan)\b/i.test(texto)) return null;
+  const m = norm(texto).replace(SUJETO_BANDA, '').match(/^va\s+(.+)$/);
+  if (!m || /^a(\s+\d|$)/.test(m[1])) return null;
+  return { nombres: m[1].split(' ').filter(Boolean) };
+}
 
 // El sujeto se puede callar: es la única línea que no habla de una parte, así
 // que «va a 92» alcanza. «la banda va a 92» y «el tema va a 92» siguen entrando.
@@ -238,6 +392,9 @@ function esTempo(texto) {
   // una línea con «toca» es una parte, aunque se llame «la banda»: sin esto,
   // «la banda toca pum - pum -» salía con un error sobre el tempo
   if (/\b(toca|tocan)\b/i.test(texto)) return false;
+  // «el tema va estrofa» es la forma y no un tempo mal escrito; sin este corte
+  // caía acá por el sujeto y pedía que le escribieran un número
+  if (leerForma(texto)) return false;
   const dos = norm(texto).split(' ').slice(0, 2).join(' ');
   return dos === 'va a' || SUJETOS_BANDA.includes(dos);
 }

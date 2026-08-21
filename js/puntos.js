@@ -12,9 +12,14 @@ document.querySelector('.wrap').appendChild(puntos);
 const sacarCallado = ln => ln.replace(/\s*,\s*callado\b/i, '');
 const ponerCallado = ln => sacarCallado(ln) + ', callado';
 
+// El tempo, el nombre de una sección y la línea de forma tienen menú pero no son
+// partes: no hay nada que callar en ellas, y con un puntito al lado la hoja decía
+// que sí lo había.
+const NO_SUENA = ['tempo', 'mal', 'seccion', 'forma'];
+
 function lineasQueSuenan(marcas) {
   return marcas.map((tks, l) =>
-    (tks || []).some(t => t.tipo && t.tipo !== 'tempo' && t.tipo !== 'mal') ? l : -1)
+    (tks || []).some(t => t.tipo && !NO_SUENA.includes(t.tipo)) ? l : -1)
     .filter(l => l >= 0);
 }
 
@@ -34,6 +39,9 @@ function armarPuntos(marcas, calladas, renglones = renglonesActuales) {
     if (color.has(l)) b.style.color = color.get(l);
     b.dataset.l = l;
     b.title = 'silenciar · may+click deja sólo ésta';
+    // los puntitos se rehacen en cada tecleo: sin esto, escribir con el mouse
+    // apoyado en una franja apagaba el punto que esa franja tenía encendido
+    if (l === franjaSeñalada) b.classList.add('senalado');
     puntos.appendChild(b);
     // centrado contra el alto real del renglón: si cambia la fuente sigue andando
     b.style.top = (y + (sr.height - b.offsetHeight) / 2) + 'px';

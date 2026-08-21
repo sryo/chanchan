@@ -145,6 +145,8 @@ function actualizar(reproducir) {
   calladasActuales = r.calladas;
   renglonesActuales = r.renglones;
   vueltasActuales = r.vueltas;
+  tramosActuales = r.tramos;
+  temposActuales = r.tempos;
   // Un solo eval por línea, y antes de dibujar. Del mismo patrón espejo salen
   // las dos cosas que lo necesitan: la cinta, que dibuja la vuelta larga de una
   // vez, y el reloj, que a cada cuadro pregunta qué paso cae justo ahora. Los
@@ -167,11 +169,18 @@ function actualizar(reproducir) {
   cajaJs.textContent = r.codigo || '(todavía no hay nada que tocar)';
   cajaVacio.hidden = !!src.value.trim();
   if (reproducir && sonando && r.codigo !== ultimoCodigo) {
+    // El tempo es la primera línea del código y nada más que eso: si el resto
+    // quedó igual, no hay patrón nuevo que armar, hay un número que decirle al
+    // reloj. Es la diferencia entre que el tempo se mueva mientras suena y que el
+    // tema se corte y arranque de nuevo en cada escalón del arrastre.
+    const soloElTempo = ultimoCodigo && r.codigo &&
+      ultimoCodigo.slice(ultimoCodigo.indexOf('\n')) === r.codigo.slice(r.codigo.indexOf('\n'));
     ultimoCodigo = r.codigo;
     // sin nada que tocar hay que apagar: si no, strudel sigue con el último
     // stack que evaluó y el parlante suena mientras la pantalla dice que no hay nada
-    if (r.codigo) correr(r.codigo);
-    else { sonando = false; silenciar(); refrescarTransporte(); }
+    if (!r.codigo) { sonando = false; silenciar(); refrescarTransporte(); }
+    else if (soloElTempo) ponerTempo(r.bpm);
+    else correr(r.codigo);
   }
   return r;
 }

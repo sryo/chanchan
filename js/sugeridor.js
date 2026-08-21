@@ -45,6 +45,12 @@ function ranuraEn(linea, col) {
     return { ranura: 'tempo', ...(m ? trozo(m.index, m.index + m[1].length) : palabraEn()) };
   }
 
+  // «va estrofa estribillo»: los nombres se eligen de a uno, como los pasos, y no
+  // de a línea entera. El tempo ya se fue arriba, así que acá «va» sólo puede ser
+  // la forma —incluso a medio escribir, que es cuando hace falta la lista.
+  if (/^\s*(?:(?:la banda|el tema|la cancion|la canción)\s+)?va(\s|$)/i.test(linea))
+    return { ranura: 'forma', ...palabraEn() };
+
   const iVerbo = ws.findIndex(x => /^(toca|tocan)$/i.test(x.w));
   if (iVerbo < 0) return { ranura: 'linea', ...trozo(0, linea.length) };
 
@@ -69,6 +75,13 @@ function ranuraEn(linea, col) {
              : pw.some(x => NOTAS[norm(x.w)]) ? 'nota' : null;
 
   if (cual > 0) {
+    // «cada cuatro vueltas al doble» se elige en dos tiempos, como en el ▾: si el
+    // prefijo ya está escrito, lo que se está eligiendo es lo que va adentro. El
+    // tramo arranca en el final del prefijo y no después del espacio, así que la
+    // opción se puede pegar con su propio espacio adelante aunque no haya ninguno.
+    const env = partirEnvoltura(c.txt, c.i);
+    if (env && col > env.fin)
+      return { ranura: 'clausula', modo, envuelve: true, ...trozo(env.fin, c.i + c.txt.length) };
     // las cláusulas se matchean enteras («al doble», «en un piano»), así que el
     // prefijo es toda la cláusula y no la última palabra
     const a = c.i + c.txt.length - c.txt.replace(/^\s+/, '').length;
@@ -152,9 +165,19 @@ function armarSecciones(r, soloPega) {
       ? [...DE_SIEMPRE, ...Object.values(INSTRUMENTOS).map(i => i.nombre)] : DE_SIEMPRE)];
     const tempo = { ...op('va a 92', null, 'el pulso del tema'),
                     buscar: 'va a 92 banda tema tiempos por minuto' };
+    const seccion = { ...op('la estrofa:', null, 'abre una sección: lo que sigue es de ella'),
+                      buscar: 'seccion estrofa estribillo intro puente final bloque parte' };
+    const forma = { ...op('el tema va estrofa estribillo', null, 'el orden en que van las secciones'),
+                    buscar: 'forma orden va secciones estructura' };
     return sec('empezar una línea',
-               filtrarPega([...partes.map(plantilla), tempo], pelado, o => o.buscar));
+               filtrarPega([...partes.map(plantilla), tempo, seccion, forma], pelado, o => o.buscar));
   }
+
+  // Los nombres salen de los encabezados escritos, no de la forma: una sección
+  // recién abierta todavía no está en ninguna forma y es justo la que se busca.
+  if (r.ranura === 'forma')
+    return sec('secciones', filtrar([...new Set(marcasActuales.flat()
+      .filter(x => x && x.tipo === 'seccion').map(x => x.nombre))].map(n => op(n))));
 
   if (r.ranura === 'nombre')
     return [...sec('partes de siempre', filtrarPega(DE_SIEMPRE.map(n => op(n)), r.prefijo, o => o.txt)),
@@ -178,6 +201,11 @@ function armarSecciones(r, soloPega) {
   }
 
   if (r.ranura === 'clausula') {
+    // adentro de un «cada cuatro vueltas» sólo entran las que son código: las otras
+    // dos de la tabla arman el patrón o sacan la línea del stack
+    if (r.envuelve)
+      return sec('y ahí, qué', filtrar(MODIFICADORES.filter(envolvible)
+        .map(m => op(m[0], ' ' + m[0], m[2]))));
     const mods = MODIFICADORES.map(m => op(m[0], null, m[2]));
     // «en un viol» no empieza como «en una viola»: el artículo no coincide. Se
     // matchea contra el nombre pelado y se le saca la preposición a lo tipeado.
@@ -193,7 +221,14 @@ function armarSecciones(r, soloPega) {
                         buscar: m2.nombre + ' ' + (APODOS_MAQUINA[m2.banco] || []).join(' ') }))
       : instrumentos().map(o => ({ ...op(unDe(o.txt) + o.txt, null, o.desc, o.receta), buscar: o.txt }));
     const arreglos = ARREGLOS.map(([n, q]) => op(fraseArreglo(n, q), null, (n + q) + ' vueltas'));
+    const euclides = EUCLIDES.map(([n, m]) =>
+      op(fraseEuclides(n, m), null, n + ' golpes en ' + m + ' pasos'));
+    // el prefijo solo, sin lo que va adentro: al aceptarlo la cláusula queda a
+    // medio escribir y el sugeridor vuelve a abrirse con la otra mitad
+    const envolturas = ENVOLTURAS.map(p => op(p, p + ' ', 'y después, qué hace'));
     return [...sec('cómo', filtrar(mods)),
+            ...sec('el reparto', filtrar(euclides)),
+            ...sec('de a ratos', filtrar(envolturas)),
             ...sec('entra y sale', filtrar(arreglos)),
             ...sec(r.modo === 'sonido' ? 'en qué caja' : 'en qué instrumento',
                    filtrar(conEn, pelado, o => o.buscar))];
@@ -222,6 +257,12 @@ function aceptarSugerencia(o) {
   if (finLinea && !/\s$/.test(txt)) txt += ' ';
   cerrarSugeridor();
   reemplazarRango(desde, hasta, txt);
+  // Aceptar una opción escribe el valor a mano, así que no dispara el «input» que
+  // reabre esto. Y hay una que deja la cláusula a medio escribir a propósito:
+  // «cada cuatro vueltas» sin nada adentro. Volver a mirar es lo que la termina en
+  // el toque siguiente. Donde no falta nada no aparece: la regla de no molestar ya
+  // cierra el sugeridor cuando lo único que hay para ofrecer es lo que ya está.
+  abrirSugeridor(false);
 }
 
 function marcarElegido() {

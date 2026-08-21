@@ -3,6 +3,7 @@
 // declared») y el navegador no dice cuál es el otro. Esto lo dice.
 //   node .claude/revisar.mjs
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const ORDEN = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map(m => m[1]);
@@ -16,6 +17,11 @@ const RESERVADOS = new Set([
   's', 'n', 'note', 'sound', 'stack', 'setcpm', 'setcps', 'sine', 'saw', 'square',
   'tri', 'rand', 'perlin', 'hush', 'evaluate', 'samples', 'initStrudel', 'getTime',
   'getAudioContext', 'strudel', 'chord', 'voicing',
+  // las que ahora aparecen adentro del código que se genera: si alguna quedara
+  // tapada por una declaración nuestra, el síntoma es una línea que no suena
+  'every', 'sometimes', 'rarely', 'arp', 'rev', 'iter', 'ply', 'palindrome',
+  'clip', 'crush', 'vowel', 'distort', 'jux', 'orbit', 'range',
+  'arrange', 'silence', 'timeCat', 'cat', 'slowcat', 'seq',
   'name', 'status', 'origin', 'length', 'top', 'event', 'self', 'parent', 'closed',
 ]);
 
@@ -68,5 +74,16 @@ for (const archivo of ORDEN) {
     }
   }
 }
+// Los temas viven en temas/*.txt y js/ejemplos.js sale de ahí. Si el js quedó
+// viejo no hay ningún síntoma —la página abre y anda, con los temas de antes—,
+// que es exactamente la clase de problema que este script existe para decir. Le
+// pregunta al generador en vez de rehacer la cuenta: el que sabe es él.
+const temas = spawnSync(process.execPath, [new URL('temas.mjs', import.meta.url).pathname, '--ver'],
+  { encoding: 'utf8' });
+if (temas.status) {
+  console.error((temas.stderr || '').trim() || 'no se pudo revisar temas/');
+  choques++;
+}
+
 console.log('%d nombres de primer nivel, %d problemas', donde.size, choques);
 process.exit(choques ? 1 : 0);

@@ -1,0 +1,28 @@
+va a 130
+
+la entrada:
+el coro toca - mi agudo | _ fa agudo | re agudo re agudo | - mi agudo | _ fa agudo | re agudo re agudo | - la agudo | _ sol agudo | la agudo sol agudo | sol agudo fa agudo | mi agudo _ | - -, fuerte
+la tuba toca re muy grave | do muy grave | si bemol muy grave | re muy grave | do muy grave | si bemol muy grave | la muy grave | la muy grave | - | - | - | -, fuerte
+los timbales tocan re grave _ re grave _ | re grave _ re grave _ | re grave _ re grave _ | re grave _ re grave _ | re grave _ re grave _ | re grave _ re grave _ | la muy grave - - - | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave
+las cuerdas tocan re menor | do mayor | si bemol mayor | re menor | do mayor | si bemol mayor | la mayor | la mayor | la mayor | la mayor | la mayor | -, bajito
+
+el susurro:
+va a 264
+el coro toca - fa | fa mi | mi - | - fa | fa mi | mi - | - fa | fa mi | fa _ | sol _ | fa mi | _ _, bajito
+las cuerdas tocan fa quinta | mi quinta | mi quinta | fa quinta | mi quinta | mi quinta | fa quinta | mi quinta | fa quinta | sol quinta | mi quinta | -, bajito
+los timbales tocan re grave - - - | - - - - | - - - - | re grave - - - | - - - - | - - - - | re grave - - - | - - - - | re grave - - - | sol grave - - - | mi grave - - - | - - - -, bajito
+
+el crece:
+va a 280
+el coro toca - fa agudo | fa agudo mi agudo | mi agudo - | - fa agudo | fa agudo mi agudo | mi agudo - | - fa agudo | fa agudo mi agudo | fa agudo _ | sol agudo _ | fa agudo mi agudo | _ _, fuerte
+las cuerdas tocan fa quinta | mi quinta | mi quinta | fa quinta | mi quinta | mi quinta | fa quinta | mi quinta | fa quinta | sol quinta | mi quinta | -
+los timbales tocan re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | sol grave - sol grave - | mi grave - mi grave - | - - - -
+
+el final:
+va a 120
+el coro toca re grave fa grave | mi grave re grave | sol grave fa grave | mi grave la grave | sol grave sol grave | sol grave mi grave | re grave re grave | fa grave mi grave | re grave sol grave | - - | - - | - -, fuerte
+la tuba toca re muy grave | do muy grave | si bemol muy grave | la muy grave | sol muy grave | mi muy grave | re muy grave | la muy grave | re muy grave | - | - | -, fuerte
+los timbales tocan re grave re grave re grave re grave | re grave re grave re grave re grave | re grave re grave re grave re grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | re grave re grave re grave re grave | la muy grave la muy grave la muy grave la muy grave | re grave - - - | - - - - | - - - - | - - - -
+las cuerdas tocan re menor | do mayor | si bemol mayor | la mayor | sol menor | mi disminuido | re menor | la mayor | re menor | - | - | -, fuerte
+
+el tema va entrada susurro crece final

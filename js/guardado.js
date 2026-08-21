@@ -47,7 +47,10 @@ function anotarTema(nombre, txt, nombreViejo) {
   const viejo = lista.find(t => t.nombre === nombreViejo);
   const renombre = !!viejo && viejo.txt === txt;
   const queda = lista.filter(t => t.nombre !== nombre && !(renombre && t.nombre === nombreViejo));
-  queda.unshift({ nombre, txt });
+  // cuándo se tocó por última vez: el orden de la lista ya es ése, pero sin
+  // decirlo. Los guardados de antes no lo traen y no muestran nada, que es la
+  // verdad: no sabemos cuándo fue.
+  queda.unshift({ nombre, txt, t: Date.now() });
   escribirTemas(queda.slice(0, TOPE_TEMAS));
 }
 
@@ -183,15 +186,60 @@ btnEnlace.addEventListener('click', async () => {
 // que volver a buscarlo por posición en vez de guardarse el nodo.
 const spanDe = a => a && hl.querySelector('span[data-l="' + a.l + '"][data-i="' + a.i + '"]');
 
-function pegarA(el, ancla) {
-  const sp = spanDe(ancla);
-  if (!sp) { el.classList.remove('vivo'); return false; }
-  // el último renglón: si la palabra se parte, la unión daría una caja que arranca
-  // en el margen izquierdo y el cartelito saldría volando
-  const cajas = sp.getClientRects();
-  const r = cajas[cajas.length - 1] || sp.getBoundingClientRect();
-  el.style.left = (r.right + 6) + 'px';
-  el.style.top = (r.top - 3) + 'px';
+// ------------------------------------------- lo que cuelga de una palabra
+// Tres botones se posan sobre el borde derecho de un token: el ▾, el de
+// deshacer y el de la selección. Los tres elegían el mismo lugar, y como el ▾
+// vive donde está el mouse y el deshacer aparece sobre la palabra que se acaba
+// de cambiar, cambiar una palabra con el ▾ los encimaba siempre. Así que el
+// costado de la palabra tiene un solo dueño: el que cuelga solo queda donde
+// estaba, y los que comparten palabra se reparten la fila.
+//
+// El orden de la fila es el de esta lista, y no es casual: el ▾ va primero
+// porque es de la palabra —está mientras el mouse esté encima— y el deshacer es
+// del cambio, que es pasajero.
+const SANGRIA_COLGANTE = 6;
+const colgantes = () => [manija, botonDeshacer, botonSel];
+
+// El ▾ se cuelga sin sangría: pegado a la palabra. El hueco que queda entre
+// los dos es el mismo que la franja de tokenEn(), que es lo que mantiene viva la
+// palabra señalada mientras el mouse va hacia su botón.
+function pegarA(el, ancla, sangria = SANGRIA_COLGANTE) {
+  if (!spanDe(ancla)) { el.classList.remove('vivo'); el.colgadoDe = null; return false; }
+  el.colgadoDe = ancla;
+  el.sangria = sangria;
   el.classList.add('vivo');
+  acomodarColgantes();
   return true;
+}
+
+// Se rehace la fila entera y no de a uno: el ▾ aparece y desaparece con el
+// mouse, así que el lugar que le toca al deshacer cambia sin que el deshacer se
+// entere. Sirve además para cuando la geometría se movió abajo de ellos —el
+// scroll, un resize—, que antes los dejaba flotando lejos de su palabra.
+//
+// Y los que salen de la misma palabra se sueldan: se tocan, comparten el borde
+// del medio y las esquinas de adentro se enderezan, así que de costado son una
+// sola pieza y no dos botones sueltos que casualmente quedaron cerca. Son una
+// sola cosa mientras hablen de la misma palabra, y dos en cuanto no.
+function acomodarColgantes() {
+  const fila = new Map();
+  for (const el of colgantes()) el.classList.remove('junta', 'juntado');
+  for (const el of colgantes()) {
+    if (!el.classList.contains('vivo')) continue;
+    const sp = spanDe(el.colgadoDe);
+    // la palabra se fue: la borraron, o el renglón dejó de entenderse
+    if (!sp) { el.classList.remove('vivo'); el.colgadoDe = null; continue; }
+    // el último renglón: si la palabra se parte, la unión daría una caja que
+    // arranca en el margen izquierdo y el cartelito saldría volando
+    const cajas = sp.getClientRects();
+    const r = cajas[cajas.length - 1] || sp.getBoundingClientRect();
+    const clave = el.colgadoDe.l + ':' + el.colgadoDe.i;
+    const antes = fila.get(clave);
+    if (antes) { antes.el.classList.add('junta'); el.classList.add('juntado'); }
+    const x = antes ? antes.x : r.right + el.sangria;
+    el.style.left = Math.round(x) + 'px';
+    el.style.top = Math.round(r.top + (r.height - el.offsetHeight) / 2) + 'px';
+    // el que sigue pisa un píxel al anterior: el borde del medio es uno solo
+    fila.set(clave, { x: x + el.offsetWidth - 1, el });
+  }
 }

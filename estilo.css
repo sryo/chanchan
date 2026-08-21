@@ -89,15 +89,47 @@
     font: var(--letra)/1.55 var(--mono);
     display: flex; flex-direction: column;
   }
-  /* la cinta va detrás de todo y no recibe clicks: es el marco, no un control */
+  /* la cinta va detrás de todo; de ella lo único que recibe el mouse son las franjas */
   #cinta { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  /* Cada franja tiene su blanco invisible, del grosor que le tocó y sólo sobre el
+     tramo que es tiempo: apuntar a una parte es apuntarle a ella y no a un
+     rectángulo que la contenga. No lleva cursor de mano porque no hay nada que
+     apretar — señalarla contesta de quién es, y ahí se termina. */
+  #cinta .toque { fill: none; stroke: transparent; pointer-events: stroke; }
+  /* En una pantalla táctil la cinta vuelve a ser sólo el marco: sin mouse no hay
+     manera de señalar sin apretar, y acá apretar no hace nada. */
+  @media (hover: none) { #cinta .toque { pointer-events: none; } }
+  /* Al señalar una, las demás se van al fondo. Es la única manera de contestar
+     «ésta es la de esa línea» sin escribirle el nombre encima a la cinta, y la
+     que hace falta: dos partes de la misma familia comparten el tono a propósito,
+     y ahí el color solo no alcanza para separarlas. */
+  #cinta .franja { transition: opacity .12s; }
+  #cinta.senalando .franja { opacity: .25; }
+  #cinta.senalando .franja.sola { opacity: 1; }
+  /* La regla de vueltas va en tinta y no en el color del papel: una raya casi
+     blanca sobre la cinta es exactamente lo mismo que el hueco entre dos golpes,
+     y la vuelta —que es la unidad con la que se escribe— se perdía entre ellos. */
+  #cinta .regla { stroke: var(--texto); stroke-width: 1.5; stroke-opacity: .5; }
+  /* El borde de sección es la misma raya pero entera y más larga, y lleva el
+     nombre escrito al lado: es la diferencia entre ver ocho vueltas y ver una
+     estrofa. Baja más que la regla porque lo que dice es de otro orden — dónde
+     cambia el tema, no dónde cae el uno. */
+  #cinta .corte { stroke: var(--texto); stroke-width: 1.5; }
+  #cinta .rotulo {
+    fill: var(--andamio); font-size: .68rem; letter-spacing: .04em;
+    text-transform: lowercase; dominant-baseline: auto;
+  }
   header, main, .abajo { position: relative; z-index: 1; }
-  /* el hueco de arriba es el que deja la cinta; el botón cae dentro de la curva */
+  /* El hueco de arriba es el que deja la cinta; el botón cae dentro de la curva.
+     Y la cabecera no recibe el mouse, sólo lo suyo: su relleno de arriba mide lo
+     mismo que la cinta y se la comía entera, así que con ella por delante no
+     había manera de señalar una franja. */
   header {
     display: flex; align-items: center; gap: 26px;
     padding: var(--sangria) 44px 26px var(--sangria);
-    flex-wrap: wrap;
+    flex-wrap: wrap; pointer-events: none;
   }
+  header > * { pointer-events: auto; }
   #tocar {
     width: 64px; height: 64px; flex: none; padding: 0;
     border: 0; border-radius: 50%; background: var(--marca);
@@ -118,6 +150,11 @@
   /* El enlace va pegado al nombre: es lo que se comparte, no un control aparte.
      El margen negativo descuenta su padding, que es área de click y no aire. */
   .marca #enlace { margin-left: -9px; }
+  /* Mientras hay un archivo encima, la hoja se enciende y nada más. Un cartel que
+     tape el tema para avisar que se puede soltar un tema es justo lo que no hace
+     falta: el borde ya dice dónde va a caer. */
+  body.soltando .wrap { box-shadow: inset 0 0 0 2px var(--marca, var(--texto)); }
+  body.soltando #src { cursor: copy; }
   /* El recorte es por Antonio, que reparte el aire muy para un lado —a 30px, 35
      de alto contra 4 de bajo—: sin él la caja del renglón no cae centrada sobre
      la tinta, y centrarla deja la palabra baja y la raya corta. La palabra es
@@ -163,11 +200,15 @@
      subrayado punteado del nombre, que en esta barra es lo que quiere decir
      «esto se cambia acá mismo». El cursor de arrastre horizontal es el único
      lugar donde se anuncia que además se tira de él. */
-  #enlace {
+  #enlace, #archivo {
     background: none; border: 0; border-radius: 0; padding: 2px 5px;
     color: var(--tenue); font-size: 15px; line-height: 1;   /* signo, no texto */
   }
-  #enlace:hover { color: var(--texto); }
+  #enlace:hover, #archivo:hover { color: var(--texto); }
+  /* El ⤓ va pegado al ⚯ y sin nada en el medio: copiar el enlace y bajar el
+     archivo son la misma acción —llevarte el tema— por dos puertas distintas, y
+     separarlos los haría parecer dos cosas. */
+  #archivo { margin-left: -12px; }
   /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
   #enlace.dicho {
     color: var(--marca-tinta); font-size: var(--letra-chica);
@@ -192,6 +233,26 @@
   /* el textarea va arriba con el texto transparente y lo que se lee sale de #hl,
      abajo: si la selección es opaca tapa el texto y no queda nada visible */
   #src::selection { background: color-mix(in oklab, var(--parte, var(--texto)) 18%, transparent); }
+  /* La misma regla, para el resto de la página: la selección es la tinta de lo
+     que se selecciona, en el editor la de la parte y afuera la del papel. Sin
+     esto lo único pintado era el editor y todo lo demás —el nombre del tema, el
+     logo, el strudel del pie— caía en el azul del sistema, que es el único
+     color de la pantalla que no sale ni de la rueda ni de la tinta. */
+  ::selection { background: color-mix(in oklab, var(--texto) 18%, transparent); }
+  /* Qué se puede llevar de acá y qué no. Se selecciona lo que dice algo —el
+     tema, su nombre, el strudel que sale de él, el error que explica por qué no
+     sale— y no se selecciona lo que hace algo: los botones, los menús y el
+     desplegable del pie. Un control resaltado no es un control elegido, es un
+     control con una mancha encima; y arrastrar sobre uno pinta media interfaz
+     en vez de apretarlo. La hoja vacía va con ellos: es lo que se lee mientras
+     no hay tema, no es el tema.
+     El espejo se va por otro motivo. Es el mismo texto del tema, pintado abajo
+     del textarea, así que seleccionarlo es seleccionar una copia: queda un
+     resaltado que no es el del editor —no lo tiñe la parte, no lo ve el botón
+     de la selección, no lo copia el textarea—, y un arrastre que empiece
+     afuera del texto se lleva el tema entero de un saque. Se lee el espejo,
+     pero se agarra el textarea. */
+  #hl, #vacio, button, .panel, summary { user-select: none; }
   /* Tres canales, y cada uno dice una sola cosa: el tono dice quién toca —sale
      de la rueda y lo pone pintar(), porque la hoja no puede saberlo—, la luz
      dice qué tan alto, y el peso dice si es el patrón o la frase que lo rodea.
@@ -251,15 +312,35 @@
   #menu.columnas .sec.detalle { min-width: 208px; }
   /* el silencio no es una dimensión de la altura: cruza todo el ancho, abajo */
   #menu.columnas .sec.pie { grid-column: 1 / -1; }
-  #deshacer {
+  /* Los tres que cuelgan de una palabra. Ahora que pueden tocarse —el ▾ y el de
+     deshacer se reparten la fila cuando salen de la misma palabra, ver
+     acomodarColgantes()— tienen que medir lo mismo de alto y apoyar en la misma
+     línea, o de costado se ve que no son de la misma familia. Quién los ubica es
+     el js: acá va nada más de qué están hechos. */
+  #deshacer, #seleccion, #manija {
     position: fixed; z-index: 11; display: none;
-    padding: 1px 7px; line-height: 1.4;
-    border-radius: 5px; opacity: .85;
+    align-items: center; justify-content: center;
+    height: 22px; line-height: 1; border-radius: 5px;
   }
-  #deshacer.vivo, #seleccion.vivo { display: block; }
+  #deshacer.vivo, #seleccion.vivo, #manija.vivo { display: flex; }
+  /* Dos que cuelgan de la misma palabra se sueldan (ver acomodarColgantes): se
+     tocan, el borde del medio es uno solo y las esquinas de adentro se
+     enderezan. Cuelgan de palabras distintas, vuelven a ser dos cajas. */
+  #deshacer.junta, #seleccion.junta, #manija.junta {
+    border-top-right-radius: 0; border-bottom-right-radius: 0;
+  }
+  #deshacer.juntado, #seleccion.juntado, #manija.juntado {
+    border-top-left-radius: 0; border-bottom-left-radius: 0;
+  }
+  /* El mismo padding que el ▾: en monoespaciada dos signos del mismo cuerpo dan
+     la misma caja, así que igualar el ancho no hay que pedirlo, sale solo. Lo
+     que no sale solo es el peso: el ▾ es un triángulo lleno y la flecha de
+     deshacer es un trazo fino, así que va un cuerpo más grande para pesar lo
+     mismo. Y va un punto más apagado a propósito: el ▾ es una puerta de la
+     palabra y está siempre; esto es el aviso de un cambio y se va solo. */
+  #deshacer { padding: 0 6px; font-size: 12px; opacity: .7; }
   #seleccion {
-    position: fixed; z-index: 11; display: none;
-    padding: 1px 8px; border-radius: 5px;
+    padding: 0 8px;
     border-color: var(--parte, var(--texto)); color: var(--parte, var(--texto));
   }
   /* El ▾ flota por encima del texto, como el de deshacer: adentro del renglón
@@ -267,11 +348,7 @@
      lo ubica a mano contra el último trozo del token — una palabra partida en
      dos renglones tiene su final abajo, no en la caja de la unión. */
   #manija {
-    position: fixed; z-index: 11; display: none;
-    align-items: center; justify-content: center;
-    /* el mismo alto que el de deshacer: los dos son botones que aparecen al
-       lado de una palabra, y de cerca se veía que no eran de la misma familia */
-    height: 22px; padding: 0 6px; font-size: 10px; line-height: 1;   /* signo, no texto */
+    padding: 0 6px; font-size: 10px;   /* signo, no texto */
     /* El ▾ es de la palabra de la que cuelga, así que lleva su color, sea el de
        su parte o el del tema: la palabra, el botón y el menú que abre quedan de
        un solo color y se leen como un solo gesto en vez de tres cosas sueltas.
@@ -280,9 +357,8 @@
        una línea que el idioma aún no entiende—. Que es un control no lo dice el color
        sino la forma —aparece al pasar, tiene borde y tiene el signo—, así que el
        tono queda libre para decir de quién es. */
-    color: var(--parte, var(--texto)); border-radius: 5px; opacity: .85;
+    color: var(--parte, var(--texto)); opacity: .85;
   }
-  #manija.vivo { display: flex; }
   #manija:hover, #manija.encendido { opacity: 1; border-color: var(--parte, var(--texto)); }
   #deshacer:hover { opacity: 1; border-color: var(--parte, var(--texto)); }
   .panel h3 {
@@ -360,6 +436,13 @@
   }
   .punto:hover::before { filter: brightness(1.15); }
   .punto.callado::before { background: none; box-shadow: inset 0 0 0 1.5px currentColor; }
+  /* el halo es la contestación de la cinta: esa franja y este punto son la misma
+     línea. Va después de .callado porque las dos escriben la misma sombra. */
+  .punto.senalado::before { box-shadow: 0 0 0 4px color-mix(in oklab, currentColor 28%, transparent); }
+  .punto.callado.senalado::before {
+    box-shadow: inset 0 0 0 1.5px currentColor,
+                0 0 0 4px color-mix(in oklab, currentColor 28%, transparent);
+  }
   /* La × sólo del lado de los propios y sólo al pasar por la fila: en reposo
      esto es una lista de temas, no un panel de administración. Va escondida y no
      sacada, para que el número del tempo no se corra al aparecer. */

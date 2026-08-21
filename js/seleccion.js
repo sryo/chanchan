@@ -48,7 +48,11 @@ function mirarSeleccion() {
   tenirTextarea();
   const toks = tokensEnSeleccion();
   const tipos = new Set(toks.map(t => t.tipo));
-  if (toks.length < 2 || tipos.size > 1) { botonSel.classList.remove('vivo'); tokensSel = []; return; }
+  if (toks.length < 2 || tipos.size > 1) {
+    tokensSel = [];
+    if (botonSel.classList.contains('vivo')) { botonSel.classList.remove('vivo'); acomodarColgantes(); }
+    return;
+  }
   tokensSel = toks;
   pintarDeQuien(botonSel, toks);
   botonSel.textContent = '▾ ' + toks.length + ' ' + PLURAL[[...tipos][0]];

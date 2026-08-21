@@ -1,0 +1,60 @@
+# El índice de los temas que vienen hechos. Un nombre por renglón, en el orden en
+# que salen en la lista; los renglones que empiezan con # son notas y no temas. Un
+# .txt que esté en la carpeta y no figure acá va igual, al final y alfabético, así
+# que sumar un tema es copiar un archivo.
+#
+# De acá sale js/ejemplos.js, que es lo que la página lee:
+#
+#     node .claude/temas.mjs
+#
+# Los temas son texto pelado y chanchán no tiene comentarios, así que las notas de
+# cada uno —de qué midi salió, qué se adaptó— viven acá y no adentro del .txt.
+#
+# Sobre los nombres: el que convierte lee el midi, no lo escucha, así que un
+# título no se puede sacar de ahí. Los que están puestos los dijo Mateo o salen de
+# la partitura; los otros llevan el nombre del artista y nada más, que es lo que
+# el nombre del archivo sí garantiza.
+
+# ejemplos/Charly Garcia.mid — Los Dinosaurios, 1983. Dos pistas, piano y
+# cuerdas: no hay batería en el midi y acá tampoco, que es como está el archivo.
+# La forma sale de mirar los acordes compás por compás — do séptima, re menor, si
+# bemol, do séptima— y en el medio la bajada si bemol · la · la bemol · sol, que
+# es lo que hace el tema.
+los dinosaurios
+
+# ejemplos/Patricio Rey.mid. La estrofa es re · mi · do sostenido · re con el la
+# de pedal abajo, y el estribillo se va a fa · do · si bemol · re en corcheas
+# parejas, que es de donde sale el envión. El riff de la viola de arriba está nota
+# por nota, tal como viene en la pista «solo».
+ricotero
+
+# ejemplos/Pink Floyd.mid. La entrada es la figura de la doce cuerdas, que en el
+# midi son ocho compases que después vuelven tres veces más: por eso es una
+# sección y no una introducción. La estrofa lleva la voz nota por nota. Tampoco
+# hay batería en el midi.
+a lo floyd
+
+# ejemplos/Babasonicos.mid. Cuatro secciones de cuatro compases cada una y todas
+# sobre la misma vuelta de la menor: lo que cambia es por dónde entra el bajo. En
+# la estrofa llega tarde y arrastra; en el estribillo va en corcheas parejas y el
+# tema se para. La bata es la misma en todas y por eso está escrita una vez sola,
+# arriba de la primera sección.
+a lo babasónicos
+
+# ejemplos/Orff Carl.mid — O Fortuna, de Carmina Burana, 1936. Dominio público, y
+# el único que se pudo cotejar de verdad: la melodía del coro es la que se
+# reconoce. Acá no hay esqueleto, está el coro nota por nota. Necesita las cuatro
+# cosas juntas —secciones, compases y un tempo por sección—, porque Orff lo
+# escribió con siete cambios de pulso: arranca en 130, se va a 264 para el susurro
+# de «semper crescis», empuja a 280 cuando el coro lo repite una octava arriba, y
+# cierra en 120. El compás es de 3/2 y acá no hace falta decirlo: la vuelta no
+# mide nada por su cuenta, la miden los pasos que le caben, así que se acomoda
+# eligiendo el tempo.
+o fortuna
+
+# ejemplos/Grieg.mid — «En la gruta del rey de la montaña», 1875. Dominio público.
+# El midi tiene el tema en mi menor y lo va subiendo: primero abajo, después la
+# frase una tercera arriba, después esa misma una octava más arriba. Grieg lo
+# escribió para que se vaya acelerando y el midi lo hace en cinco escalones; acá
+# son cuatro, uno por sección, que es para lo que sirve el tempo por sección.
+la gruta

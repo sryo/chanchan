@@ -183,11 +183,53 @@ function seccionesDe(t) {
     return [{ titulo: 'cómo', ops: MODIFICADORES.map(m =>
       ({ txt: m[0], desc: m[2], nuevo: m[0], puesto: norm(hoy) === norm(m[0]) })) }];
 
+  // El reparto euclidiano y las que envuelven a otra frase llevan números o una
+  // frase adentro. La de envolver va en dos columnas, como los instrumentos: a la
+  // izquierda cada cuánto, a la derecha qué hace. Las dos mitades se leen del
+  // texto y no de un estado, así que elegir una respeta lo que ya decía la otra.
+  if (t.tipo === 'euclides') {
+    const puesto = leerEuclides(hoy);
+    return [{ titulo: 'el reparto', ops: EUCLIDES.map(([n, m]) => ({
+      txt: fraseEuclides(n, m), desc: n + ' golpes en ' + m + ' pasos',
+      nuevo: fraseEuclides(n, m),
+      puesto: !!puesto && puesto.n === n && puesto.m === m })) }];
+  }
+
+  if (t.tipo === 'veces') {
+    const partida = partirEnvoltura(hoy);
+    const pre = partida ? partida.frase : ENVOLTURAS[2];
+    const dentro = (partida && partida.dentro) || 'al doble';
+    const cuanSeguido = p => {
+      const v = VECES.find(x => norm(x[0]) === norm(p));
+      if (v) return v[2];
+      const k = (norm(p).match(/^cada (\S+) vueltas?$/) || [])[1];
+      return 'una de cada ' + (k || '') + ', y las otras como está';
+    };
+    return [
+      { titulo: 'cada cuánto', ops: ENVOLTURAS.map(p =>
+        ({ txt: p, desc: cuanSeguido(p), nuevo: p + ' ' + dentro, puesto: norm(p) === norm(pre) })) },
+      { titulo: 'y ahí, qué', detalle: true, ops: MODIFICADORES.filter(envolvible).map(m =>
+        ({ txt: m[0], desc: m[2], nuevo: pre + ' ' + m[0], puesto: norm(m[0]) === norm(dentro) })) },
+    ];
+  }
+
   if (t.tipo === 'arreglo') {
     const puesta = leerArreglo(hoy);
     return [{ titulo: 'entra y sale', ops: ARREGLOS.map(([n, q]) => ({
       txt: fraseArreglo(n, q), desc: (n + q) + ' vueltas', nuevo: fraseArreglo(n, q),
       puesto: !!puesta && puesta.n === n && puesta.q === q })) }];
+  }
+
+  // Un nombre de la línea de forma se cambia por otro de los que hay escritos: es
+  // reordenar el tema sin escribir, que es lo que el ▾ hace en todas las demás.
+  // Los nombres salen de los propios encabezados y no de la forma, así que las
+  // secciones que todavía no entraron también están en la lista.
+  if (t.tipo === 'forma') {
+    const nombres = [...new Set(marcasActuales.flat()
+      .filter(x => x && x.tipo === 'seccion').map(x => x.nombre))];
+    if (!nombres.length) return null;
+    return [{ titulo: 'secciones', ops: nombres.map(x =>
+      ({ txt: x, nuevo: x, puesto: norm(hoy) === x })) }];
   }
 
   if (t.tipo === 'tempo') {
@@ -207,7 +249,8 @@ function seccionesDe(t) {
 // Barato a propósito: corre en cada cuadro del hover, y seccionesDe() arma el
 // menú entero (hasta 133 instrumentos, o un Levenshtein contra todo el
 // vocabulario si el token es un error). «mal» es el único que hay que preguntar.
-const CON_MENU = ['tempo', 'paso', 'nota', 'instrumento', 'modificador', 'arreglo'];
+const CON_MENU = ['tempo', 'paso', 'nota', 'instrumento', 'modificador', 'arreglo',
+                  'euclides', 'veces', 'forma'];
 const tieneMenu = t => !!t &&
   (CON_MENU.includes(t.tipo) || (t.tipo === 'mal' && !!seccionesDe(t)));
 
@@ -389,13 +432,13 @@ function ponerManija(t) {
   // fuera de cuadro cuando el renglón se fue con el scroll
   if (!quien || !tieneMenu(quien) || quien.r.top < hl.getBoundingClientRect().top) {
     manija.classList.remove('vivo');
+    manija.colgadoDe = null;
+    acomodarColgantes();          // el deshacer recupera el lugar que le cedía
     return;
   }
-  manija.classList.add('vivo');
   pintarDeQuien(manija, quien);
-  manija.style.left = Math.round(quien.r.right) + 'px';
-  manija.style.top = Math.round(quien.r.top + (quien.r.height - manija.offsetHeight) / 2) + 'px';
   manija.classList.toggle('encendido', !!tokenDelMenu);
+  pegarA(manija, quien, 0);
 }
 
 // El subrayado de la palabra sale sólo cuando el mouse está en el ▾, o mientras

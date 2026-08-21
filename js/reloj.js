@@ -3,14 +3,31 @@
 // preguntamos qué paso cae justo ahí y prendemos esa palabra en el editor.
 let espejos = [];
 let claveActivos = '';
+// dónde cambia el pulso a lo largo de la forma, y cuál está puesto ahora
+let temposActuales = [], bpmPuesto = null;
+
+// El tempo no vive en el patrón, así que un tema que acelera no se puede armar
+// de una sola vez: se le va diciendo al reloj al cruzar cada borde. La aguja ya
+// sabe en qué vuelta estamos, y de la misma cuenta sale en qué sección.
+function seguirTempo(t) {
+  if (!temposActuales.length) return;
+  const v = Math.max(1, vueltasActuales);
+  const donde = ((t % v) + v) % v;
+  let cual = temposActuales[0].bpm;
+  for (const x of temposActuales) if (donde >= x.desde) cual = x.bpm;
+  if (cual === bpmPuesto) return;
+  bpmPuesto = cual;
+  ponerTempo(cual);
+}
 
 function seguir() {
   requestAnimationFrame(seguir);
   moverAguja();
   const nuevos = new Set();
-  if (sonando && espejos.length) {
+  if (sonando) {
     let t;
     try { t = getTime(); } catch (e) { t = null; }
+    if (t != null) seguirTempo(t);
     if (t != null) for (const e of espejos) {
       let haps;
       try { haps = e.pat.queryArc(t, t + 0.0001); } catch (err) { continue; }
@@ -44,13 +61,32 @@ function despertar() {
   if (ctx && ctx.state === 'suspended') return ctx.resume();
 }
 
+// El tempo no vive en el patrón: es del reloj, y el «setcpm» de la primera línea
+// del código sólo se lo va diciendo cada vez que se re-evalúa el tema. Decírselo
+// directo es lo que deja arrastrar el número mientras suena: volver a evaluar
+// cambia el tema recién en el borde de la vuelta, así que el arrastre se sentía a
+// saltos y las partes largas volvían a empezar de cero en cada escalón.
+function ponerTempo(bpm) {
+  try { setcpm(bpm / 4); } catch (e) { /* strudel todavía no levantó */ }
+}
+
 function correr(codigo) {
-  try {
-    evaluate(codigo);
-  } catch (e) {
+  // evaluate() es async: el try sólo agarra lo que revienta antes del primer
+  // await, y lo que falla más adentro —el transpilador, un sonido que no está—
+  // se iba como promesa rechazada sin dueño. La página no decía nada y el botón
+  // quedaba en «parar» con el silencio puesto.
+  const caido = e => {
     sonando = false;
     refrescarTransporte();
-    cajaErr.innerHTML += '<p><b>strudel:</b> ' + esc(String(e.message || e)) + '</p>';
+    cajaErr.innerHTML += '<p><b>strudel:</b> ' + esc(String((e && e.message) || e)) + '</p>';
+  };
+  // el «setcpm» del código vuelve a poner el de arranque, así que lo que la tabla
+  // de tempos haya dejado puesto deja de valer
+  bpmPuesto = null;
+  try {
+    Promise.resolve(evaluate(codigo)).catch(caido);
+  } catch (e) {
+    caido(e);
   }
 }
 
