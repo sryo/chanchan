@@ -38,28 +38,62 @@ const MATIZ = {};
       // vez de quedarse sin color y romper el oklch
       tono: fam in TONO ? TONO[fam] : TONO['pianos'],
       // dónde cae dentro de su familia, de 0 a 1; la luz que le toca a ese
-      // lugar la pone colorDe(), que es la que sabe sobre qué papel se dibuja
+      // lugar lo pone enLaRueda(), que es la que sabe sobre qué papel se dibuja
       paso: nombres.length > 1 ? j / (nombres.length - 1) : 0,
     });
 }
 
-// La rampa de cada familia se acortó por las dos puntas sin moverse de lugar: el
-// medio quedó donde estaba, así que de día los colores siguen siendo claros y de
-// noche siguen siendo apagados — que es como tiene que ser, un papel no se
-// oscurece y una noche no se enciende. Lo que se fue son los extremos, que no
-// eran color sino ausencia: con la banda entera, el último instrumento de cada
-// familia (el clarinete, el timbal, los armónicos) se borraba contra la hoja
-// clara, y el primero se borraba contra la oscura. Media familia sin dibujar.
-// El sentido se conserva en los dos modos: el slap sigue más claro que el acústico.
-const RAMPA = { claro: [0.54, 0.70], oscuro: [0.49, 0.65] };
-const CROMA = { claro: 0.135, oscuro: 0.15 };
+// ------------------------------------------------------ el mismo tono, dos luces
+// El color de una parte hace dos trabajos que piden lo contrario, y con una sola
+// rampa uno de los dos siempre salía mal. La cinta es una franja ancha en el
+// borde: le alcanza con teñir, y tiene que quedar aireada de día y apagada de
+// noche. El nombre de la parte es texto de dieciséis píxeles: tiene que leerse.
+// Las dos cosas que el papel manda —la hoja clara no se ensombrece, la noche no
+// se enciende— empujan la banda al medio, y en el medio el texto se pierde: el
+// nombre de una parte llegaba a dos de contraste contra la hoja, que no es poco
+// contraste, es no estar. Peor, la banda del día y la de la noche terminaban a
+// cinco centésimas una de otra, o sea que eran la misma.
+//
+// Así que la banda se parte por trabajo y no por modo. La tinta es la que tiene
+// que leerse, y por eso se da vuelta entera entre un modo y el otro: hunde sobre
+// papel y sale sobre la noche, siempre del lado de acá de la tinta de la página,
+// así que el nombre de una parte es texto de color y nunca un subrayado
+// fluorescente. La trama sólo tiñe, y ahí la diferencia entre los dos modos no
+// la puede hacer la luz sola: correrla lo suficiente como para que se note deja
+// la franja más pálida de cada familia en menos de dos contra su fondo, que es
+// casi no estar. La hace también la croma, y ésa sale gratis.
+//
+// De día la rueda va más clara y desaturada, que es tinta sobre papel: lavada,
+// impresa. De noche va más profunda y saturada, que es luz sobre vidrio. Son dos
+// medios distintos y no el mismo pigmento con otro fondo atrás, que es lo que
+// eran antes —las dos bandas terminaban a dos centésimas una de otra—. Y de
+// paso la croma del día entra entera en la pantalla: con 0,135 se salía de gamut
+// en un tercio de los tonos y el navegador los recortaba, así que la rueda no
+// rendía los colores que se le pedían y el contraste saltaba de un tono a otro.
+// De noche la banda baja hasta rozar el fondo y eso es lo buscado, no un
+// descuido: el primero de cada familia —y ahí caen «pum» y «piano», que son los
+// dos que más aparecen— queda en menos de dos de contraste. La cinta de noche es
+// una cinta apagada. Si algún día se quiere levantar sin aclararla, lo que hay
+// que hacer es acortarla por abajo (0.43 en vez de 0.40), no correrla entera.
+const BANDA = {
+  trama: { claro: { de: 0.48, a: 0.58, croma: 0.135 }, oscuro: { de: 0.40, a: 0.50, croma: 0.15 } },
+  tinta: { claro: { de: 0.38, a: 0.50, croma: 0.135 }, oscuro: { de: 0.62, a: 0.76, croma: 0.15 } },
+};
 const deNoche = () => document.documentElement.dataset.luz === 'oscuro';
 
-// El tono nunca cambia: una familia es la misma familia en los dos modos. De
-// noche sube un poco de saturación — con la croma del día quedaban lavados.
-function colorDe(voz) {
+// El tono nunca cambia: una familia es la misma familia en los dos modos y en
+// los dos trabajos, y es lo único que dice quién toca. Lo demás —cuánta luz,
+// cuánta saturación— es de qué lado del papel estamos y qué trabajo hace el
+// color. El sentido se conserva en las cuatro bandas: el slap sigue siendo más
+// claro que el acústico.
+function enLaRueda(banda, voz) {
   const m = MATIZ[norm(voz || '')] || MATIZ[norm(INSTRUMENTO_POR_DEFECTO)];
-  const modo = deNoche() ? 'oscuro' : 'claro';
-  const [de, a] = RAMPA[modo];
-  return 'oklch(' + (de + (a - de) * m.paso).toFixed(3) + ' ' + CROMA[modo] + ' ' + m.tono + ')';
+  const b = BANDA[banda][deNoche() ? 'oscuro' : 'claro'];
+  return 'oklch(' + (b.de + (b.a - b.de) * m.paso).toFixed(3) + ' ' + b.croma + ' ' + m.tono + ')';
 }
+
+// lo que se lee: el nombre de la parte, el puntito del margen, el logo y el
+// botón de tocar, y el ▾ con su menú
+const tintaDe = voz => enLaRueda('tinta', voz);
+// lo que sólo tiñe: la cinta, y el realce de lo que está sonando
+const tramaDe = voz => enLaRueda('trama', voz);

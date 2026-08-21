@@ -20,7 +20,7 @@ function lineasQueSuenan(marcas) {
 
 function armarPuntos(marcas, calladas, renglones = renglonesActuales) {
   const caja = hl.getBoundingClientRect();
-  const color = new Map(renglones.map(r => [r.nro - 1, colorDe(r.voz)]));
+  const color = new Map(renglones.map(r => [r.nro - 1, tramaDe(r.voz)]));
   puntos.innerHTML = '';
   for (const l of lineasQueSuenan(marcas)) {
     const sp = hl.querySelector('span[data-l="' + l + '"]');

@@ -227,7 +227,7 @@ function editable(x, y) {
 // menú marca como puesto—, así que las tres salen siempre del mismo color que la
 // palabra de la que cuelgan.
 const colorDelToken = t => !t ? null
-  : vozDeLinea(t.l) ? colorDe(vozDeLinea(t.l))
+  : vozDeLinea(t.l) ? tintaDe(vozDeLinea(t.l))
   : t.tipo === 'tempo' ? 'var(--marca)' : null;
 
 function pintarDeQuien(el, t) {

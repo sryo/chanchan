@@ -22,15 +22,21 @@
        más claro de noche —es el mismo gesto—, y por eso ninguno de los dos modos
        se sale de lo suyo: la hoja clara nunca se ensombrece y la oscura nunca se
        prende. Los tres escalones del medio se mezclan de éstos. */
-    --grave: #123540;
+    --grave: var(--texto);
     --agudo: #557884;
     --acento: #c4402a;
     --mal: #9e1f14;
     --vivo: #f0dcab;
     --realce: #ded2b7;
     --sombra: #1235401f;
+    /* El color del tema, en las dos bandas de la rueda: la marca pinta —el botón
+       de tocar y el logo, que caen dentro de la curva de la cinta y son una sola
+       pieza con ella— y la tinta escribe, que es para lo poco que lleva el color
+       del tema en letras: el número del tempo, el ▾ del nombre, el tema abierto
+       en la lista. Sin tema abierto las tres caen en el acento. */
     --marca: var(--acento);
     --marca-fin: var(--texto);
+    --marca-tinta: var(--acento);
     --marco: 65px;
     --sangria: 88px;
     --canal: 30px;          /* el canal de los puntitos, entre la cinta y el texto */
@@ -56,7 +62,6 @@
     --punteo: #55646a;
     --silencio: #515e62;
     --andamio: #424d51;
-    --grave: #e8e0cd;
     --agudo: #9f9886;
     --acento: #e8674b;
     --mal: #ff8f79;
@@ -91,37 +96,36 @@
      viéndose: pintado del color del fondo sobre gris claro no quedaba nada */
   body.cargando #tocar { background: var(--linea); cursor: progress; }
   body.cargando #tocar svg { fill: var(--tenue); }
-  /* El botón y el logo son una sola pieza y tienen que caer en la misma línea.
-     No caen solas: header centra la *caja* de la marca contra el botón, y esa
-     caja está torcida, porque adentro se alinea por línea de base con el logo
-     en 30px y el resto en 11 y 14. El corrimiento es la mitad de lo que sobra
-     de un lado — (lo que cuelga abajo de la base − el aire arriba de las
-     mayúsculas) / 2 —: (10,6 − 4,2)/2 = 3,2 con el logo en 30, y (10,6 − 3,2)/2
-     = 3,7 con el logo en 24. Los 10,6 son el campo del nombre con su padding y
-     su raya, que no cambian de tamaño; el aire de arriba es métrica de Antonio,
-     0,14em, que sí. Va uno solo para los dos anchos: medio píxel no se ve.
-     Con position:relative el flujo no se entera, así que el botón no se mueve y
-     la cinta, que se dibuja concéntrica con él, tampoco. */
+  /* Con el logo en dos renglones la marca es un bloque y no una línea, así que
+     lo de al lado se centra contra él: por línea de base flexbox toma la del
+     primer renglón y «chán» entero quedaría colgando debajo del nombre. */
   .marca {
-    display: flex; align-items: baseline; gap: 18px; min-width: 0; flex-wrap: wrap;
-    position: relative; top: 3.5px;
+    display: flex; align-items: center; gap: 14px; min-width: 0; flex-wrap: wrap;
   }
-  /* el enlace va pegado al nombre: es lo que se comparte, no un control aparte */
-  .marca #enlace { margin-left: 8px; }
+  /* El enlace va pegado al nombre: es lo que se comparte, no un control aparte.
+     El margen negativo descuenta su padding, que es área de click y no aire. */
+  .marca #enlace { margin-left: -9px; }
+  /* El recorte es por Antonio, que reparte el aire muy para un lado —a 30px, 35
+     de alto contra 4 de bajo—: sin él la caja del renglón no cae centrada sobre
+     la tinta, y centrarla deja la palabra baja y la raya corta. La palabra es
+     toda baja, pero la versal y el asta de la «h» están a un cuarto de píxel,
+     así que «cap» sirve de tope. */
   h1 {
-    font-family: var(--titular); font-size: var(--letra-logo); line-height: 1;
-    margin: 0; font-weight: 600; letter-spacing: .01em; color: var(--marca);
+    font-family: var(--titular); font-size: var(--letra-logo); line-height: .8;
+    text-box: trim-both cap alphabetic;
+    margin: 0; font-weight: 600; letter-spacing: -.02em; color: var(--marca);
   }
-  h1 span { color: var(--marca-fin); }
-  /* Separan texto, así que se miden contra el texto: sin align-self heredan la
-     línea de base de la marca y, como un span vacío no tiene una propia,
-     flexbox se la saca del borde de abajo — quedan apoyadas justo sobre el
-     renglón. Centradas contra la caja caían casi en el mismo lugar, pero de
-     casualidad. */
+  /* Las dos sílabas van una encima de la otra y miden exactamente lo mismo —la
+     tilde no ocupa avance—, así que cierran un rectángulo sin ajustar nada.
+     Partir el renglón es además el corte, que antes lo hacía sólo el color. Va
+     por display y no por un <br> para que el título se copie de una pieza. */
+  h1 span { display: block; color: var(--marca-fin); }
   /* una sola, y entre el nombre de la app y el del tema: son dos textos
      parecidos y sin ella se leen como una frase sola. Entre el nombre y el ⚯ no
-     hace falta — un campo con subrayado punteado y un signo ya se distinguen. */
-  .rayita { width: 1px; height: 19px; background: var(--linea); flex: none; }
+     hace falta — un campo con subrayado punteado y un signo ya se distinguen.
+     Se estira en vez de medirse: así corta contra el logo, que es lo más alto,
+     sin un número que mantener sincronizado. */
+  .rayita { width: 1px; align-self: stretch; background: var(--linea); flex: none; }
   /* El nombre del tema y el ▾ que abre los otros son una sola cosa: se escribe
      encima o se despliega, como un combo. El subrayado es de los dos y llega
      hasta el ▾, y el ancho lo pone el propio texto — un campo con ancho fijo
@@ -153,7 +157,7 @@
   #enlace:hover { color: var(--texto); }
   /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
   #enlace.dicho {
-    color: var(--marca); font-size: var(--letra-chica);
+    color: var(--marca-tinta); font-size: var(--letra-chica);
     letter-spacing: .1em; text-transform: uppercase;
   }
   main { flex: 1; display: flex; min-height: 0; }
@@ -203,7 +207,7 @@
      que es de todas, y el tema entero ya tiene color —el del botón de tocar—,
      así que lleva ése. Con la tinta común quedaba como el único valor del
      documento sin dueño, y su ▾ y su menú, que sí lo tienen, no le pegaban. */
-  #hl span[data-tipo="tempo"] { color: var(--marca); font-weight: 600; }
+  #hl span[data-tipo="tempo"] { color: var(--marca-tinta); font-weight: 600; }
   .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
   /* El subrayado quiere decir una sola cosa: «de esta palabra cuelga el ▾». Sale
      con el mouse en el botón y no en la palabra, porque el botón flota al lado y
@@ -353,9 +357,9 @@
   }
   /* el otro ▾ de la página: éste cuelga del nombre del tema, así que se pinta
      del color del tema, igual que el de una palabra se pinta del de su parte */
-  #abrir:hover { color: var(--marca); }
+  #abrir:hover { color: var(--marca-tinta); }
   /* y el tema abierto dentro de la lista, por lo mismo */
-  #temas .op.puesto { color: var(--marca); }
+  #temas .op.puesto { color: var(--marca-tinta); }
   #temas .op .d { text-transform: none; }
   @media (max-width: 720px) {
     :root { --sangria: 52px; --marco: 40px; }

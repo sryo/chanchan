@@ -76,8 +76,8 @@ function pintar(marcas) {
       // que suena se tiñe sólo mientras suena, y por eso va como variable y no
       // como color: la regla de .t-activo sigue siendo una sola.
       const tinte = !t.voz ? ''
-        : t.cls === 'sujeto' ? ' style="color:' + colorDe(t.voz) + '"'
-        : vivo ? ' style="--vivo:color-mix(in oklab,' + colorDe(t.voz) + ' 30%,var(--fondo))"'
+        : t.cls === 'sujeto' ? ' style="color:' + tintaDe(t.voz) + '"'
+        : vivo ? ' style="--vivo:color-mix(in oklab,' + tramaDe(t.voz) + ' 30%,var(--fondo))"'
         : '';
       // la nota se parte en dos, la que se lee y la que la acompaña; el span de
       // afuera es el que sigue midiendo para el ▾ y para el realce

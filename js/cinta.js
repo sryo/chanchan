@@ -78,7 +78,7 @@ function dibujarCinta(renglones) {
   renglones.forEach((r, i) => {
     const d = marco / 2 - grueso / 2 - i * grueso;
     const x = medio - d, y = medio - d, radio = RADIO + d;
-    const color = colorDe(r.voz);
+    const color = tramaDe(r.voz);
     // la entrada, de abajo hasta la vuelta de la esquina: va entera, sin cortes
     svg += trazo('M ' + x + ' ' + h + ' L ' + x + ' ' + cy +
       ' A ' + radio + ' ' + radio + ' 0 0 1 ' + cx + ' ' + y + ' L ' + arranque + ' ' + y, color, grueso + 0.6);
@@ -144,15 +144,21 @@ function moverAguja() {
   }
 }
 
-// el botón y el logo se tiñen con las puntas del tema: cada uno se ve distinto
+// El botón y el logo se tiñen con las puntas del tema: cada uno se ve distinto.
+// Van en trama, la misma banda de la cinta y del puntito: el botón cae dentro de
+// la curva que dibujan las franjas y el logo va apoyado contra él, así que son
+// una sola pieza y tienen que ser un solo color. Aparte va la tinta del tema,
+// que es para lo que se escribe con su color y no se pinta con él: el número del
+// tempo, el ▾ del nombre, el tema abierto en la lista.
 function pintarMarca(renglones) {
   const raiz = document.documentElement.style;
   if (!renglones.length) {
-    raiz.removeProperty('--marca'); raiz.removeProperty('--marca-fin');
+    for (const v of ['--marca', '--marca-fin', '--marca-tinta']) raiz.removeProperty(v);
     return;
   }
-  raiz.setProperty('--marca', colorDe(renglones[0].voz));
-  raiz.setProperty('--marca-fin', colorDe(renglones[renglones.length - 1].voz));
+  raiz.setProperty('--marca', tramaDe(renglones[0].voz));
+  raiz.setProperty('--marca-fin', tramaDe(renglones[renglones.length - 1].voz));
+  raiz.setProperty('--marca-tinta', tintaDe(renglones[0].voz));
 }
 
 function reacomodar() {
