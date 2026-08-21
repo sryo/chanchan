@@ -222,7 +222,7 @@ function editable(x, y) {
 // parte pero tampoco es de nadie: es del tema entero, y el tema ya tiene color
 // —el del botón de tocar y el del logo—, así que usa ése. Y lo que no es de
 // nadie, como una selección de varias palabras sueltas, se queda sin dueño y ahí
-// recién manda el acento, que es el color de lo tuyo.
+// recién queda sin dueño, y ahí manda la tinta de la página.
 // Lo usan las tres cosas que cuelgan de una palabra —el ▾, su menú y lo que ese
 // menú marca como puesto—, así que las tres salen siempre del mismo color que la
 // palabra de la que cuelgan.
@@ -233,7 +233,7 @@ const colorDelToken = t => !t ? null
 // Vale igual para una palabra que para varias: una selección de notas de un
 // mismo renglón es tan de esa parte como una sola nota suya, y con más razón,
 // que son todas las que se van a cambiar de un saque. Recién cuando la selección
-// cruza de una parte a otra deja de ser de alguien y ahí sí manda el acento.
+// cruza de una parte a otra deja de ser de alguien y cae en la tinta de la página.
 function pintarDeQuien(el, t) {
   const colores = new Set((Array.isArray(t) ? t : [t]).map(colorDelToken));
   const [color] = colores;

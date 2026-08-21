@@ -25,13 +25,14 @@ function tokensEnSeleccion() {
 }
 
 // El resaltado y el cursor son de la parte sobre la que caen. Eran lo último que
-// seguía pintándose de acento encima de las palabras de un renglón, y quedaba un
-// lavado rojo sobre palabras verdes. ::selection es uno solo para todo el
+// seguía pintándose de un color ajeno encima de las palabras de un renglón, y
+// quedaba un lavado rojo sobre palabras verdes. ::selection es uno solo para todo el
 // textarea y no puede ir renglón por renglón, así que se tiñe mientras la
 // selección no se salga de una parte —que es como se selecciona casi siempre—; en
-// cuanto cruza de una a otra se queda sin dueño y vuelve el acento. Con el cursor
-// solo el renglón es uno y siempre hay dueño, salvo mientras la línea todavía no
-// se entiende: ahí el cursor rojo es, de paso, que el idioma no la reconoció.
+// cuanto cruza de una a otra se queda sin dueño y cae en la tinta de la página.
+// Con el cursor solo el renglón es uno y siempre hay dueño, salvo mientras la
+// línea todavía no se entiende: ahí el cursor va en tinta común, y en cuanto el
+// idioma la reconoce toma color. Es un aviso gratis de que la línea compiló.
 function tenirTextarea() {
   const a = src.selectionStart, b = src.selectionEnd;
   const tocadas = [];
