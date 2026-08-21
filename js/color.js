@@ -55,10 +55,13 @@ const MATIZ = {};
 // cinco centésimas una de otra, o sea que eran la misma.
 //
 // Así que la banda se parte por trabajo y no por modo. La tinta es la que tiene
-// que leerse, y por eso se da vuelta entera entre un modo y el otro: hunde sobre
-// papel y sale sobre la noche, siempre del lado de acá de la tinta de la página,
-// así que el nombre de una parte es texto de color y nunca un subrayado
-// fluorescente. La trama sólo tiñe, y ahí la diferencia entre los dos modos no
+// que leerse, y por eso se da vuelta entera entre un modo y el otro: sobre papel
+// cae apenas por encima de la trama y sobre la noche se va muy por arriba de
+// ella, porque contra un fondo oscuro el texto tiene que subir mucho más que una
+// franja para leerse, y contra uno claro con un tono medio ya alcanza. En los dos
+// queda del lado de acá de la tinta de la página, así que el nombre de una parte
+// es texto de color y nunca un subrayado fluorescente. La trama sólo tiñe, y ahí
+// la diferencia entre los dos modos no
 // la puede hacer la luz sola: correrla lo suficiente como para que se note deja
 // la franja más pálida de cada familia en menos de dos contra su fondo, que es
 // casi no estar. La hace también la croma, y ésa sale gratis.
@@ -77,7 +80,7 @@ const MATIZ = {};
 // que hacer es acortarla por abajo (0.43 en vez de 0.40), no correrla entera.
 const BANDA = {
   trama: { claro: { de: 0.48, a: 0.58, croma: 0.135 }, oscuro: { de: 0.40, a: 0.50, croma: 0.15 } },
-  tinta: { claro: { de: 0.38, a: 0.50, croma: 0.135 }, oscuro: { de: 0.62, a: 0.76, croma: 0.15 } },
+  tinta: { claro: { de: 0.44, a: 0.56, croma: 0.135 }, oscuro: { de: 0.62, a: 0.76, croma: 0.15 } },
 };
 const deNoche = () => document.documentElement.dataset.luz === 'oscuro';
 
@@ -92,8 +95,9 @@ function enLaRueda(banda, voz) {
   return 'oklch(' + (b.de + (b.a - b.de) * m.paso).toFixed(3) + ' ' + b.croma + ' ' + m.tono + ')';
 }
 
-// lo que se lee: el nombre de la parte, el puntito del margen, el logo y el
-// botón de tocar, y el ▾ con su menú
+// lo que se lee: el nombre de la parte, el ▾ con su menú, y todo lo que se posa
+// sobre un renglón — el cursor, el resaltado de la selección, deshacer
 const tintaDe = voz => enLaRueda('tinta', voz);
-// lo que sólo tiñe: la cinta, y el realce de lo que está sonando
+// lo que sólo tiñe: la cinta y el puntito, que es la cinta vista de canto; el
+// botón de tocar y el logo, que caen dentro de su curva; y el realce de lo que suena
 const tramaDe = voz => enLaRueda('trama', voz);
