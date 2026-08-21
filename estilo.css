@@ -24,12 +24,21 @@
        prende. Los tres escalones del medio se mezclan de éstos. */
     --grave: var(--texto);
     --agudo: #557884;
-    /* El único color de la página que no sale de la rueda, y por eso el único
-       que puede querer decir algo por sí solo: «esto no lo entiendo». Es carmín
-       y no el ladrillo de la ficha porque el ladrillo era también el acento —los
-       dos salían de la misma segunda tinta, a dos grados de tono uno del otro— y
-       un error tiene que ser más frío y más hondo que cualquier otra cosa. */
-    --mal: #9e122f;
+    /* Lo único de la página que no sale de la rueda, y por eso lo único que
+       puede querer decir algo por sí solo: «esto no lo entiendo».
+       El tono no lo puede distinguir y no hay vuelta que darle: la rueda son
+       dieciocho familias a veinte grados, o sea el círculo entero, así que
+       cualquier rojo que se elija cae encima de alguna. El carmín anterior caía
+       a ΔE 0,036 del agogó, que es el mismo color a simple vista, y del lado del
+       círculo donde está la percusión, que aparece en casi todos los temas.
+       Lo que sí queda libre es la saturación: la rueda está clavada en 0,135 de
+       día y 0,15 de noche, así que el error se va al máximo que entra en la
+       pantalla —0,184 y 0,229— y pasa a ser lo único plenamente saturado que hay.
+       Eso lo aleja al doble (ΔE 0,053 y 0,082) sin tocar el tono, así que sigue
+       siendo rojo, que es lo que todo el mundo lee como «algo está mal» sin que
+       nadie se lo explique. Y encima lleva el subrayado ondulado, que no lo tiene
+       ninguna otra cosa. */
+    --mal: #a3000e;
     --vivo: #f0dcab;
     --realce: #ded2b7;
     --sombra: #1235401f;
@@ -68,7 +77,7 @@
     --silencio: #515e62;
     --andamio: #424d51;
     --agudo: #9f9886;
-    --mal: #e44065;
+    --mal: #ff3f3b;
     --vivo: #40311c;
     --realce: #202a2e;
     --sombra: #0006;
