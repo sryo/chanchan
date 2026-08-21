@@ -41,7 +41,20 @@ function recetaDe(que, clave, voz) {
 }
 
 const precalentados = new Set();
-let vueltaOir = 0;
+let vueltaOir = 0, relojDormir;
+
+// Parar no detiene el reloj de strudel: lo que de verdad calla el tema es
+// suspender el audio (ver silenciar()). Y la vista previa necesita el audio
+// despierto para sonar, así que al despertarlo revivía el tema entero. Se lo
+// devuelve a dormir en cuanto la muestra terminó, salvo que mientras tanto
+// hayas apretado tocar.
+function volverADormir(dura) {
+  clearTimeout(relojDormir);
+  relojDormir = setTimeout(() => {
+    const ctx = getAudioContext();
+    if (!sonando && ctx && ctx.state === 'running') ctx.suspend();
+  }, (dura + .6) * 1000);
+}
 
 // La muestra se baja recién cuando se usa, y superdough agenda la nota a 30 ms:
 // la primera vez el mp3 llega a los ~280 ms, con el momento ya pasado, y no suena
@@ -50,6 +63,8 @@ let vueltaOir = 0;
 async function oir(receta) {
   if (!motorListo || !receta) return;
   const mia = ++vueltaOir;
+  clearTimeout(relojDormir);
+  const dormido = !sonando && (getAudioContext() || {}).state === 'suspended';
   try {
     await despertar();
     let ctx = getAudioContext();
@@ -68,5 +83,6 @@ async function oir(receta) {
       // como un segundo y medio después de lo que dura la nota, y si vas
       // recorriendo la lista se te encima con la siguiente
       strudel.superdough({ gain: .8, release: .12, ...voz }, ahora + .03 + (voz.en || 0), receta.dura);
+    if (dormido) volverADormir(receta.dura + Math.max(0, ...receta.voces.map(v => v.en || 0)));
   } catch (e) { /* si falla la muestra, mejor mudo que roto */ }
 }

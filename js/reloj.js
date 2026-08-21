@@ -31,6 +31,10 @@ function seguir() {
 // audio, «parar» deja sonando la cola de los acordes largos y del eco.
 function silenciar() {
   hush();
+  // hush() limpia los patrones registrados, pero el reloj sigue con el último
+  // stack que se evaluó: sin dejarle un silencio cargado, cualquier cosa que
+  // despierte el audio —una vista previa del menú, por ejemplo— revive el tema.
+  Promise.resolve(evaluate('silence')).catch(() => { /* strudel a medio cargar */ });
   const ctx = getAudioContext();
   if (ctx && ctx.state === 'running') ctx.suspend();
 }
@@ -49,3 +53,41 @@ function correr(codigo) {
     cajaErr.innerHTML += '<p><b>strudel:</b> ' + esc(String(e.message || e)) + '</p>';
   }
 }
+
+// ------------------------------------------------------------- tocar y parar
+const OJO_TOCAR = '<svg viewBox="0 0 24 24" width="17" height="17"><polygon points="7,4 20,12 7,20"/></svg>';
+const OJO_PARAR = '<svg viewBox="0 0 24 24" width="17" height="17">' +
+  '<rect x="6.5" y="4.5" width="4.6" height="15"/><rect x="13.9" y="4.5" width="4.6" height="15"/></svg>';
+
+function refrescarTransporte() {
+  btnTocar.innerHTML = sonando ? OJO_PARAR : OJO_TOCAR;
+  btnTocar.title = sonando ? 'parar' : 'tocar';
+  btnTocar.setAttribute('aria-label', btnTocar.title);
+}
+
+function alternarTocar() {
+  if (sonando) {
+    sonando = false;
+    ultimoCodigo = '';
+    silenciar();
+  } else {
+    const r = actualizar(false);
+    if (!r.codigo) { avisar('escribí algo primero: «el bombo toca pum - pum -».'); return; }
+    sonando = true;
+    ultimoCodigo = r.codigo;
+    Promise.resolve(despertar()).then(() => correr(r.codigo));
+  }
+  refrescarTransporte();
+}
+
+btnTocar.addEventListener('click', alternarTocar);
+
+// La barra espaciadora es una tecla del idioma —separa las palabras—, así que el
+// atajo es el de siempre para «esto, ya»: Enter con el meta apretado. Anda
+// también escribiendo, que es justo cuando se quiere oír lo que se acaba de
+// cambiar sin sacar las manos del teclado.
+addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return;
+  e.preventDefault();
+  alternarTocar();
+});

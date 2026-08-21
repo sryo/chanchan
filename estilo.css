@@ -19,6 +19,15 @@
     --marco: 65px;
     --sangria: 88px;
     --canal: 30px;          /* el canal de los puntitos, entre la cinta y el texto */
+    /* Cuatro tamaños y nada más. El logo es display; la notación pesa más que
+       todo lo demás porque es el documento; la interfaz es uno solo; y las
+       versalitas son los rótulos en mayúsculas y las glosas de los menús. Los
+       signos (▾, ◐) quedan afuera a propósito: no son texto, y forzarlos a la
+       escala los deja mal ópticamente. */
+    --letra-logo: 30px;
+    --letra-tema: 16px;
+    --letra: 14px;
+    --letra-chica: 11px;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --titular: 'Antonio', 'Arial Narrow', system-ui, sans-serif;
   }
@@ -40,7 +49,7 @@
   html, body { height: 100%; margin: 0; }
   body {
     background: var(--fondo); color: var(--texto);
-    font: 15px/1.55 var(--mono);
+    font: var(--letra)/1.55 var(--mono);
     display: flex; flex-direction: column;
   }
   /* la cinta va detrás de todo y no recibe clicks: es el marco, no un control */
@@ -67,7 +76,7 @@
   /* el enlace va pegado al nombre: es lo que se comparte, no un control aparte */
   .marca #enlace { margin-left: 8px; }
   h1 {
-    font-family: var(--titular); font-size: 30px; line-height: 1;
+    font-family: var(--titular); font-size: var(--letra-logo); line-height: 1;
     margin: 0; font-weight: 600; letter-spacing: .01em; color: var(--marca);
   }
   h1 span { color: var(--marca-fin); }
@@ -82,20 +91,24 @@
   }
   .nombre:focus-within { border-bottom-color: var(--acento); }
   #nombre {
-    font: inherit; font-size: 14px; color: var(--texto);
+    font: inherit; color: var(--texto);
     background: none; border: 0; padding: 0; outline: none; min-width: 0;
   }
   #nombre::placeholder { color: var(--suave); }
   button {
-    font: inherit; font-size: 13px; color: var(--texto);
+    font: inherit; color: var(--texto);
     background: var(--panel); border: 1px solid var(--linea);
     padding: 5px 13px; border-radius: 5px; cursor: pointer;
   }
   button:hover { border-color: var(--tenue); }
+  /* El tempo se muestra con la misma frase con la que se escribe y el mismo
+     subrayado punteado del nombre, que en esta barra es lo que quiere decir
+     «esto se cambia acá mismo». El cursor de arrastre horizontal es el único
+     lugar donde se anuncia que además se tira de él. */
   #enlace {
     background: none; border: 0; border-radius: 0;
     border-bottom: 1px solid var(--punteo); padding: 0 0 2px;
-    color: var(--tenue); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--tenue); font-size: var(--letra-chica); letter-spacing: .16em; text-transform: uppercase;
   }
   #enlace:hover { color: var(--texto); border-bottom-color: var(--texto); }
   #enlace.dicho { color: var(--marca); border-bottom-color: var(--marca); font-weight: 600; }
@@ -106,7 +119,7 @@
     position: absolute; inset: 0; margin: 0;
     padding: 0 20px 20px calc(var(--sangria) + var(--canal));
     border: 0; overflow: auto;
-    font: inherit; font-size: 16px; line-height: 1.75;
+    font: inherit; font-size: var(--letra-tema); line-height: 1.75;
     white-space: pre-wrap; overflow-wrap: break-word;
     tab-size: 2;
   }
@@ -141,7 +154,6 @@
     border-radius: 6px; padding: 6px 0; min-width: 190px;
     max-height: 80vh; max-width: calc(100vw - 16px);
     overflow: auto; box-shadow: 0 8px 24px var(--sombra);
-    font-size: 13px;
   }
   .panel.abierto { display: block; }
   .panel .op.conSub { padding-right: 8px; }
@@ -156,13 +168,13 @@
   #menu.columnas .sec.pie { grid-column: 1 / -1; }
   #deshacer {
     position: fixed; z-index: 11; display: none;
-    padding: 1px 7px; font-size: 13px; line-height: 1.4;
+    padding: 1px 7px; line-height: 1.4;
     border-radius: 5px; opacity: .85;
   }
   #deshacer.vivo, #seleccion.vivo { display: block; }
   #seleccion {
     position: fixed; z-index: 11; display: none;
-    padding: 1px 8px; font-size: 12px; border-radius: 5px;
+    padding: 1px 8px; border-radius: 5px;
     border-color: var(--acento); color: var(--acento);
   }
   /* El ▾ flota por encima del texto, como el de deshacer: adentro del renglón
@@ -174,14 +186,14 @@
     align-items: center; justify-content: center;
     /* el mismo alto que el de deshacer: los dos son botones que aparecen al
        lado de una palabra, y de cerca se veía que no eran de la misma familia */
-    height: 22px; padding: 0 6px; font-size: 10px; line-height: 1;
+    height: 22px; padding: 0 6px; font-size: 10px; line-height: 1;   /* signo, no texto */
     color: var(--acento); border-radius: 5px; opacity: .85;
   }
   #manija.vivo { display: flex; }
   #manija:hover, #manija.encendido { opacity: 1; border-color: var(--acento); }
   #deshacer:hover { opacity: 1; border-color: var(--acento); }
   .panel h3 {
-    margin: 8px 14px 3px; font-size: 10px; font-weight: 500;
+    margin: 8px 14px 3px; font-size: var(--letra-chica); font-weight: 500;
     text-transform: uppercase; letter-spacing: .12em; color: var(--tenue);
   }
   .panel h3:first-child { margin-top: 0; }
@@ -190,14 +202,14 @@
     padding: 3px 14px; cursor: pointer;
   }
   .panel .op:hover { background: var(--realce); }
-  .panel .op .d { margin-left: auto; color: var(--tenue); font-size: 12px; }
+  .panel .op .d { margin-left: auto; color: var(--tenue); font-size: var(--letra-chica); }
   .panel .op.puesto { color: var(--acento); }
   .t-activo {
     background: var(--vivo); border-radius: 3px;
     box-shadow: 0 0 0 2px var(--vivo);
   }
   .abajo {
-    border-top: 1px solid var(--linea); font-size: 13px;
+    border-top: 1px solid var(--linea);
     display: flex; flex-direction: column;
     padding-left: var(--sangria);
   }
@@ -212,10 +224,23 @@
   details summary::-webkit-details-marker { display: none; }
   details summary::before { content: "▸ "; }
   details[open] summary::before { content: "▾ "; }
-  #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); font-size: 12.5px; white-space: pre-wrap; }
+  #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
+  /* El tempo vive en el texto, como todo lo demás; esto es un atajo para ese
+     renglón, igual que los puntitos lo son para «callado». Va al pie y no a la
+     cabecera: arriba decía «va a 101» diez píxeles encima del renglón que dice
+     exactamente eso, y se leía como una impresión doble. Acá el número va solo y
+     la unidad lo nombra, que no es lo mismo que repetir la frase. */
+  #pulso {
+    flex: none; background: none; border: 0; border-radius: 0; padding: 4px 6px;
+    color: var(--texto); font-size: var(--letra-chica);
+    letter-spacing: .16em; text-transform: uppercase; cursor: ew-resize;
+  }
+  #pulso::after { content: ' tiempos por minuto'; color: var(--tenue); }
+  #pulso:hover, #pulso:focus-visible { outline: none; }
+  #pulso:hover::after, #pulso:focus-visible::after { color: var(--texto); }
   #luz {
     flex: none; margin-right: 44px; background: none; border: 0; padding: 4px 6px;
-    color: var(--tenue); font-size: 14px; line-height: 1;
+    color: var(--tenue); font-size: 14px; line-height: 1;   /* signo, no texto */
   }
   #luz:hover { color: var(--texto); }
   /* La hoja en blanco es la que enseña: mientras no hay nada escrito muestra el
@@ -224,14 +249,13 @@
   #vacio {
     position: absolute; z-index: 2; pointer-events: none;
     left: calc(var(--sangria) + var(--canal)); top: 56px; right: 44px;
-    font-size: 13.5px;
   }
   #vacio[hidden] { display: none; }
   .molde { color: var(--tenue); margin: 0 0 4px; }
   .molde b { color: var(--texto); font-weight: 600; }
   .pista { color: var(--suave); margin: 26px 0 10px; }
   .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
-  .ejemplos button { font-size: 12.5px; padding: 4px 11px; }
+  .ejemplos button { padding: 4px 11px; }
   .ejemplos button:hover { border-color: var(--marca); color: var(--marca); }
   /* el canal de los puntitos queda entre la cinta y el texto */
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
@@ -249,9 +273,15 @@
   }
   .punto:hover::before { filter: brightness(1.15); }
   .punto.callado::before { background: none; box-shadow: inset 0 0 0 1.5px currentColor; }
+  /* La × sólo del lado de los propios y sólo al pasar por la fila: en reposo
+     esto es una lista de temas, no un panel de administración. Va escondida y no
+     sacada, para que el número del tempo no se corra al aparecer. */
+  #temas .op .borrar { visibility: hidden; margin-left: 2px; color: var(--suave); }
+  #temas .op:hover .borrar { visibility: visible; }
+  #temas .op .borrar:hover { color: var(--mal); }
   #abrir {
     flex: none; background: none; border: 0; border-radius: 0;
-    padding: 0; font-size: 10px; line-height: 1; color: var(--tenue);
+    padding: 0; font-size: 10px; line-height: 1; color: var(--tenue);   /* signo */
   }
   #abrir:hover { color: var(--acento); }
   #temas .op .d { text-transform: none; }
@@ -259,5 +289,5 @@
     :root { --sangria: 52px; --marco: 40px; }
     header { gap: 16px; }
     #tocar { width: 48px; height: 48px; }
-    h1 { font-size: 24px; }
+    :root { --letra-logo: 24px; }
   }

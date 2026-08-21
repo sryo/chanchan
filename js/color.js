@@ -47,15 +47,9 @@ const deNoche = () => document.documentElement.dataset.luz === 'oscuro';
 // El tono nunca cambia: una familia es la misma familia en los dos modos. De
 // noche baja un poco de luz y sube de saturación — aclararlos los volvía pasteles.
 //
-// «legible» acota la luz sin tocar el tono. No lo usa la cinta ni la marca —ahí
-// el color es el del instrumento y punto—, sí los puntitos del margen, que son
-// botones de 13px sueltos en el papel.
-const LUZ_LEGIBLE = { dia: 0.50, noche: 0.68 };
-
-function colorDe(voz, legible) {
+function colorDe(voz) {
   const m = MATIZ[norm(voz || '')] || MATIZ[norm(INSTRUMENTO_POR_DEFECTO)];
   const noche = deNoche();
-  let luz = Math.max(0.32, m.luz + (noche ? NOCHE : 0));
-  if (legible) luz = noche ? Math.max(luz, LUZ_LEGIBLE.noche) : Math.min(luz, LUZ_LEGIBLE.dia);
+  const luz = Math.max(0.32, m.luz + (noche ? NOCHE : 0));
   return 'oklch(' + luz.toFixed(3) + ' ' + (noche ? CROMA_NOCHE : CROMA) + ' ' + m.tono + ')';
 }

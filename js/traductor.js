@@ -1,4 +1,18 @@
 // ---------------------------------------------------------------- el traductor
+// La vuelta larga es hasta donde todas las líneas vuelven a caer juntas: una de
+// cuatro vueltas y otra de seis se reencuentran a las doce. Es lo que la cinta
+// dibuja de punta a punta. Si no entra en el tope se baja al divisor más grande
+// que sí entre, así la cinta sigue cerrando sobre sí misma en vez de cortar una
+// forma por la mitad.
+const VUELTAS_CINTA = 16;
+const mcd = (a, b) => b ? mcd(b, a % b) : a;
+const mcm = (a, b) => a / mcd(a, b) * b;
+function acotarVueltas(v) {
+  if (v <= VUELTAS_CINTA) return v;
+  for (let d = VUELTAS_CINTA; d > 1; d--) if (v % d === 0) return d;
+  return 1;
+}
+
 // Cada línea se convierte en un patrón de strudel. Los tokens que salen de acá
 // sirven para las dos cosas: pintar el editor y armar el código.
 function traducirLinea(texto, nro) {
@@ -130,6 +144,10 @@ function traducirLinea(texto, nro) {
 
   // ---- los modificadores
   let cola = '', instrumento = null, alterna = false, callado = false, maquina = MAQUINA;
+  // en cuántas vueltas la línea vuelve a empezar: lo corren los que la estiran y
+  // el arreglo, que la saca de a vueltas enteras. «al doble» no, que entra dos
+  // veces en la misma vuelta sin mover el punto donde se repite.
+  let lento = 1, vueltasMascara = 1;
   for (const c of clausulas.slice(1)) {
     const n = norm(c.txt);
     if (!n) continue;
@@ -157,6 +175,7 @@ function traducirLinea(texto, nro) {
     }
     if (arreglo) {
       cola += mascaraDe(arreglo.n, arreglo.q);
+      vueltasMascara = arreglo.n + arreglo.q;
       marcar(rango[0], rango[1], 'mod', { tipo: 'arreglo' });
       continue;
     }
@@ -165,6 +184,8 @@ function traducirLinea(texto, nro) {
       if (mod[1] === '<>') alterna = true;
       else if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
       else cola += mod[1];
+      const frena = /\.slow\((\d+)\)/.exec(mod[1]);
+      if (frena) lento *= +frena[1];
       marcar(rango[0], rango[1], 'mod', { tipo: 'modificador' });
       continue;
     }
@@ -192,7 +213,8 @@ function traducirLinea(texto, nro) {
   // notas el instrumento, igual que el sonido
   const voz = modo === 'sonido' ? primerGolpe
     : (instrumento || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO]).nombre;
-  return { tipo: 'parte', nro, nombre, voz, codigo, cotejo, lugares, callado, tk, errs };
+  const vueltas = mcm((alterna ? pasos.length : 1) * lento, vueltasMascara);
+  return { tipo: 'parte', nro, nombre, voz, codigo, cotejo, lugares, callado, vueltas, tk, errs };
 }
 
 function traducir(fuente) {
@@ -225,5 +247,6 @@ function traducir(fuente) {
       ? partes[0].codigo
       : 'stack(\n' + partes.map(p => '  ' + p.codigo + ', // ' + p.nombre).join('\n') + '\n)';
   }
-  return { codigo, errores, marcas, partes, renglones, calladas, bpm };
+  const vueltas = acotarVueltas(renglones.reduce((a, r) => mcm(a, r.vueltas), 1));
+  return { codigo, errores, marcas, partes, renglones, calladas, bpm, vueltas };
 }

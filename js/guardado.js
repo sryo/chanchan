@@ -12,16 +12,66 @@ function recordado(clave) {
   try { return localStorage.getItem(clave) || localStorage.getItem(clave.replace(CASA, CASA_VIEJA)); }
   catch (e) { return null; }            // modo privado
 }
+
+// -------------------------------------------------------------- mis temas
+// El nombre es el guardado. En cuanto el tema tiene uno queda en la lista y se
+// vuelve a él desde el ▾; sin nombre no se pierde nada —la hoja abierta se
+// restaura igual al recargar—, pero es una sola, la última. Ponerle nombre es lo
+// que lo vuelve un tema entre otros, y es la misma palabra que ya viaja en el
+// enlace: no hay un «guardar» aparte que aprender.
+const GUARDADO_TEMAS = CASA + ':temas';
+const TOPE_TEMAS = 60;
+
+function misTemas() {
+  try { return JSON.parse(recordado(GUARDADO_TEMAS) || '[]'); } catch (e) { return []; }
+}
+
+function escribirTemas(lista) {
+  try { localStorage.setItem(GUARDADO_TEMAS, JSON.stringify(lista)); }
+  catch (e) { /* modo privado, o lleno */ }
+}
+
+// El nombre es la identidad: dos temas con el mismo nombre son el mismo tema.
+// Renombrar tiene que mover la entrada y no dejar una nueva —si no, tecleando un
+// nombre queda una por cada letra—, pero irse a otro tema no puede borrar el que
+// se deja atrás, y las dos cosas llegan acá igual: con un nombre nuevo y el
+// anterior al lado. Las separa el texto: al renombrar el tema es el mismo.
+// Abrir un ejemplo y no tocarlo no lo hace tuyo: la lista de arriba sería un
+// espejo de la de abajo. En cuanto le cambiás una palabra, ahí sí es tuyo.
+const esUnEjemplo = (nombre, txt) =>
+  EJEMPLOS.some(e => e.nombre === nombre && conRenglonFinal(e.txt) === conRenglonFinal(txt));
+
+function anotarTema(nombre, txt, nombreViejo) {
+  if (esUnEjemplo(nombre, txt)) return;
+  const lista = misTemas();
+  const viejo = lista.find(t => t.nombre === nombreViejo);
+  const renombre = !!viejo && viejo.txt === txt;
+  const queda = lista.filter(t => t.nombre !== nombre && !(renombre && t.nombre === nombreViejo));
+  queda.unshift({ nombre, txt });
+  escribirTemas(queda.slice(0, TOPE_TEMAS));
+}
+
+const olvidarTema = nombre => escribirTemas(misTemas().filter(t => t.nombre !== nombre));
+
 let relojGuardar;
 
+function guardarYa() {
+  clearTimeout(relojGuardar);
+  const nombre = campoNombre.value.trim();
+  const antes = (recordado(GUARDADO_NOMBRE) || '').trim();
+  try {
+    localStorage.setItem(GUARDADO, src.value);
+    localStorage.setItem(GUARDADO_NOMBRE, campoNombre.value);
+  } catch (e) { /* modo privado */ }
+  if (nombre) anotarTema(nombre, src.value, antes);
+}
+
+// Cada tecla no escribe en el disco, pero irse a otro tema sí: por eso las dos
+// puertas. Borrarle el nombre a un tema no lo saca de la lista —para eso está
+// la × del panel—, apenas deja de escribirle encima.
 function guardar() {
   clearTimeout(relojGuardar);
-  relojGuardar = setTimeout(() => {
-    try {
-      localStorage.setItem(GUARDADO, src.value);
-      localStorage.setItem(GUARDADO_NOMBRE, campoNombre.value);
-    } catch (e) { /* modo privado */ }
-  }, 400);
+  relojGuardar = setTimeout(guardarYa, 400);
 }
 
 // El nombre va adelante del texto, separado por dos puntos. Los dos puntos son

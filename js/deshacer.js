@@ -30,6 +30,14 @@ const botonDeshacer = document.createElement('button');
 botonDeshacer.id = 'deshacer';
 document.body.appendChild(botonDeshacer);
 let relojDeshacer;
+const VIDA_DESHACER = 9000;
+
+// el reloj se reinicia al entrar y salir: si el mouse está encima, el botón no se
+// va — irse justo cuando estabas yendo a apretarlo era la mitad del problema
+function contarParaIrse() {
+  clearTimeout(relojDeshacer);
+  relojDeshacer = setTimeout(() => botonDeshacer.classList.remove('vivo'), VIDA_DESHACER);
+}
 
 function mostrarDeshacer(ancla, esRehacer) {
   clearTimeout(relojDeshacer);
@@ -37,8 +45,11 @@ function mostrarDeshacer(ancla, esRehacer) {
   botonDeshacer.title = esRehacer ? 'rehacer' : 'deshacer';
   botonDeshacer.dataset.que = esRehacer ? 'rehacer' : 'deshacer';
   if (!pegarA(botonDeshacer, ancla)) return;
-  relojDeshacer = setTimeout(() => botonDeshacer.classList.remove('vivo'), 4000);
+  contarParaIrse();
 }
+
+botonDeshacer.addEventListener('mouseenter', () => clearTimeout(relojDeshacer));
+botonDeshacer.addEventListener('mouseleave', contarParaIrse);
 
 botonDeshacer.addEventListener('mousedown', e => {
   e.preventDefault();
@@ -74,29 +85,4 @@ src.addEventListener('scroll', () => {
   hl.scrollLeft = src.scrollLeft;
   armarPuntos(marcasActuales, calladasActuales);
   cerrarMenu();
-});
-
-const OJO_TOCAR = '<svg viewBox="0 0 24 24" width="17" height="17"><polygon points="7,4 20,12 7,20"/></svg>';
-const OJO_PARAR = '<svg viewBox="0 0 24 24" width="17" height="17">' +
-  '<rect x="6.5" y="4.5" width="4.6" height="15"/><rect x="13.9" y="4.5" width="4.6" height="15"/></svg>';
-
-function refrescarTransporte() {
-  btnTocar.innerHTML = sonando ? OJO_PARAR : OJO_TOCAR;
-  btnTocar.title = sonando ? 'parar' : 'tocar';
-  btnTocar.setAttribute('aria-label', btnTocar.title);
-}
-
-btnTocar.addEventListener('click', () => {
-  if (sonando) {
-    sonando = false;
-    ultimoCodigo = '';
-    silenciar();
-  } else {
-    const r = actualizar(false);
-    if (!r.codigo) { avisar('escribí algo primero: «el bombo toca pum - pum -».'); return; }
-    sonando = true;
-    ultimoCodigo = r.codigo;
-    Promise.resolve(despertar()).then(() => correr(r.codigo));
-  }
-  refrescarTransporte();
 });

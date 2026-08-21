@@ -108,13 +108,25 @@ function actualizar(reproducir) {
   const r = traducir(src.value);
   calladasActuales = r.calladas;
   renglonesActuales = r.renglones;
+  vueltasActuales = r.vueltas;
+  // Un solo eval por línea, y antes de dibujar. Del mismo patrón espejo salen
+  // las dos cosas que lo necesitan: la cinta, que dibuja la vuelta larga de una
+  // vez, y el reloj, que a cada cuadro pregunta qué paso cae justo ahora. Los
+  // golpes quedan colgados del renglón, así que redibujar por un resize o por el
+  // cambio de luz no vuelve a consultarle nada a strudel.
+  if (motorListo) for (const x of r.renglones) {
+    try { x.pat = eval(x.cotejo); } catch (e) { x.pat = null; }
+    x.golpes = x.pat && golpesDe(x.pat, r.vueltas);
+  }
+  // sólo las que de verdad suenan encienden palabras: las calladas y las que
+  // traducir() tuvo que saltear están escritas, pero no están sonando
+  const suenan = new Set(r.partes.map(p => p.nro));
+  espejos = r.renglones.filter(x => x.pat && suenan.has(x.nro));
   pintar(r.marcas);
   armarPuntos(r.marcas, r.calladas);
   dibujarCinta(r.renglones);
   pintarMarca(r.renglones);
-  espejos = motorListo ? r.partes.map(p => {
-    try { return { nro: p.nro, lugares: p.lugares, pat: eval(p.cotejo) }; } catch (e) { return null; }
-  }).filter(Boolean) : [];
+  refrescarPulso(r.bpm);
   cajaErr.innerHTML = r.errores.map(e =>
     '<p><b>línea ' + e.nro + ':</b> ' + esc(e.msg) + '</p>').join('');
   cajaJs.textContent = r.codigo || '(todavía no hay nada que tocar)';

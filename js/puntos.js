@@ -20,9 +20,7 @@ function lineasQueSuenan(marcas) {
 
 function armarPuntos(marcas, calladas) {
   const caja = hl.getBoundingClientRect();
-  // el mismo tono que su franja, pero con la luz acotada: una franja ancha
-  // pegada a las otras se lee sola, un punto suelto en el margen no
-  const color = new Map(renglonesActuales.map(r => [r.nro - 1, colorDe(r.voz, true)]));
+  const color = new Map(renglonesActuales.map(r => [r.nro - 1, colorDe(r.voz)]));
   puntos.innerHTML = '';
   for (const l of lineasQueSuenan(marcas)) {
     const sp = hl.querySelector('span[data-l="' + l + '"]');
@@ -32,7 +30,7 @@ function armarPuntos(marcas, calladas) {
     if (y < 0 || y > caja.height) continue;
     const b = document.createElement('button');
     b.className = 'punto' + (calladas.has(l) ? ' callado' : '');
-    // el punto es la franja de la cinta vista de canto: mismo tono, misma parte
+    // el punto es la franja de la cinta vista de canto: mismo color, misma parte
     if (color.has(l)) b.style.color = color.get(l);
     b.dataset.l = l;
     b.title = 'silenciar · may+click deja sólo ésta';
