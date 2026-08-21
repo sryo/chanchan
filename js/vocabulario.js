@@ -220,6 +220,9 @@ const SUJETOS_BANDA = ['la banda', 'el tema', 'la cancion'];
 // El sujeto se puede callar: es la única línea que no habla de una parte, así
 // que «va a 92» alcanza. «la banda va a 92» y «el tema va a 92» siguen entrando.
 function esTempo(texto) {
+  // una línea con «toca» es una parte, aunque se llame «la banda»: sin esto,
+  // «la banda toca pum - pum -» salía con un error sobre el tempo
+  if (/\b(toca|tocan)\b/i.test(texto)) return false;
   const dos = norm(texto).split(' ').slice(0, 2).join(' ');
   return dos === 'va a' || SUJETOS_BANDA.includes(dos);
 }

@@ -14,7 +14,9 @@ function tokensEnSeleccion() {
   const out = [];
   marcasActuales.forEach((tks, l) => {
     for (const t of tks || []) {
-      if (!t.tipo || t.tipo === 'mal' || t.tipo === 'tempo') continue;
+      // sólo los tipos que seccionesSeleccion() sabe editar: con otros el
+      // botón salía rotulado «2 undefined» y no hacía nada al apretarlo
+      if (!PLURAL[t.tipo]) continue;
       const ini = bases[l] + t.i;
       if (ini < b && ini + t.len > a) out.push({ ...t, l, abs: ini });
     }
@@ -38,7 +40,7 @@ function aplicarAVarios(fn) {
     const nuevo = fn(t);
     if (nuevo != null) txt = txt.slice(0, t.abs) + nuevo + txt.slice(t.abs + t.len);
   }
-  src.value = txt;
+  escribir(txt);
   registrar(src.value, null);      // toda la operación es un paso solo
   actualizar(true);
   botonSel.classList.remove('vivo');

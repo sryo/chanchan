@@ -37,6 +37,14 @@ initStrudel({
     samples(MUESTRAS + 'tidal-drum-machines.json'),
     samples(MUESTRAS + 'piano.json'),
     samples(MUESTRAS_GM, GM),
-  ]).then(() => { motorListo = true; document.body.classList.remove('cargando'); })
+  ]).then(() => {
+    motorListo = true;
+    document.body.classList.remove('cargando');
+    // Las cajas de ritmo se leen del propio strudel, así que hasta acá no
+    // existían: un tema con «en una 808» abría con un error falso y sonando con
+    // el banco de fábrica. Y recién ahora se pueden armar los espejos que
+    // encienden la palabra que suena.
+    actualizar(false);
+  })
     .catch(() => { document.body.classList.remove('cargando'); avisar('no cargaron los sonidos.'); }),
 });

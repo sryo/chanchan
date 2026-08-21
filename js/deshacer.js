@@ -50,6 +50,8 @@ const rehacer  = () => irA(puntero + 1, 'rehacer');
 
 addEventListener('keydown', e => {
   if (!(e.metaKey || e.ctrlKey) || norm(e.key) !== 'z') return;
+  // escribiendo el nombre, deshacer es del nombre: el historial es del tema
+  if (document.activeElement === campoNombre) return;
   e.preventDefault();
   e.shiftKey ? rehacer() : deshacer();
 });

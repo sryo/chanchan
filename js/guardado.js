@@ -1,8 +1,17 @@
 // ------------------------------------------------------ que no se pierda
 // El tema es el texto, así que guardarlo es guardar el texto. El hash le gana al
 // guardado: si alguien te pasó un enlace, querés oír eso y no lo tuyo de ayer.
-const GUARDADO = 'tungatunga';
-const GUARDADO_NOMBRE = 'tungatunga:nombre';
+const CASA = 'chanchan';
+const CASA_VIEJA = 'tungatunga';        // el proyecto se llamaba así
+const GUARDADO = CASA;
+const GUARDADO_NOMBRE = CASA + ':nombre';
+
+// Lo que quedó guardado con el nombre viejo se lee igual, así nadie pierde el
+// tema que tenía abierto. Al primer guardado pasa solo a la clave nueva.
+function recordado(clave) {
+  try { return localStorage.getItem(clave) || localStorage.getItem(clave.replace(CASA, CASA_VIEJA)); }
+  catch (e) { return null; }            // modo privado
+}
 let relojGuardar;
 
 function guardar() {
@@ -22,8 +31,10 @@ function guardar() {
 // al pasar por la barra de direcciones y entonces no se encontraba, y el enlace
 // entero terminaba adentro de la hoja como texto.
 function armarHash() {
-  const n = campoNombre.value.trim();
-  return (n ? encodeURIComponent(n) + ':' : '') + encodeURIComponent(src.value);
+  // Los dos puntos van siempre, aunque el tema no tenga nombre: así el primer
+  // separador literal del enlace es siempre el nuestro, y un tema que adentro
+  // tenga una barra vertical no se parte por la mitad al abrirlo.
+  return encodeURIComponent(campoNombre.value.trim()) + ':' + encodeURIComponent(src.value);
 }
 
 // Dónde termina el nombre. Los enlaces viejos siguen abriendo: se buscan las
@@ -40,11 +51,13 @@ function cortarNombre(carga) {
 
 function abrirCarga(crudo) {
   try {
-    // «%25» es la firma de un enlace escapado de más, que es lo que pasa cuando
-    // viaja por un chat o un correo que lo vuelve a escapar. En el idioma no hay
-    // ningún «%» que pueda ser suyo, así que desandarlo no rompe nada.
+    // Un enlace escapado de más —le pasa al viajar por un chat o un correo— trae
+    // «%25» y no trae ningún separador literal, porque los dos puntos le
+    // quedaron como «%3A». Ese par de condiciones es lo que lo distingue de un
+    // nombre que de verdad tenga un «%» adentro, como «100%ab».
     let carga = crudo;
-    for (let i = 0; i < 3 && /%25[0-9A-Fa-f]{2}/.test(carga); i++) carga = decodeURIComponent(carga);
+    for (let i = 0; i < 3 && /%25[0-9A-Fa-f]{2}/.test(carga) && !cortarNombre(carga); i++)
+      carga = decodeURIComponent(carga);
     const corte = cortarNombre(carga);
     return corte
       ? { nombre: decodeURIComponent(carga.slice(0, corte[0])),
@@ -57,12 +70,14 @@ function leerHash() {
   return location.hash.length < 2 ? null : abrirCarga(location.hash.slice(1));
 }
 
-// Un enlace de tungatunga pegado en la hoja es un tema, no un texto: pegarlo
+// Un enlace de chanchán pegado en la hoja es un tema, no un texto: pegarlo
 // tal cual dejaba una tira de %20 que no se puede ni leer ni tocar. Vale con la
 // dirección entera o con lo que va después del numeral.
 function temaPegado(crudo) {
   const limpio = crudo.trim();
-  if (!limpio || /\s/.test(limpio)) return null;      // un tema escrito tiene espacios
+  // Tiene que parecer un enlace, no apenas «algo sin espacios»: antes bastaba
+  // pegar la palabra «toca» para que se llevara puesto el tema entero.
+  if (!limpio || /\s/.test(limpio) || !/%[0-9A-Fa-f]{2}/.test(limpio)) return null;
   const tema = abrirCarga(limpio.slice(limpio.indexOf('#') + 1));
   return tema && /\btocan?\b/.test(tema.txt) ? tema : null;
 }
@@ -81,12 +96,19 @@ const conRenglonFinal = txt => txt.replace(/\n*$/, '\n');
 
 function temaInicial() {
   const delEnlace = leerHash();
-  if (delEnlace) return delEnlace;
+  if (delEnlace) {
+    // El enlace se consume y se saca de la barra. Si quedara puesto, recargar
+    // media hora después abriría esa versión vieja —y el guardado automático la
+    // escribiría encima de lo que estabas haciendo—. «copiar enlace» lo vuelve
+    // a poner cuando hace falta.
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
+    return delEnlace;
+  }
   try {
-    const guardado = localStorage.getItem(GUARDADO);
+    const guardado = recordado(GUARDADO);
     // sin nada guardado se abre el primer ejemplo, y se abre con su nombre puesto
     return guardado
-      ? { txt: guardado, nombre: localStorage.getItem(GUARDADO_NOMBRE) || '' }
+      ? { txt: guardado, nombre: recordado(GUARDADO_NOMBRE) || '' }
       : { txt: EJEMPLOS[0].txt, nombre: EJEMPLOS[0].nombre };
   } catch (e) { return { txt: EJEMPLOS[0].txt, nombre: EJEMPLOS[0].nombre }; }
 }

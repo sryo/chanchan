@@ -163,15 +163,15 @@ function armarSecciones(r, soloPega) {
   if (r.ranura === 'paso') {
     const secs = [];
     const sufijos = [
-      ...Object.keys(ALTERACIONES).map(w => op(w, w, 'medio tono', recetaDe('alteracion', w))),
-      ...Object.keys(OCTAVAS).map(w => op(w, w, 'otra altura', recetaDe('octava', w))),
-      ...Object.keys(ACORDES).map(w => op(w, w, 'notas juntas', recetaDe('acorde', w))),
+      ...Object.keys(ALTERACIONES).map(w => op(w, w, 'medio tono', recetaDe('alteracion', w, vozDeLinea(r.l)))),
+      ...Object.keys(OCTAVAS).map(w => op(w, w, 'otra altura', recetaDe('octava', w, vozDeLinea(r.l)))),
+      ...Object.keys(ACORDES).map(w => op(w, w, 'notas juntas', recetaDe('acorde', w, vozDeLinea(r.l)))),
     ];
     if (r.modo !== 'sonido' && r.trasNota) secs.push(...sec('seguir la nota', filtrar(sufijos)));
     if (r.modo !== 'nota') secs.push(...sec('golpes', filtrar(Object.entries(SONIDOS)
       .map(([w, [, d]]) => op(w, w, d, recetaDe('golpe', w))))));
     if (r.modo !== 'sonido') secs.push(...sec('notas', filtrar(Object.keys(NOTAS)
-      .map(w => op(w, w, null, recetaDe('nota', w))))));
+      .map(w => op(w, w, null, recetaDe('nota', w, vozDeLinea(r.l)))))));
     secs.push(...sec('o', filtrar([op('-', null, 'este paso no suena'),
                                    op('_', null, 'sigue sonando la anterior')])));
     return secs;
@@ -245,6 +245,7 @@ function abrirSugeridor(aPedido) {
   const base = src.value.lastIndexOf('\n', pos - 1) + 1;
   const linea = src.value.split('\n')[l];
   const r = ranuraEn(linea, pos - base);
+  if (r) r.l = l;                       // para que la vista previa suene con el instrumento de la línea
   const secs = r ? seccionesEnCaret(r) : [];
   const ops = secs.flatMap(x => x.ops);
   // No molestar: sólo aparece con una palabra ya empezada, y nunca si lo único
@@ -315,9 +316,10 @@ src.addEventListener('mouseleave', e => {
   if (!señalado) return;
   señalado = null; pintar(marcasActuales); ponerManija(null);
 });
-// mousedown y no click: hay que ganarle al textarea antes de que mueva el cursor.
-// Y además es donde arranca el arrastre: si te movés cambia el valor, si soltás
-// sin moverte abre el menú, así el click sigue haciendo lo de siempre.
+// Con Alt apretado, arrastrar sobre una nota o sobre el tempo cambia el valor.
+// Va en mousedown y no en click para ganarle al textarea antes de que mueva el
+// cursor. Sin Alt no se intercepta nada: el click es del navegador, y el del ▾
+// lo recibe el propio botón, que está apilado por encima.
 let arrastre = null;
 const UMBRAL = 3;
 

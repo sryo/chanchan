@@ -5,7 +5,7 @@
 const cinta = document.getElementById('cinta');
 let renglonesActuales = [];
 // dónde cae el secuenciador en la pantalla: lo necesita la aguja de la vuelta
-let tramo = { desde: 0, hasta: 0, alto: 65 };
+let tramo = { desde: 0, hasta: 0 };
 
 function dibujarCinta(renglones) {
   const w = innerWidth, h = innerHeight;
@@ -24,7 +24,7 @@ function dibujarCinta(renglones) {
   const arranque = cx + 128;          // dónde empieza el secuenciador sobre la cinta de arriba
   const fin = w + 20;                 // el último paso se va por el borde, no termina en seco
   const grueso = marco / Math.max(1, n);
-  tramo = { desde: arranque, hasta: fin, alto: marco };
+  tramo = { desde: arranque, hasta: fin };
   const trazo = (d, color, ancho) =>
     '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + ancho.toFixed(2) + '" />';
   let svg = '';

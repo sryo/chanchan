@@ -2,14 +2,14 @@
 <html lang="es">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>tungatunga</title>
+<title>chanchán</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@600&display=swap">
 <link rel="stylesheet" href="estilo.css">
 <script>
   // antes de la primera pintada: si no, se ve un fogonazo de papel al abrir de noche
   try {
-    const guardada = localStorage.getItem('tungatunga:luz');
+    const guardada = localStorage.getItem('chanchan:luz') || localStorage.getItem('tungatunga:luz');
     document.documentElement.dataset.luz = guardada
       || (matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro');
   } catch (e) { document.documentElement.dataset.luz = 'claro'; }
@@ -19,7 +19,7 @@
 <header>
   <button id="tocar" title="tocar"></button>
   <div class="marca">
-    <h1>Tunga<span>tunga</span></h1>
+    <h1>Chan<span>chán</span></h1>
     <span class="rayita"></span>
     <span class="nombre">
       <input id="nombre" placeholder="sin título" spellcheck="false" autocomplete="off"
@@ -69,4 +69,4 @@
 <script src="js/sugeridor.js"></script>   <!-- autocompletar y sugerir lo que sigue -->
 <script src="js/luz.js"></script>         <!-- papel o tinta -->
 <script src="js/temas.js"></script>       <!-- la hoja vacía y los temas hechos -->
-<script src="js/arranque.js"></script>    <!-- levantar strudel y abrir el tema -->    <!-- levantar strudel y abrir el tema -->
+<script src="js/arranque.js"></script>    <!-- levantar strudel y abrir el tema -->

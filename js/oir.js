@@ -3,19 +3,33 @@
 // el patrón a nadie: se puede probar un sonido sin cortar el tema que está yendo.
 let esperaOir;
 
-// una sola fuente de verdad para «a qué suena esto»: la comparten la barra y el menú
-function recetaDe(que, clave) {
+// Una sola fuente de verdad para «a qué suena esto», compartida por el menú y el
+// sugeridor. «voz» es el instrumento de la línea donde está el cursor: probar
+// una nota tiene que sonar con el instrumento que esa parte usa, no con el
+// piano. Si la línea no lo dice —o es una línea de golpes— cae en el de fábrica.
+// Los graves se prueban abajo, si no no se les oye el cuerpo — lo mismo que ya
+// hacía la vista previa de un instrumento suelto, ahí abajo.
+function vozPara(voz) {
+  const ins = instrumentoDe(voz || '') || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO];
+  return { s: ins.sonido, oct: ins.fam === 'bajos' ? OCTAVA_BASE - 2 : OCTAVA_BASE };
+}
+
+// la voz de la línea l, tal como la resolvió el traductor
+const vozDeLinea = l => (renglonesActuales.find(r => r.nro - 1 === l) || {}).voz;
+
+function recetaDe(que, clave, voz) {
+  const { s, oct } = vozPara(voz);
   if (que === 'golpe' && SONIDOS[clave])
     return { voces: [{ s: SONIDOS[clave][0], bank: MAQUINA, release: .25 }], dura: .4 };
   if (que === 'nota' && NOTAS[clave])
-    return { voces: [{ s: 'piano', note: NOTAS[clave] + OCTAVA_BASE }], dura: .4 };
+    return { voces: [{ s, note: NOTAS[clave] + oct }], dura: .4 };
   if (que === 'acorde' && ACORDE[norm(clave)])
-    return { voces: ACORDE[norm(clave)].map(i => ({ s: 'piano', note: nombreNota(i, OCTAVA_BASE) })), dura: .5 };
+    return { voces: ACORDE[norm(clave)].map(i => ({ s, note: nombreNota(i, oct) })), dura: .5 };
   if (que === 'octava' && OCTAVAS[clave])
-    return { voces: [{ s: 'piano', note: 'c' + OCTAVAS[clave] }], dura: .4 };
+    return { voces: [{ s, note: 'c' + OCTAVAS[clave] }], dura: .4 };
   if (que === 'alteracion')
     // se oye contra el do, si no no se entiende medio tono de qué
-    return { voces: [{ s:'piano', note:'c4' }, { s:'piano', note: clave === 'bemol' ? 'b3' : 'c#4', en:.35 }], dura: .3 };
+    return { voces: [{ s, note: 'c' + oct }, { s, note: nombreNota(clave === 'bemol' ? -1 : 1, oct), en: .35 }], dura: .3 };
   if (que === 'maquina')
     return { voces: [{ s: 'bd', bank: clave, release: .25 },
                      { s: 'sd', bank: clave, release: .25, en: .22 }], dura: .35 };

@@ -4,7 +4,7 @@
 document.getElementById('luz').addEventListener('click', () => {
   const cual = deNoche() ? 'claro' : 'oscuro';
   document.documentElement.dataset.luz = cual;
-  try { localStorage.setItem('tungatunga:luz', cual); } catch (e) { /* modo privado */ }
+  try { localStorage.setItem(CASA + ':luz', cual); } catch (e) { /* modo privado */ }
   dibujarCinta(renglonesActuales);
   pintarMarca(renglonesActuales);
   armarPuntos(marcasActuales, calladasActuales);

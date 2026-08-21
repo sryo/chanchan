@@ -25,7 +25,14 @@ function traducirLinea(texto, nro) {
     marcar(m.index, m[1].length, 'estructura', { tipo: 'tempo' });
     const finNum = m.index + m[1].length;
     if (finNum < texto.length) marcar(finNum, texto.length - finNum, 'estructura');
-    return { tipo: 'tempo', bpm: parseFloat(m[1].replace(',', '.')), tk, errs };
+    // el menú y el arrastre ya acotan; escrito a mano entraba cualquier cosa, y
+    // un cero deja el reloj de strudel detenido sin decir por qué
+    const bpm = parseFloat(m[1].replace(',', '.'));
+    if (!(bpm >= 20 && bpm <= 400)) {
+      error(m.index, m[1].length, 'el tempo va entre 20 y 400 tiempos por minuto.');
+      return { tipo: 'mala', tk, errs };
+    }
+    return { tipo: 'tempo', bpm, tk, errs };
   }
 
   // ---- la <parte> toca <pasos>[, <modificador>]*
@@ -106,14 +113,18 @@ function traducirLinea(texto, nro) {
       k = k2 - 1;
     } else {
       const s = parecida(pw[k].w);
-      error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Tocá la palabra para ver qué puede ir ahí.'));
+      error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
     }
   }
   // recién acá se sabe si la línea es de golpes o de notas
   for (const t of pasoTk) t.modo = modo;
   if (sujetoTk) sujetoTk.modo = modo;
   if (!pasos.length) {
-    error(clausulas[0].i, Math.max(1, clausulas[0].txt.length), 'falta qué tocar: «' + nombre + ' toca pum - tas -».');
+    // sin el recorte, el token abarca el espacio que sigue al verbo, y aceptar
+    // una corrección del ▾ dejaba «el bombo tocapum»
+    const sobra = clausulas[0].txt.length - clausulas[0].txt.trimStart().length;
+    const desde = clausulas[0].i + sobra;
+    error(desde, Math.max(1, clausulas[0].txt.trim().length), 'falta qué tocar: «' + nombre + ' toca pum - tas -».');
     return { tipo: 'mala', tk, errs };
   }
 
@@ -158,7 +169,7 @@ function traducirLinea(texto, nro) {
       continue;
     }
     const s = parecida(c.txt);
-    error(rango[0], rango[1], 'no conozco «' + c.txt.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Tocá la palabra para ver qué puede ir ahí.'));
+    error(rango[0], rango[1], 'no conozco «' + c.txt.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
   }
 
   if (modo === 'sonido' && instrumento)

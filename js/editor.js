@@ -57,8 +57,8 @@ function pintar(marcas) {
       const vivo = activos.has(n + ':' + t.i) ? ' t-activo' : '';
       // la marca de hover se aplica desde acá y no tocando el nodo: pintar()
       // reconstruye el html todo el tiempo mientras suena y se la llevaría puesta
-      // el subrayado va siempre: se ve de una qué se puede tocar, sin llenar
-      // la pantalla de flechitas (en «la gruta» serían 53)
+      // marca lo que tiene menú; el subrayado sale recién con el mouse en el ▾
+      // (ver .t-editable.t-manija en la hoja)
       const editable = t.tipo && t.tipo !== 'mal' ? ' t-editable' : '';
       const bajoElMouse = !(señalado && señalado.l === n && señalado.i === t.i) ? ''
         : enElBoton() ? ' t-manija' : '';
@@ -68,7 +68,11 @@ function pintar(marcas) {
       cur = t.i + t.len;
     }
     return out + plano(cur, l.length);
-  }).join('\n') + '\n';
+    // sin '\n' al final: el texto ya termina en uno (asegurarRenglonFinal), y
+    // sumarle otro dejaba a #hl un renglón más alto que #src — con los dos en
+    // overflow:auto, alcanza para que a uno le aparezca la barra y al otro no, y
+    // ahí las líneas largas cortan en distinto lugar y el espejo se corre
+  }).join('\n');
   hl.scrollTop = src.scrollTop;
 }
 
@@ -79,6 +83,18 @@ let motorListo = false;
 // El último renglón vacío no se puede borrar: es el lugar donde se empieza a
 // escribir la parte que sigue. Se repone antes de traducir y sin mover el
 // cursor, así que un borrar al principio de esa línea simplemente no hace nada.
+// Asignar .value de un textarea le manda el cursor al final. Todo lo que
+// reescribe el tema desde afuera —el menú, los puntitos, la selección— pasa por
+// acá para devolverlo a donde estaba, si no cambiar una nota en la mitad de un
+// tema largo te tira al final de todo.
+const baseDe = (lineas, l) => lineas.slice(0, l).reduce((n, x) => n + x.length + 1, 0);
+
+function escribir(txt, desde, hasta) {
+  const a = desde ?? src.selectionStart, z = hasta ?? desde ?? src.selectionEnd;
+  src.value = txt;
+  src.setSelectionRange(Math.min(a, txt.length), Math.min(z, txt.length));
+}
+
 function asegurarRenglonFinal() {
   if (/\n$/.test(src.value)) return;
   const a = src.selectionStart, z = src.selectionEnd;
@@ -103,9 +119,12 @@ function actualizar(reproducir) {
     '<p><b>línea ' + e.nro + ':</b> ' + esc(e.msg) + '</p>').join('');
   cajaJs.textContent = r.codigo || '(todavía no hay nada que tocar)';
   cajaVacio.hidden = !!src.value.trim();
-  if (reproducir && sonando && r.codigo && r.codigo !== ultimoCodigo) {
+  if (reproducir && sonando && r.codigo !== ultimoCodigo) {
     ultimoCodigo = r.codigo;
-    correr(r.codigo);
+    // sin nada que tocar hay que apagar: si no, strudel sigue con el último
+    // stack que evaluó y el parlante suena mientras la pantalla dice que no hay nada
+    if (r.codigo) correr(r.codigo);
+    else { sonando = false; silenciar(); refrescarTransporte(); }
   }
   return r;
 }

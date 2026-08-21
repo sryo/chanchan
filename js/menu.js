@@ -8,11 +8,13 @@ menu.className = 'panel';
 document.body.appendChild(menu);
 let pidiendoCuadro = false, relojFamilia;
 
-// El ▾ que abre el menú lo dibuja el CSS como ::after del propio span, así que lo
-// ubica el navegador y no puede quedar mal puesto. El click no lo recibe el
-// pseudo-elemento (el textarea está apilado encima y le gana), así que se resuelve
-// como todo lo demás acá: la franja a la derecha del token cuenta como manija.
-// La franja del ▾ mide exactamente un espacio y ocupa el renglón entero de alto.
+// El ▾ es un botón de verdad que flota por encima del texto (ver «la manija»,
+// más abajo). Igual hace falta saber sobre qué palabra está el mouse, y para eso
+// #hl es un espejo exacto del textarea —misma fuente, mismo padding, mismo
+// interlineado—, así que alcanza con probar contra los rectángulos de los spans.
+// La franja a la derecha de un token cuenta como si fuera el token: es lo que
+// mantiene viva la palabra señalada mientras el mouse va hacia su botón.
+// Esa franja mide exactamente un espacio y ocupa el renglón entero de alto.
 // Así es siempre igual de grande: si midiera más se metería en la palabra de al
 // lado y sus primeros píxeles abrirían el menú de la anterior; si midiera menos
 // quedaría un hueco muerto. Lo que crece es el alto, que es donde sobra sitio.
@@ -52,9 +54,8 @@ function tokenEn(x, y, conManija) {
       if (y < r.top - aire || y > r.bottom + aire) continue;
       const d = { l: +sp.dataset.l, i: +sp.dataset.i, len: +sp.dataset.len, tipo: sp.dataset.tipo, r };
       if (x >= r.left && x <= r.right) return d;
-      // la franja de la derecha es donde el css dibuja el ▾, y sólo ahí: en una
-      // palabra partida el chip cuelga del último trozo, así que lo que se puede
-      // tocar es exactamente lo que se ve
+      // la franja va sólo en el último trozo, que es donde se posa el botón: en
+      // una palabra partida en dos renglones el ▾ cuelga del final, abajo
       if (conManija && !manija && r === trozos[trozos.length - 1] &&
           x > r.right && x <= r.right + anchoManija()) manija = { ...d, enManija: true };
     }
@@ -72,7 +73,8 @@ function ponerClausula(l, texto) {
   lineas[l] = vieja
     ? lineas[l].slice(0, vieja.i) + texto + lineas[l].slice(vieja.i + vieja.len)
     : lineas[l] + ', ' + texto;
-  src.value = lineas.join('\n');
+  const donde = vieja ? vieja.i + texto.length : lineas[l].length;
+  escribir(lineas.join('\n'), baseDe(lineas, l) + donde);
   registrar(src.value, { l, i: vieja ? vieja.i : lineas[l].length - texto.length, len: texto.length });
   actualizar(true);
 }
@@ -80,7 +82,7 @@ function ponerClausula(l, texto) {
 function reemplazar(t, texto, grupo) {
   const lineas = src.value.split('\n');
   lineas[t.l] = lineas[t.l].slice(0, t.i) + texto + lineas[t.l].slice(t.i + t.len);
-  src.value = lineas.join('\n');
+  escribir(lineas.join('\n'), baseDe(lineas, t.l) + t.i + texto.length);
   registrar(src.value, { l: t.l, i: t.i, len: texto.length }, grupo);
   actualizar(true);
   mostrarDeshacer({ l: t.l, i: t.i, len: texto.length }, false);
@@ -107,7 +109,7 @@ function notaDesdeSemi(semi, acorde) {
 const arrastrable = t => t && (t.tipo === 'tempo' || (t.tipo === 'nota' && datosDe(t).raiz));
 
 function seccionesDe(t) {
-  const d = datosDe(t), hoy = textoDe(t);
+  const d = datosDe(t), hoy = textoDe(t), voz = vozDeLinea(t.l);
   // Un paso tiene una de tres cosas: un sonido, un silencio o la anterior
   // estirada. No son tres dimensiones distintas, son la misma: por eso «-» y «_»
   // van juntos al pie, con la puesta marcada igual que en las otras columnas.
@@ -126,16 +128,16 @@ function seccionesDe(t) {
     const con = (campo, val) => armarNota({ ...p, [campo]: val });
     return [
       { titulo: 'notas',     ops: Object.keys(NOTAS).map(x =>
-          ({ txt: x, nuevo: con('raiz', x), puesto: p.raiz === x, receta: recetaDe('nota', x) })) },
+          ({ txt: x, nuevo: con('raiz', x), puesto: p.raiz === x, receta: recetaDe('nota', x, voz) })) },
       { titulo: 'medio tono', ops: [{ txt: 'sin alterar', nuevo: con('altN', ''), puesto: !p.altN }].concat(
           Object.keys(ALTERACIONES).map(x =>
-          ({ txt: x, nuevo: con('altN', x), puesto: p.altN === x, receta: recetaDe('alteracion', x) }))) },
+          ({ txt: x, nuevo: con('altN', x), puesto: p.altN === x, receta: recetaDe('alteracion', x, voz) }))) },
       { titulo: 'altura',    ops: [{ txt: 'normal', nuevo: con('octN', ''), puesto: !p.octN }].concat(
           Object.keys(OCTAVAS).map(x =>
-          ({ txt: x, nuevo: con('octN', x), puesto: p.octN === x, receta: recetaDe('octava', x) }))) },
+          ({ txt: x, nuevo: con('octN', x), puesto: p.octN === x, receta: recetaDe('octava', x, voz) }))) },
       { titulo: 'acorde',    ops: [{ txt: 'una nota sola', nuevo: con('acorde', ''), puesto: !p.acorde }].concat(
           Object.keys(ACORDES).map(x =>
-          ({ txt: x, nuevo: con('acorde', x), puesto: norm(p.acorde) === norm(x), receta: recetaDe('acorde', x) }))) },
+          ({ txt: x, nuevo: con('acorde', x), puesto: norm(p.acorde) === norm(x), receta: recetaDe('acorde', x, voz) }))) },
       alPie,
     ];
   }
