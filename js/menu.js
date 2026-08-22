@@ -460,6 +460,4 @@ addEventListener('mouseup', e => {
   if (a && Math.hypot(e.clientX - a.x, e.clientY - a.y) <= UMBRAL) irAlTema(a.nombre);
 });
 src.addEventListener('input', cerrarMenu);
-// Esc a mano: con el foco en el textarea el navegador no cierra el popover
-src.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMenu(); });
 

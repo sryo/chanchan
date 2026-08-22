@@ -293,8 +293,7 @@ src.addEventListener('keydown', e => {
     sug.elegido = (sug.elegido + (e.key === 'ArrowDown' ? 1 : -1) + sug.ops.length) % sug.ops.length;
     return marcarElegido();
   }
-  // Esc a mano: con el foco en el textarea el navegador no cierra el popover
-  if (['Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) cerrarSugeridor();
+  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) cerrarSugeridor();
 });
 src.addEventListener('input', () => abrirSugeridor(false));
 src.addEventListener('blur', cerrarSugeridor);
