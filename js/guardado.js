@@ -1,15 +1,25 @@
 // ------------------------------------------------------ que no se pierda
 // el hash le gana al guardado: si alguien te pasó un enlace, querés oír eso y no lo tuyo de ayer
 const CASA = 'chanchan';
-const CASA_VIEJA = 'tungatunga';        // el proyecto se llamaba así
 const GUARDADO = CASA;
 const GUARDADO_NOMBRE = CASA + ':nombre';
 
-// lo guardado con el nombre viejo se lee igual, así nadie pierde el tema al actualizar
 function recordado(clave) {
-  try { return localStorage.getItem(clave) || localStorage.getItem(clave.replace(CASA, CASA_VIEJA)); }
-  catch (e) { return null; }            // modo privado
+  try { return localStorage.getItem(clave); } catch (e) { return null; }   // modo privado
 }
+
+// Lo guardado cuando el proyecto se llamaba tungatunga se pasa una vez y se borra.
+// Leer las dos claves en cada consulta tenía un agujero: un nombre vacío guardado
+// caía en el de antes como si no hubiera ninguno, y resucitaba. (index.html lee
+// la luz vieja una vez más, antes de la primera pintada; después de esto ya no está.)
+try {
+  for (const fin of ['', ':nombre', ':luz']) {
+    const viejo = localStorage.getItem('tungatunga' + fin);
+    if (viejo === null) continue;
+    if (localStorage.getItem(CASA + fin) === null) localStorage.setItem(CASA + fin, viejo);
+    localStorage.removeItem('tungatunga' + fin);
+  }
+} catch (e) { /* modo privado */ }
 
 // -------------------------------------------------------------- mis temas
 // El nombre es el guardado: en cuanto el tema tiene uno queda en la lista. No hay
@@ -25,20 +35,23 @@ function misTemas() {
 function escribirTemas(lista) {
   try { localStorage.setItem(GUARDADO_TEMAS, JSON.stringify(lista)); }
   catch (e) { /* modo privado, o lleno */ }
+  // la hoja vacía muestra esta lista, y se rehacía sólo al abrir un tema: borrar
+  // uno con la × y vaciar la hoja lo seguía ofreciendo, y abrirlo lo volvía a anotar
+  armarVacio();                         // temas.js, que carga después: sólo corre en caliente
 }
 
 // El nombre es la identidad —ver REGLAS.md—. Renombrar e irse a otro tema llegan
-// acá igual; las separa el texto: al renombrar el tema es el mismo. Y abrir un
-// ejemplo sin tocarlo no lo hace tuyo, la lista de arriba espejaría la de abajo.
+// acá igual; los separa con qué nombre estaba la hoja en la lista: al renombrar,
+// esa entrada es este mismo tema y se va; al irse a otro, cambiarDeTema() ya dijo
+// que la hoja es el otro. Adivinarlo por el texto borraba el tema que se acababa
+// de dejar cuando los dos decían lo mismo —dos hojas nuevas, por ejemplo—. Y
+// abrir un ejemplo sin tocarlo no lo hace tuyo, la lista de arriba espejaría la de abajo.
 const esUnEjemplo = (nombre, txt) =>
   EJEMPLOS.some(e => e.nombre === nombre && conRenglonFinal(e.txt) === conRenglonFinal(txt));
 
 function anotarTema(nombre, txt, nombreViejo) {
   if (esUnEjemplo(nombre, txt)) return;
-  const lista = misTemas();
-  const viejo = lista.find(t => t.nombre === nombreViejo);
-  const renombre = !!viejo && viejo.txt === txt;
-  const queda = lista.filter(t => t.nombre !== nombre && !(renombre && t.nombre === nombreViejo));
+  const queda = misTemas().filter(t => t.nombre !== nombre && t.nombre !== nombreViejo);
   // los guardados de antes no traen «t» y no muestran nada, que es la verdad
   queda.unshift({ nombre, txt, t: Date.now() });
   escribirTemas(queda.slice(0, TOPE_TEMAS));
@@ -46,17 +59,24 @@ function anotarTema(nombre, txt, nombreViejo) {
 
 const olvidarTema = nombre => escribirTemas(misTemas().filter(t => t.nombre !== nombre));
 
-let relojGuardar;
+let relojGuardar, nombreAbierto = '';   // con qué nombre está la hoja en la lista
 
 function guardarYa() {
   clearTimeout(relojGuardar);
   const nombre = campoNombre.value.trim();
-  const antes = (recordado(GUARDADO_NOMBRE) || '').trim();
   try {
     localStorage.setItem(GUARDADO, src.value);
     localStorage.setItem(GUARDADO_NOMBRE, campoNombre.value);
   } catch (e) { /* modo privado */ }
-  if (nombre) anotarTema(nombre, src.value, antes);
+  if (nombre) anotarTema(nombre, src.value, nombreAbierto);
+  nombreAbierto = nombre;
+}
+
+// Irse a otro tema: se guarda el de ahora y la hoja pasa a ser el otro, así lo
+// que se escriba en el campo de ahí en más renombra a ése y no al que se dejó.
+function cambiarDeTema(nombre) {
+  guardarYa();
+  nombreAbierto = nombre;
 }
 
 // Cada tecla no escribe en el disco, pero irse a otro tema sí: por eso las dos
@@ -72,22 +92,23 @@ addEventListener('pagehide', guardarYa);
 // El nombre va adelante del texto, separado por dos puntos: son legales dentro de
 // un fragmento —ningún navegador los toca— y encodeURIComponent sí los escapa,
 // así que el primero que aparece es siempre el nuestro. Van siempre, aunque el
-// tema no tenga nombre. Antes iba una barra vertical y el navegador la reescribía
-// como «%7C» al pasar por la barra de direcciones: el enlace no se encontraba y
-// terminaba adentro de la hoja como texto.
+// tema no tenga nombre.
 function armarHash() {
   return encodeURIComponent(campoNombre.value.trim()) + ':' + encodeURIComponent(src.value);
 }
 
-// las tres marcas son por los enlaces viejos; los nuevos llevan sólo dos puntos
-const SEPARADORES = [[':', 1], ['|', 1], ['%7C', 3]];
+// Los enlaces del primer día llevaban una barra vertical, que la barra de
+// direcciones reescribe como «%7C». Se aceptan sólo cuando no hay dos puntos: un
+// enlace de ahora no tiene ninguno literal fuera del separador, pero sí puede
+// tener un «%7C» adentro del nombre, y buscar las tres marcas a la vez lo cortaba ahí.
 function cortarNombre(carga) {
-  let mejor = null;
-  for (const [marca, largo] of SEPARADORES) {
-    const i = carga.indexOf(marca);
-    if (i >= 0 && (!mejor || i < mejor[0])) mejor = [i, largo];
+  const i = carga.indexOf(':');
+  if (i >= 0) return [i, 1];
+  for (const [marca, largo] of [['|', 1], ['%7C', 3]]) {
+    const j = carga.indexOf(marca);
+    if (j >= 0) return [j, largo];
   }
-  return mejor;
+  return null;
 }
 
 function abrirCarga(crudo) {

@@ -5,12 +5,11 @@ const cajaVacio = document.getElementById('vacio');
 
 // vaciar el guardado perezoso antes de pisar el texto: si no se pierde lo último
 function cargarTema(tema) {
-  guardarYa();
+  cambiarDeTema(tema.nombre);
   src.value = conRenglonFinal(tema.txt);
   campoNombre.value = tema.nombre;
   medirNombre();
   registrar(src.value, null);
-  armarVacio();
   actualizar(true);
   guardar();
 }
@@ -115,7 +114,15 @@ function abrirTemas() {
     // la × borra y deja el panel abierto: borrar de a uno es un gesto de lista,
     // y cerrarlo obligaría a volver a abrirlo por cada tema que sobra
     if (ev.target.closest('.borrar')) {
-      olvidarTema(mios[+el.dataset.mio].nombre);
+      const nombre = mios[+el.dataset.mio].nombre;
+      olvidarTema(nombre);
+      // si es el que está abierto, la tecla que sigue lo volvería a anotar: se queda
+      // en la hoja, pero sin nombre, que es lo que deja de escribirlo en la lista
+      if (nombre === campoNombre.value.trim()) {
+        campoNombre.value = '';
+        medirNombre();
+        guardarYa();
+      }
       // sin cortarlo acá, el que cierra el panel al apretar afuera lo cerraría:
       // para cuando le toca, la fila que se apretó ya no está en el panel —
       // abrirTemas() lo rehizo entero— y desde afuera eso es un click afuera
