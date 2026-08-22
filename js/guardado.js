@@ -47,6 +47,28 @@ function anotarTema(nombre, txt, nombreViejo) {
 
 const olvidarTema = nombre => escribirTemas(misTemas().filter(t => t.nombre !== nombre));
 
+// ----------------------------------------------- lo escrito antes del cambio
+// Un tema guardado con el idioma de antes abre lleno de errores. Se pasa al de
+// ahora al leerlo: los golpes que cambiaron de nombre, y «una por vuelta», que
+// era un paso por vuelta y hoy es una barra entre paso y paso.
+function conBarras(linea) {
+  const limpia = linea.replace(/\s*,\s*una por vuelta\b/i, '');
+  const pasos = traducirLinea(limpia, 1).tk.filter(t => t.tipo === 'paso' || t.tipo === 'nota');
+  let out = limpia;
+  for (let k = pasos.length - 1; k >= 1; k--) out = out.slice(0, pasos[k].i) + '| ' + out.slice(pasos[k].i);
+  return out;
+}
+
+const alDia = txt => txt.replace(/\btas\b/g, 'pa').replace(/\bchas\b/g, 'plas')
+  .split('\n').map(l => /,\s*una por vuelta\b/i.test(l) ? conBarras(l) : l).join('\n');
+
+try {
+  const abierto = localStorage.getItem(GUARDADO);
+  if (abierto && alDia(abierto) !== abierto) localStorage.setItem(GUARDADO, alDia(abierto));
+  const lista = misTemas();
+  if (lista.some(t => alDia(t.txt) !== t.txt)) escribirTemas(lista.map(t => ({ ...t, txt: alDia(t.txt) })));
+} catch (e) { /* modo privado */ }
+
 let relojGuardar, nombreAbierto = '';   // con qué nombre está la hoja en la lista
 
 function guardarYa() {
@@ -110,10 +132,11 @@ function abrirCarga(crudo) {
     for (let i = 0; i < 3 && /%25[0-9A-Fa-f]{2}/.test(carga) && !cortarNombre(carga); i++)
       carga = decodeURIComponent(carga);
     const corte = cortarNombre(carga);
+    // un enlace de antes del cambio también se pasa al idioma de ahora
     return corte
       ? { nombre: decodeURIComponent(carga.slice(0, corte[0])),
-          txt:    decodeURIComponent(carga.slice(corte[0] + corte[1])) }
-      : { nombre: '', txt: decodeURIComponent(carga) };
+          txt:    alDia(decodeURIComponent(carga.slice(corte[0] + corte[1]))) }
+      : { nombre: '', txt: alDia(decodeURIComponent(carga)) };
   } catch (e) { return null; }     // enlace roto
 }
 

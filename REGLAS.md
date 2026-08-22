@@ -119,6 +119,11 @@ Se selecciona **lo que dice algo** —el tema, su nombre, el strudel que sale de
 menús, el desplegable del pie. Un control resaltado no es un control elegido, es
 un control con una mancha encima.
 
+Los renglones de muestra de la hoja vacía son las dos cosas: son notación —dicen
+algo, y son lo que uno quiere copiar— y además se escriben al apretarlos. Se
+seleccionan, y el click se ignora si hay algo seleccionado, que si no copiarlos
+escribiría uno.
+
 El espejo se excluye por otro motivo: es el mismo texto del tema pintado abajo
 del textarea, así que seleccionarlo es seleccionar una copia — un resaltado que
 no tiñe la parte, que el botón de la selección no ve y que el textarea no copia.

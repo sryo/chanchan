@@ -38,6 +38,12 @@ function desdeCuando(t) {
 // apretar uno escribe y suena; queda como hoja tuya, sin nombre
 const RENGLONES_DE_MUESTRA = ['la bata toca pum pa pum pa', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
 
+// el texto recibe el mouse para poder copiarlo, así que apretarlo ya no cae en la
+// hoja: se la devuelve, salvo que se esté seleccionando o sea un botón
+cajaVacio.addEventListener('click', e => {
+  if (getSelection().isCollapsed && !e.target.closest('button')) src.focus();
+});
+
 function armarVacio() {
   const mios = misTemas();
   // mismo nombre, mismo tema, ver REGLAS.md: acá iría dos veces; el panel sí muestra los dos
@@ -53,7 +59,12 @@ function armarVacio() {
     const b = document.createElement('button');
     b.className = 'linea';
     b.textContent = linea;
-    b.addEventListener('click', () => {
+    let apreto = null;
+    b.addEventListener('mousedown', e => { apreto = [e.clientX, e.clientY]; });
+    b.addEventListener('click', e => {
+      const a = apreto; apreto = null;
+      // arrastrar para copiar termina en un click: un arrastre no escribe
+      if (a && Math.hypot(e.clientX - a[0], e.clientY - a[1]) > UMBRAL) return;
       escribir(linea + '\n', linea.length);
       registrar(src.value, null);
       // sin sonidos todavía, queda escrito: el botón ya dice que carga

@@ -183,7 +183,7 @@
   #src::selection { background: color-mix(in oklab, var(--parte, var(--texto)) 18%, transparent); }
   ::selection { background: color-mix(in oklab, var(--texto) 18%, transparent); }
   /* lo que hace algo no se selecciona, el espejo tampoco: ver REGLAS.md */
-  #hl, #vacio, button, .panel, summary { user-select: none; }
+  #hl, button, .panel, summary { user-select: none; }
   /* los canales del editor y qué dice cada uno, en REGLAS.md */
   .t-sujeto { color: var(--texto); }
   .t-articulo, .t-verbo, .t-estructura { color: var(--andamio); }
@@ -287,21 +287,24 @@
   details[open] summary .i { transform: none; }
   #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
   #luz { margin-right: 44px; }
-  /* sin clicks salvo en los botones: se escribe encima sin cerrar nada */
+  /* los huecos no reciben el mouse: apretar entre dos bloques cae en la hoja y se
+     escribe encima sin cerrar nada. El texto sí, para poder copiarlo */
   #vacio {
-    position: absolute; z-index: 2; pointer-events: none;
+    position: absolute; z-index: 2; pointer-events: none; font-size: var(--letra-tema);
     left: calc(var(--sangria) + var(--canal)); top: 56px; right: 44px;
   }
   /* en --suave el contraste es 1,5 */
   .pista { color: var(--tenue); margin: 26px 0 10px; }
   .lema { margin: 0 0 22px; }
+  .lema, .pista { pointer-events: auto; }
   .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
   .ejemplos button { padding: 4px 11px; }
   /* tinta de página: abren otro tema, no éste */
   .ejemplos button:hover { border-color: var(--texto); color: var(--texto); }
   /* los renglones de muestra se leen como renglones de la hoja */
   .ejemplos.lineas { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .ejemplos.lineas button { font-size: var(--letra-tema); }
+  /* son notación y se copian, ver REGLAS.md */
+  .ejemplos.lineas button { user-select: text; }
   .pista.primera { margin-top: 0; }
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
   /* el botón mide lo mismo que el ▾; el color lo pone el js en currentColor */
