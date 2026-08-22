@@ -44,6 +44,7 @@ const CASOS = [
   ['un enlace sin nombre',             '@\nla bata toca pum pa'],
   ['una nota no es sección ni tempo',  '* la estrofa:\n* va a 200\nla bata toca pum pa'],
   ['un tema que nombra a otros',       '@la base\n@o fortuna\nla bata toca pum'],
+  ['un enlace adentro de una nota',    '* escuchá @o fortuna.\n* sin nombre @\nla bata toca pum'],
   ['compás de tres',                     'va a 150 en tres\nel bajo toca do - -'],
   ['volumen y lugar',                    'el bajo toca do, muy bajito, a la izquierda\nla viola toca re, muy fuerte, a la derecha'],
   ['golpes nuevos',                      'la bata toca pum dum tum tim clon shh'],

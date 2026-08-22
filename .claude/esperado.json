@@ -349,6 +349,17 @@
    "o fortuna"
   ]
  },
+ "un enlace adentro de una nota": {
+  "codigo": "setcpm(90/4)\ns(\"bd\").bank(\"linndrum\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": [
+   "o fortuna"
+  ]
+ },
  "compás de tres": {
   "codigo": "setcpm(150/3)\nnote(\"c4 - -\").sound(\"bajo\").orbit(0)",
   "vueltas": 1,

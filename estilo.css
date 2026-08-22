@@ -163,8 +163,9 @@
   }
   #abrir:hover, #enlace:hover, #archivo:hover, #luz:hover { color: var(--texto); }
   #archivo { margin-left: -12px; }
-  /* el modo no es del tema: va solo en la esquina, a la altura del botón de tocar, sin quitarle lugar a la marca */
-  #luz { position: absolute; right: 44px; top: calc(var(--sangria) + 21px); }
+  /* el modo no es del tema: va solo en la esquina, a la altura del botón de tocar, sin
+     quitarle lugar a la marca; fijo y por encima de main, que va después en el documento */
+  #luz { position: fixed; right: 44px; top: calc(var(--sangria) + 21px); z-index: 2; }
   /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
   #enlace.dicho {
     color: var(--marca-tinta); font-size: var(--letra-chica);
@@ -319,9 +320,17 @@
   #temas .op .d { text-transform: none; }
   @media (max-width: 720px) {
     :root { --sangria: 52px; --marco: 40px; }
-    header { gap: 16px; }
+    header { gap: 10px; padding-right: var(--marco); }
     #tocar { width: 48px; height: 48px; }
-    #luz { top: calc(var(--sangria) + 13px); }
-    .marca { gap: 12px; }
+    /* sin envolver: el nombre cede antes que la fila, y recorta con puntos */
+    .marca { gap: 8px; flex-wrap: nowrap; }
+    .nombre { min-width: 0; }
+    #nombre { text-overflow: ellipsis; }
+    /* en un teléfono la fila está llena: el modo baja a la esquina de abajo, dentro del arco,
+       sobre un disco del fondo porque el texto pasa por debajo */
+    #luz {
+      top: auto; bottom: calc(var(--marco) + 6px); right: calc(var(--marco) + 6px);
+      width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--fondo);
+    }
     :root { --letra-logo: 24px; }
   }

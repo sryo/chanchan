@@ -22,10 +22,21 @@ function traducirLinea(texto, nro) {
   const sinArticulo = ws[0] && /^(el|la|los|las)$/i.test(ws[0].w) ? ws.slice(1) : ws;
 
   // ---- * una nota
-  // no suena y no dice nada del tema; va primero, que «* la estrofa:» no es una sección
+  // no suena y no dice nada del tema; va primero, que «* la estrofa:» no es una sección.
+  // Puede llevar un enlace, «* escuchá @la base»: el nombre llega hasta el punto final
   if (texto.trimStart().startsWith('*')) {
-    marcar(texto.indexOf('*'), texto.length - texto.indexOf('*'), 'comentario', { tipo: 'comentario' });
-    return { tipo: 'comentario', tk, errs };
+    const ast = texto.indexOf('*'), arroba = texto.indexOf('@', ast);
+    const nombre = arroba < 0 ? '' : texto.slice(arroba + 1).replace(/[.,;:!?\s]+$/, '').trim();
+    if (!nombre) {
+      marcar(ast, texto.length - ast, 'comentario', { tipo: 'comentario' });
+      return { tipo: 'comentario', tk, errs };
+    }
+    marcar(ast, arroba - ast, 'comentario', { tipo: 'comentario' });
+    marcar(arroba, 1, 'estructura');
+    const desde = texto.indexOf(nombre, arroba + 1), fin = desde + nombre.length;
+    marcar(desde, nombre.length, 'enlace', { tipo: 'enlace', nombre });
+    if (fin < texto.length) marcar(fin, texto.length - fin, 'comentario', { tipo: 'comentario' });
+    return { tipo: 'comentario', nombre, tk, errs };
   }
 
   // ---- la estrofa:
@@ -386,7 +397,7 @@ function traducir(fuente) {
       secciones.set(r.nombre, abierta);
     }
     if (r.tipo === 'forma') { forma = r.nombres; nroForma = r.nro; }
-    if (r.tipo === 'enlace') enlaces.push(r.nombre);
+    if (r.nombre && (r.tipo === 'enlace' || r.tipo === 'comentario')) enlaces.push(r.nombre);
     if (r.tipo === 'parte') {
       // las líneas de antes de la primera sección suenan en todas
       r.seccion = abierta && abierta.nombre;

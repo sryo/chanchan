@@ -106,9 +106,10 @@ antes de la primera sección suenan en todas.
 ## una nota
 
     * esto no suena
+    * escuchá @la base
 
 Un renglón que empieza con ${codigo('*')} es una nota para quien lee: no suena y no
-dice nada del tema.
+dice nada del tema. Si lleva un ${codigo('@')}, lo que sigue es un enlace a otro tema.
 
 ## otro documento
 
