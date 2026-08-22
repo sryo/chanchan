@@ -126,9 +126,9 @@ antes de la primera sección suenan en todas.
 
 ## una nota
 
-    # esto no suena
+    * esto no suena
 
-Un renglón que empieza con `#` es una nota para quien lee: no suena y no
+Un renglón que empieza con `*` es una nota para quien lee: no suena y no
 dice nada del tema.
 
 ## otro documento

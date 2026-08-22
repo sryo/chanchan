@@ -33,7 +33,7 @@ function ranuraEn(linea, col) {
     col - linea.slice(0, col).match(/[^\s,]*$/)[0].length,
     col + linea.slice(col).match(/^[^\s,]*/)[0].length);
 
-  if (linea.trimStart().startsWith('#')) return null;
+  if (linea.trimStart().startsWith('*')) return null;
   const arroba = linea.indexOf('@');
   if (arroba >= 0 && !linea.slice(0, arroba).trim())
     return { ranura: 'enlace', ...trozo(arroba + 1, linea.length) };

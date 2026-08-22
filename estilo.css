@@ -104,7 +104,7 @@
   body.cargando #tocar svg { fill: var(--tenue); }
   /* centrado y no por línea de base: flexbox tomaría la del primer renglón del logo */
   .marca {
-    display: flex; align-items: center; gap: 14px; min-width: 0; flex-wrap: wrap;
+    display: flex; align-items: center; gap: 14px; min-width: 0; flex-wrap: wrap; flex: 1;
   }
   /* el margen negativo descuenta el padding, que es área de click y no aire */
   .marca #enlace { margin-left: -9px; }
@@ -162,7 +162,9 @@
     color: var(--tenue);
   }
   #abrir:hover, #enlace:hover, #archivo:hover, #luz:hover { color: var(--texto); }
-  #archivo, #luz { margin-left: -12px; }
+  #archivo { margin-left: -12px; }
+  /* el modo no es del tema: va solo, del otro lado */
+  #luz { margin-left: auto; }
   /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
   #enlace.dicho {
     color: var(--marca-tinta); font-size: var(--letra-chica);
