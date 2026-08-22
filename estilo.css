@@ -212,7 +212,8 @@
   .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
   /* tinta de página: apunta a otro tema, no suena */
   .t-enlace { color: var(--texto); text-decoration: underline dotted currentColor; text-underline-offset: 4px; }
-  .t-comentario { color: var(--tenue); }
+  /* en cursiva se distingue de un vistazo; en monoespaciada no cambia el ancho, así el espejo sigue calzando */
+  .t-comentario { color: var(--tenue); font-style: italic; }
   /* «de esta palabra cuelga el ▾»: sale con el mouse en el botón, no en la palabra */
   .t-editable.t-manija {
     text-decoration: underline dotted currentColor;
