@@ -36,6 +36,7 @@ function desdeCuando(t) {
 }
 
 // se copian como cualquier párrafo, y apretar uno lo escribe y lo hace sonar
+const ESPERA_CLICK = 180;
 const RENGLONES_DE_MUESTRA = ['la bata toca pum pa pum pa', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
 
 // el texto recibe el mouse para poder copiarlo, así que apretarlo ya no cae en la
@@ -59,17 +60,23 @@ function armarVacio() {
     const p = document.createElement('p');
     p.className = 'muestra';
     p.textContent = linea;
-    let apreto = null;
+    let apreto = null, espera;
     p.addEventListener('mousedown', e => { apreto = [e.clientX, e.clientY]; });
     p.addEventListener('click', e => {
       const a = apreto; apreto = null;
+      clearTimeout(espera);
+      // el segundo click de un doble o un triple es para seleccionar, y llega tarde
+      // para el primero: por eso escribir espera a que no venga ninguno
+      if (e.detail > 1) return;
       // arrastrar para copiar termina en un click: un arrastre no escribe
       if (a && Math.hypot(e.clientX - a[0], e.clientY - a[1]) > UMBRAL) return;
-      escribir(linea + '\n', linea.length);
-      registrar(src.value, null);
-      // sin sonidos todavía, queda escrito: el botón ya dice que carga
-      if (motorListo && !sonando) alternarTocar(); else actualizar(true);
-      src.focus();
+      espera = setTimeout(() => {
+        escribir(linea + '\n', linea.length);
+        registrar(src.value, null);
+        // sin sonidos todavía, queda escrito: el botón ya dice que carga
+        if (motorListo && !sonando) alternarTocar(); else actualizar(true);
+        src.focus();
+      }, ESPERA_CLICK);
     });
     muestras.appendChild(p);
   }

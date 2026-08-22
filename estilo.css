@@ -292,16 +292,15 @@
   details[open] summary .i { transform: none; }
   #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
   #luz { margin-right: 44px; }
-  /* los huecos no reciben el mouse: apretar entre dos bloques cae en la hoja y se
-     escribe encima sin cerrar nada. El texto sí, para poder copiarlo */
+  /* recibe el mouse como cualquier página, para poder copiar de punta a punta;
+     apretar sin seleccionar devuelve el cursor a la hoja, en temas.js */
   #vacio {
-    position: absolute; z-index: 2; pointer-events: none; font-size: var(--letra-tema);
+    position: absolute; z-index: 2; font-size: var(--letra-tema);
     left: calc(var(--sangria) + var(--canal)); top: 56px; right: 44px;
   }
   /* en --suave el contraste es 1,5 */
   .pista { color: var(--tenue); margin: 26px 0 10px; }
   .lema { margin: 0 0 22px; }
-  .lema, .pista, .muestra { pointer-events: auto; }
   .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
   .ejemplos button { padding: 4px 11px; }
   /* tinta de página: abren otro tema, no éste */
