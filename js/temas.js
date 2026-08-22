@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------- la hoja vacía
 // El vocabulario ya lo sirven el menú del ▾ y el sugeridor, que además saben en
-// qué palabra estás parado; lo único que no vivía en ningún lado era el molde.
+// qué palabra estás parado. Lo que no vivía en ningún lado era el primer paso:
+// qué es esto y cómo se empieza, para quien no escribió nunca un renglón.
 // ------------------------------------------- el tema visto de lejísimos
 // Una barra por instrumento y no por renglón: la misma base tres veces son nueve
 // renglones y tres colores, y nueve barras en quince píxeles son barro. Hasta
@@ -43,11 +44,12 @@ function desdeCuando(t) {
 }
 
 // Tres renglones de muestra: uno de golpes, uno de notas con un silencio, uno de
-// acordes con barra — entre los tres está todo lo que el molde nombra. Apretar
-// uno lo escribe en la hoja, que es lo único que hace sonar algo. Queda como una
-// hoja tuya, sin nombre: no es un tema de la lista.
+// acordes con barra. Apretar uno lo escribe en la hoja y lo hace sonar: «empezá
+// con una de éstas» tiene que terminar en música, no en un renglón mudo. Queda
+// como una hoja tuya, sin nombre: no es un tema de la lista. Lo demás del idioma
+// —secciones, forma, tempo— lo ofrece el sugeridor al empezar una línea, que es
+// cuando hace falta; acá sólo estorbaba.
 const RENGLONES_DE_MUESTRA = ['la bata toca pum tas pum tas', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
-const TECLA_TOCAR = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘↩' : 'ctrl↩';
 
 function armarVacio() {
   const mios = misTemas();
@@ -56,19 +58,11 @@ function armarVacio() {
   // nombre sí muestra los dos, que es la manera de volver a cómo venía
   const ejemplos = EJEMPLOS.filter(e => !mios.some(t => t.nombre === e.nombre));
   cajaVacio.innerHTML =
-    '<p class="pista primera">escribí una línea, o tocá una de éstas:</p>' +
+    '<p class="lema">acá la música se escribe con palabras.</p>' +
+    '<p class="pista primera">empezá con una de éstas, o escribí la tuya:</p>' +
     '<div class="ejemplos lineas"></div>' +
-    '<p class="pista">así se escribe</p>' +
-    // las cuatro líneas que existen: el idioma entero puesto en el molde
-    '<p class="molde">la <b>&lt;parte&gt;</b> toca <b>&lt;pasos&gt;</b> | <b>&lt;pasos&gt;</b>, <b>&lt;cómo&gt;</b></p>' +
-    '<p class="molde">la <b>&lt;sección&gt;</b>:</p>' +
-    '<p class="molde">el tema va <b>&lt;sección&gt;</b> <b>&lt;sección&gt;</b></p>' +
-    '<p class="molde">va a <b>&lt;n&gt;</b></p>' +
-    '<p class="pista leyenda">los pasos son golpes (pum tas chas) o notas (do re mi); la raya es silencio</p>' +
-    '<p class="pista leyenda">para oírlo, ' + TECLA_TOCAR + ' o el botón de arriba · para cambiar una palabra, el ▾ que aparece al pasarle por encima</p>' +
     (mios.length ? '<p class="pista">volvé a uno tuyo</p><div class="ejemplos mios"></div>' : '') +
-    (ejemplos.length ? '<p class="pista">o abrí uno de estos</p><div class="ejemplos temas"></div>' : '') +
-    '<p class="pista suelto">o soltá un archivo acá</p>';
+    (ejemplos.length ? '<p class="pista">o escuchá un tema hecho</p><div class="ejemplos temas"></div>' : '');
   const lineas = cajaVacio.querySelector('.ejemplos.lineas');
   for (const linea of RENGLONES_DE_MUESTRA) {
     const b = document.createElement('button');
@@ -77,7 +71,9 @@ function armarVacio() {
     b.addEventListener('click', () => {
       escribir(linea + '\n', linea.length);
       registrar(src.value, null);
-      actualizar(true);
+      // si los sonidos todavía no bajaron, queda escrito y el botón de arriba
+      // ya dice que está cargando
+      if (motorListo && !sonando) alternarTocar(); else actualizar(true);
       src.focus();
     });
     lineas.appendChild(b);

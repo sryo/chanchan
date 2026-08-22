@@ -122,10 +122,14 @@ function seguirElTema(r) {
 // ------------------------------------------------------------- tocar y parar
 // Macizo como el puntito del margen: lleno si suena, hueco si no. Y una forma
 // llena se agranda a veintidós sin que se le ensucien los pelos.
+// el atajo vive en el title del botón: es lo único del transporte que la pantalla
+// no muestra sola, y el botón es donde se va a buscar
+const TECLA_TOCAR = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘↩' : 'ctrl↩';
 function refrescarTransporte() {
   btnTocar.innerHTML = icono(sonando ? 'parar' : 'tocar', 'maciza');
-  btnTocar.title = sonando ? 'parar' : 'tocar';
-  btnTocar.setAttribute('aria-label', btnTocar.title);
+  const que = sonando ? 'parar' : 'tocar';
+  btnTocar.title = que + ' · ' + TECLA_TOCAR;
+  btnTocar.setAttribute('aria-label', que);
 }
 
 function alternarTocar() {

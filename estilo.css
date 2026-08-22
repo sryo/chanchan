@@ -343,22 +343,20 @@
     position: absolute; z-index: 2; pointer-events: none;
     left: calc(var(--sangria) + var(--canal)); top: 56px; right: 44px;
   }
-  .molde { color: var(--tenue); margin: 0 0 4px; }
-  .molde b { color: var(--texto); font-weight: 600; }
-  .pista { color: var(--suave); margin: 26px 0 10px; }
+  /* en --suave las pistas daban 1,5 de contraste: era lo que menos se leía de la
+     página, y es lo único que explica. El lema va en tinta de página. */
+  .pista { color: var(--tenue); margin: 26px 0 10px; }
+  .lema { margin: 0 0 22px; }
   .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
   .ejemplos button { padding: 4px 11px; }
   /* con la tinta de la página: estos botones abren otros temas, y pintarlos del
      color del tema abierto decía justo lo que no es. */
   .ejemplos button:hover { border-color: var(--texto); color: var(--texto); }
   /* los renglones de muestra se leen como renglones de la hoja: uno debajo del
-     otro, del tamaño del tema; la primera pista abre la hoja y no lleva aire
-     arriba, y las dos leyendas cuelgan del molde en vez de abrir otra sección */
+     otro, del tamaño del tema; la pista que los presenta va pegada al lema */
   .ejemplos.lineas { flex-direction: column; align-items: flex-start; gap: 6px; }
   .ejemplos.lineas button { font-size: var(--letra-tema); }
   .pista.primera { margin-top: 0; }
-  .pista.leyenda { margin: 10px 0 0; }
-  .pista.leyenda + .pista.leyenda { margin-top: 4px; }
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
   /* El punto es chico pero el botón no: la caja mide lo mismo que el ▾, así que
      apuntarle no pide puntería. El color lo pone el js en currentColor, y de ahí
