@@ -1,9 +1,7 @@
 // ------------------------------------------------------------- lo que se ofrece
-// Las listas que el ▾, la selección y el sugeridor le muestran a uno. Las tres
-// superficies hacen cosas distintas con lo elegido —reemplazar, aplicar a varios,
-// insertar— pero ofrecen lo mismo, así que sumar algo al idioma se hace acá y
-// aparece en las tres. Cada opción es { txt, desc, receta }, y la receta es lo
-// que oir() necesita para hacerla sonar al pasarle por encima.
+// Las listas del ▾, la selección y el sugeridor: hacen cosas distintas con lo
+// elegido, pero ofrecen lo mismo. Cada opción es { txt, desc, receta }, y la
+// receta es lo que oir() necesita para hacerla sonar al pasarle por encima.
 const ofrecerGolpes = () => Object.entries(SONIDOS)
   .map(([txt, [, desc]]) => ({ txt, desc, receta: recetaDe('golpe', txt) }));
 

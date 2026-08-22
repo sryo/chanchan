@@ -4,18 +4,8 @@
     {
       "name": "tungatunga",
       "runtimeExecutable": "node",
-      "runtimeArgs": [
-        "/Users/mateoyadarola/Documents/tungatunga/.claude/servidor.mjs"
-      ],
+      "runtimeArgs": ["/Users/mateoyadarola/Documents/tungatunga/.claude/servidor.mjs"],
       "port": 8137
-    },
-    {
-      "name": "chanchan-ios",
-      "runtimeExecutable": "node",
-      "runtimeArgs": [
-        "/private/tmp/claude-501/-Users-mateoyadarola-Documents-tungatunga/6e50e1f4-1fd5-4f0c-9d4b-a8b2bbd2f5df/scratchpad/app/.claude/servidor.mjs"
-      ],
-      "port": 8138
     }
   ]
 }

@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------- la hoja vacía
+// -------------------------------------------------------------- la primera hoja
 // ------------------------------------------- el tema visto de lejísimos
 // una barra por instrumento y no por renglón, y hasta cinco: más dicen «muchos».
 // traducirLinea() y no traducir(): la forma y las secciones acá no dicen nada
@@ -36,7 +36,7 @@ function desdeCuando(t) {
 }
 
 // lo que encuentra quien llega por primera vez, y lo que da «nuevo»: un documento, con sus notas
-const PRIMERA_HOJA = () => [
+const PRIMERA_HOJA = [
   '* en chanchán podés escribir música con palabras, así:',
   'la bata toca pum pa pum pa',
   'el bajo toca do - sol -',
@@ -45,7 +45,6 @@ const PRIMERA_HOJA = () => [
 ].join('\n');
 
 // --------------------------------------------------------- abrir otro tema
-// con algo escrito la hoja vacía no está: los temas cuelgan del nombre
 const panelTemas = document.createElement('div');
 panelTemas.id = 'temas';
 panelTemas.className = 'panel';
@@ -94,7 +93,7 @@ function abrirTemas() {
     mostrarTemas(false);
     // elegirArchivo() carga el tema solo
     if (el.dataset.archivo) return elegirArchivo();
-    cargarTema(el.dataset.nueva ? { nombre: '', txt: PRIMERA_HOJA() }
+    cargarTema(el.dataset.nueva ? { nombre: '', txt: PRIMERA_HOJA }
       : el.dataset.mio ? mios[+el.dataset.mio]
       : EJEMPLOS[+el.dataset.i]);
     src.focus();

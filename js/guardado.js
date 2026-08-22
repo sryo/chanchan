@@ -120,7 +120,6 @@ addEventListener('pagehide', guardarYa);
 
 // El tema entero viaja adentro del enlace, y en claro son miles de caracteres que
 // ningún chat muestra enteros. La «z» marca el comprimido; el nombre queda legible.
-const MARCA_Z = 'z';
 const aBase64 = b => btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const deBase64 = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 const hayZip = () => typeof CompressionStream === 'function';
@@ -139,7 +138,7 @@ async function hashDe(nombre, txt) {
   const plano = antes + encodeURIComponent(txt);
   if (!hayZip()) return plano;
   try {
-    const corto = antes + MARCA_Z + aBase64(await desinflar(txt));
+    const corto = antes + 'z' + aBase64(await desinflar(txt));
     return corto.length < plano.length ? corto : plano;
   } catch (e) { return plano; }
 }
@@ -242,13 +241,10 @@ async function temaInicial() {
     guardarTraidos(delEnlace.traidos);
     return delEnlace;
   }
-  try {
-    const guardado = recordado(GUARDADO);
-    // sin nada guardado, la hoja vacía y no un ejemplo: un tema ajeno con nombre dice «esto ya es de alguien»
-    return guardado
-      ? { txt: guardado, nombre: recordado(GUARDADO_NOMBRE) || '' }
-      : { txt: PRIMERA_HOJA(), nombre: '' };
-  } catch (e) { return { txt: '', nombre: '' }; }
+  const guardado = recordado(GUARDADO);
+  return guardado
+    ? { txt: guardado, nombre: recordado(GUARDADO_NOMBRE) || '' }
+    : { txt: PRIMERA_HOJA, nombre: '' };
 }
 
 // el input no se achica solo

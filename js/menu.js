@@ -148,13 +148,12 @@ function seccionesDe(t) {
   }
 
   if (t.tipo === 'enlace') {
-    const todos = temasTodos();
     const hay = !!temaLlamado(d.nombre);
     return [
       { titulo: 'el enlace', ops: [{ txt: (hay ? 'abrir ' : 'crear ') + d.nombre,
-        desc: hay ? 'o ⌘+click en el nombre' : 'una hoja nueva con ese nombre',
+        desc: hay ? 'o apretá el nombre' : 'una hoja nueva con ese nombre',
         hacer: () => irAlTema(d.nombre) }] },
-      { titulo: 'apuntar a', detalle: true, ops: todos.map(x =>
+      { titulo: 'apuntar a', detalle: true, ops: temasTodos().map(x =>
         ({ txt: x.nombre, nuevo: x.nombre, puesto: norm(x.nombre) === norm(d.nombre) })) },
     ];
   }

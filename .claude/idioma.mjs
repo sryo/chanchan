@@ -116,10 +116,10 @@ dice nada del tema. Si lleva un ${codigo('@')}, lo que sigue es un enlace a otro
     @la base
 
 Un renglón que empieza con ${codigo('@')} no suena: apunta a otro tema tuyo. Tipeá el
-${codigo('@')} y te ofrece los que tenés; para ir, ⌘+click en el nombre, o el ▾ y «abrir».
-Si ese tema no existe todavía, lo crea. Sirve para escribir las partes de un mismo
-tema en documentos distintos e ir de uno a otro; al copiar el enlace, los temas
-nombrados van adentro, así del otro lado también están.
+${codigo('@')} y te ofrece los que tenés; para ir, apretá el nombre. Si ese tema no existe
+todavía, lo crea. Sirve para escribir las partes de un mismo tema en documentos
+distintos e ir de uno a otro; al copiar el enlace, los temas nombrados van adentro,
+así del otro lado también están.
 
 ## la forma
 

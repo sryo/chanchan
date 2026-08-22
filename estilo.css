@@ -89,7 +89,7 @@
   header {
     display: flex; align-items: center; gap: 26px;
     padding: var(--sangria) 62px 26px var(--sangria);
-    flex-wrap: wrap; pointer-events: none;
+    pointer-events: none;
   }
   header > * { pointer-events: auto; }
   #tocar {
@@ -102,10 +102,10 @@
   /* el ojo del color del fondo no se vería sobre el gris */
   body.cargando #tocar { background: var(--linea); cursor: progress; }
   body.cargando #tocar svg { fill: var(--tenue); }
-  /* centrado y no por línea de base: flexbox tomaría la del primer renglón del logo */
-  .marca {
-    display: flex; align-items: center; gap: 14px; min-width: 0; flex-wrap: wrap; flex: 1;
-  }
+  /* centrado y no por línea de base: flexbox tomaría la del primer renglón del logo.
+     No envuelve: el nombre cede antes que la fila, y recorta con puntos */
+  .marca { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
+  .nombre { min-width: 0; }
   /* el margen negativo descuenta el padding, que es área de click y no aire */
   .marca #enlace { margin-left: -9px; }
   /* sin cartel: el borde ya dice dónde va a caer */
@@ -129,7 +129,7 @@
   }
   .nombre:focus-within { border-bottom-color: var(--marca-tinta); }
   #nombre {
-    font: inherit; color: var(--texto);
+    font: inherit; color: var(--texto); text-overflow: ellipsis;
     background: none; border: 0; padding: 0; outline: none; min-width: 0;
   }
   #nombre::placeholder { color: var(--suave); }
@@ -191,7 +191,7 @@
   #src::selection { background: color-mix(in oklab, var(--parte, var(--texto)) 18%, transparent); }
   ::selection { background: color-mix(in oklab, var(--texto) 18%, transparent); }
   /* lo que hace algo no se selecciona, el espejo tampoco: ver REGLAS.md */
-  #hl, button, .panel, summary { user-select: none; }
+  #hl, button, .panel { user-select: none; }
   /* los canales del editor y qué dice cada uno, en REGLAS.md */
   .t-sujeto { color: var(--texto); }
   .t-articulo, .t-verbo, .t-estructura { color: var(--andamio); }
@@ -322,10 +322,7 @@
     :root { --sangria: 52px; --marco: 40px; }
     header { gap: 10px; padding-right: var(--marco); }
     #tocar { width: 48px; height: 48px; }
-    /* sin envolver: el nombre cede antes que la fila, y recorta con puntos */
-    .marca { gap: 8px; flex-wrap: nowrap; }
-    .nombre { min-width: 0; }
-    #nombre { text-overflow: ellipsis; }
+    .marca { gap: 8px; }
     /* en un teléfono la fila está llena: el modo baja a la esquina de abajo, dentro del arco,
        sobre un disco del fondo porque el texto pasa por debajo */
     #luz {

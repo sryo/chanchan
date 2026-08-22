@@ -11,7 +11,7 @@ temaInicial().then(inicial => {
   actualizar(false);
   if (inicial.roto) avisar(noSePudo());
   // con un tema abierto no se toca el foco: en el teléfono levanta el teclado
-  if (!campoNombre.value) src.focus();
+  if (!src.value.trim()) src.focus();
   // la primera medición cae antes de que el navegador acomode el alto del editor
   requestAnimationFrame(() => armarPuntos(marcasActuales, calladasActuales));
 });
