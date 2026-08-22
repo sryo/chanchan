@@ -41,7 +41,7 @@ el tema va entrada estrofa estrofa estribillo estribillo final` },
   // midi son ocho compases que después vuelven tres veces más: por eso es una
   // sección y no una introducción. La estrofa lleva la voz nota por nota. Tampoco
   // hay batería en el midi.
-  { nombre: "a lo floyd", txt:
+  { nombre: "floydiano", txt:
 `va a 62
 
 la entrada:
@@ -59,7 +59,7 @@ el tema va entrada estrofa estrofa entrada estrofa entrada` },
   // la estrofa llega tarde y arrastra; en el estribillo va en corcheas parejas y el
   // tema se para. La bata es la misma en todas y por eso está escrita una vez sola,
   // arriba de la primera sección.
-  { nombre: "a lo babasónicos", txt:
+  { nombre: "babasónico", txt:
 `va a 110
 
 la bata toca pum - chis chis tas chis pum - - - tas - chis chis chis -
