@@ -1,12 +1,11 @@
 // ---------------------------------------------------------------- la cinta
-// El grosor total no cambia nunca —las partes se reparten los mismos píxeles—,
-// así que sumar una línea no mueve nada de lo que hay abajo.
+// el grosor total no cambia: las partes se reparten los mismos píxeles
 const cinta = document.getElementById('cinta');
-// dónde cae el secuenciador en la pantalla: lo necesita la aguja de la vuelta
+// dónde cae el secuenciador: lo lee la aguja
 let tramo = { desde: 0, hasta: 0, vueltas: 1 };
 
 // ------------------------------------------------ qué golpe va en qué momento
-// Los golpes salen del propio strudel y no de una cuenta nuestra: ver REGLAS.md.
+// los golpes los da strudel, ver REGLAS.md
 const TOPE_GOLPES = 4000;             // por si alguien encadena aceleradores
 
 function golpesDe(pat, vueltas) {
@@ -14,8 +13,7 @@ function golpesDe(pat, vueltas) {
   try { haps = pat.queryArc(0, vueltas); } catch (e) { return null; }
   const out = [];
   for (const h of haps) {
-    // un hap sin «whole» es el pedazo de otro, cortado por el borde de la
-    // consulta: no es un golpe nuevo y dibujarlo duplicaría el que ya está
+    // un hap sin «whole» es el pedazo de otro, cortado por el borde de la consulta
     if (!h.whole) continue;
     const desde = Math.max(0, Number(h.whole.begin));
     const hasta = Math.min(vueltas, Number(h.whole.end));
@@ -26,8 +24,7 @@ function golpesDe(pat, vueltas) {
   return out;
 }
 
-// Mientras strudel no está no hay a quién preguntarle: se reparte el ancho entre
-// los pasos escritos. Dura lo que dura el prebake.
+// mientras strudel no está, el ancho se reparte entre los pasos escritos
 function golpesParejos(r, vueltas) {
   const paso = vueltas / r.lugares.length;
   return r.lugares.map((l, k) => l && { desde: k * paso, hasta: (k + 1) * paso, n: k })
@@ -41,20 +38,14 @@ function dibujarCinta(renglones) {
   const n = renglones.length;
   const marco = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--marco')) || 65;
   const medio = marco / 2;
-  // La curva es concéntrica con el botón: el centro del arco es el centro del
-  // botón, y el radio sale de ahí. El hueco de arriba y la sangría miden lo
-  // mismo, así que el centro cae a la misma distancia de los dos bordes.
+  // el arco es concéntrico con el botón
   const caja = btnTocar.getBoundingClientRect();
   const cx = caja.width ? caja.left + caja.width / 2 : 120;
   const cy = caja.height ? caja.top + caja.height / 2 : 120;
   const RADIO = Math.max(marco, (cx + cy) / 2 - medio);
-  // Donde el secuenciador empieza a contar. Es el punto en que las franjas
-  // terminan de doblar —todos los arcos son concéntricos, así que las cinco se
-  // enderezan en la misma vertical—, y esa vertical cae sobre el margen donde
-  // empiezan las palabras, abajo: la franja arranca donde arranca su línea.
+  // donde las franjas terminan de doblar, que cae sobre el margen de las palabras
   const arranque = cx;
-  // La vuelta larga cierra justo en el borde: un secuenciador tiene que mostrar
-  // dónde vuelve, y unos píxeles más allá la aguja se apaga antes de llegar.
+  // cierra justo en el borde: unos píxeles más allá la aguja se apaga antes de llegar
   const fin = w;
   const grueso = marco / Math.max(1, n);
   const vueltas = Math.max(1, actual.vueltas);
@@ -63,7 +54,7 @@ function dibujarCinta(renglones) {
   const trazo = (d, color, ancho) =>
     '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + ancho.toFixed(2) + '" />';
   let svg = '';
-  // sin partes escritas el marco no desaparece: queda su raya, esperando
+  // sin partes queda la raya del marco, esperando
   if (!n) svg += '<path d="M ' + medio + ' ' + h + ' L ' + medio + ' ' + cy +
     ' A ' + RADIO + ' ' + RADIO + ' 0 0 1 ' + cx + ' ' + medio + ' L ' + fin + ' ' + medio +
     '" fill="none" style="stroke: var(--linea); stroke-width: 2.5" />';
@@ -73,34 +64,24 @@ function dibujarCinta(renglones) {
     const color = tramaDe(r.voz);
     const curva = 'M ' + x + ' ' + h + ' L ' + x + ' ' + cy +
       ' A ' + radio + ' ' + radio + ' 0 0 1 ' + cx + ' ' + y;
-    // el silencio es un silencio: no se dibuja nada. Lo único que queda fino es
-    // una parte callada, que sí está escrita pero no suena — y va fina en toda su
-    // franja, entrada incluida: media franja gorda y media fina decía dos cosas
-    // distintas de la misma línea, y la gorda es la que más se ve.
+    // una parte callada va fina entera, entrada incluida
     const ancho = r.callado ? Math.max(2.5, grueso * 0.25) : grueso + 0.6;
     svg += '<g class="franja' + (r.nro - 1 === franjaSeñalada ? ' sola' : '') +
       '" data-l="' + (r.nro - 1) + '"><title>' + esc(r.nombre) + '</title>';
-    // la entrada, de abajo hasta la vuelta de la esquina: va entera, sin cortes
+    // la entrada va entera, sin cortes
     svg += trazo(curva + ' L ' + arranque + ' ' + y, color, ancho);
     for (const g of r.golpes || golpesParejos(r, vueltas)) {
       const a = enX(g.desde), z = enX(g.hasta);
-      // El hueco separa dos golpes seguidos y nada más. Llegaba a ocho píxeles y
-      // eso lo convertía en otra cosa: todos los golpes quedaban con la misma
-      // sangría al lado, tocara una redonda o una semicorchea, y la cinta se leía
-      // como una tira de código de barras en vez de como algo que dura.
+      // el hueco separa dos golpes seguidos y nada más: más grande, la cinta es un código de barras
       const hueco = Math.min(4, (z - a) * 0.28);
       if (z - a <= hueco) continue;
       svg += trazo('M ' + (a + hueco / 2) + ' ' + y + ' L ' + (z - hueco / 2) + ' ' + y, color, ancho);
     }
-    // El blanco es sólo el tramo horizontal: la entrada dice de qué renglón baja la
-    // franja, no cuándo suena, y queda tapada por el editor casi en todo su largo.
+    // el blanco es sólo el tramo horizontal: la entrada queda tapada por el editor
     svg += '<path class="toque" d="M ' + arranque + ' ' + y + ' L ' + fin + ' ' + y +
       '" stroke-width="' + grueso.toFixed(2) + '" /></g>';
   });
-  // La regla de vueltas y los cortes de sección son dos reglas y no una: por qué
-  // van en tinta, en la hoja (#cinta .regla). La de vueltas se calla cuando no
-  // entra —una forma de sesenta compases en mil píxeles es una trama gris, no una
-  // cuenta—, y sin partes no hay nada que medir.
+  // la regla se calla cuando no entra: sesenta compases en mil píxeles son una trama, no una cuenta
   const ancho = (fin - arranque) / vueltas;
   if (n && (!actual.tramos.length || ancho >= 7))
     for (let k = 0; k < vueltas; k++)
@@ -111,24 +92,20 @@ function dibujarCinta(renglones) {
     const x = enX(v);
     svg += '<line class="corte" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '"' +
       ' y1="0" y2="' + (marco + 16) + '" />';
-    // el nombre sólo si su sección le da lugar: escrito encima del de al lado no
-    // dice cuál es cuál, dice que hay letras. Va tal como se escribió y no
+    // el nombre sólo si su sección le da lugar
     if (t.largo * ancho > t.escrito.length * 6 + 8)
       svg += '<text class="rotulo" x="' + (x + 5).toFixed(1) + '" y="' + (marco + 13) + '">' +
         esc(t.escrito) + '</text>';
     v += t.largo;
   }
-  // El anillo del botón lleva la vuelta corta, la que se cuenta con el pie. La
-  // aguja recorre la forma entera, que puede ser de dieciséis; para entrar a
-  // tiempo hace falta la otra. Del mismo color que la aguja y no del de la
-  // marca: las dos dicen lo mismo —dónde estamos ahora— y tienen que leerse
-  // como una sola cosa puesta encima del tema, no como parte de él.
+  // el anillo lleva la vuelta corta, la que se cuenta con el pie; la aguja, la forma entera.
+  // del color de la aguja y no de la marca: es tiempo, ver REGLAS.md
   vueltaAnillo = 2 * Math.PI * ((caja.width || 64) / 2 + 6);
   svg += '<circle id="anillo" cx="' + cx + '" cy="' + cy + '" r="' + ((caja.width || 64) / 2 + 6) + '"' +
     ' fill="none" stroke="var(--texto)" stroke-width="2" stroke-linecap="round"' +
     ' transform="rotate(-90 ' + cx + ' ' + cy + ')"' +
     ' stroke-dasharray="0 ' + vueltaAnillo.toFixed(1) + '" style="display: none" />';
-  // la aguja va al final para quedar arriba de todas las franjas
+  // al final, para quedar arriba de las franjas
   svg += '<line id="aguja" y1="-2" y2="' + (marco + 2) + '" x1="-9" x2="-9"' +
     ' style="stroke: var(--texto); stroke-width: 2; display: none" />';
   cinta.innerHTML = svg;
@@ -136,8 +113,7 @@ function dibujarCinta(renglones) {
   anillo = document.getElementById('anillo');
 }
 
-// La cinta abarca la vuelta larga, así que una sola aguja sirve para todas las
-// franjas: llega a la punta justo cuando la línea más lenta terminó su cuerda.
+// la cinta abarca la vuelta larga: una sola aguja sirve para todas las franjas
 let aguja = null, anillo = null, vueltaAnillo = 0;
 
 function moverAguja() {
@@ -161,17 +137,13 @@ function moverAguja() {
   }
 }
 
-// El botón y el logo se tiñen con las puntas del tema. Van en trama, la misma
-// banda de la cinta: el botón cae dentro de la curva que dibujan las franjas y
-// el logo va apoyado contra él, así que son una sola pieza.
+// el botón y el logo se tiñen con las puntas del tema, en trama: son una pieza con la cinta
 function pintarMarca(renglones) {
   const raiz = document.documentElement.style;
   dibujarIcono(renglones);
   if (!renglones.length) {
     for (const v of ['--marca', '--marca-fin', '--marca-tinta']) raiz.removeProperty(v);
-    // Sin tema el botón no es un color de la rueda: es la tinta de la página. Y de
-    // noche la tinta es clara, así que el ojo tiene que darse vuelta o desaparece
-    // adentro del botón. El ojo es de quien lo lleva, no del modo.
+    // sin tema el botón es la tinta de la página, y de noche la tinta es clara: el ojo se da vuelta
     raiz.setProperty('--ojo', 'var(--fondo)');
     return;
   }
@@ -182,24 +154,12 @@ function pintarMarca(renglones) {
 }
 
 // --------------------------------------------------------------- la pestaña
-// El icono es esta misma cinta, el codo y nada más. A escala no se puede: la
-// banda entera mide 65 píxeles contra una ventana de mil, así que a dieciséis
-// daría un cuarto de píxel. Lo que se achica es la ventana y no la cinta, y lo
-// que queda es la esquina donde dobla — una curva sola, que es todo el dibujo que
-// entra a este tamaño.
-//
-// Las franjas son las de siempre: una por parte, de afuera para adentro,
-// repartiéndose un grosor que no cambia, y la callada fina. Pasadas cinco o seis
-// dejan de contarse y quedan como una banda de colores, que es lo que la cinta ya
-// es cuando se la mira de lejos; lo que no hace nunca es mostrar un color que no
-// sea de una parte escrita.
+// el codo de la cinta, ver REGLAS.md; a escala no entra: a 16 px la banda mide un cuarto de píxel
 const ICONO = { borde: 1.2, banda: 6.2, centro: 8.4 };
 const pestaña = document.querySelector('link[rel="icon"]');
 let ultimoIcono = '';
 
-// Entra por abajo, dobla y sale por arriba. El centro del arco está en la
-// diagonal y a la misma distancia de los dos bordes, así que las franjas salen
-// concéntricas como las grandes y el codo queda derecho.
+// el centro del arco está en la diagonal: las franjas salen concéntricas, como las grandes
 const trazoIcono = (x, ancho, color) =>
   '<path d="M' + x.toFixed(2) + ',16V' + ICONO.centro +
   'A' + (ICONO.centro - x).toFixed(2) + ',' + (ICONO.centro - x).toFixed(2) +
@@ -210,9 +170,7 @@ function dibujarIcono(renglones) {
   const n = renglones.length;
   let dibujo;
   if (!n) {
-    // lo mismo que la página con la hoja vacía: el marco solo, esperando. Va en
-    // la tinta del punteado —lo que todavía no está escrito— porque la del marco
-    // no se ve contra la barra del navegador, que no es el papel de la página.
+    // el marco solo, en la tinta del punteo: la del marco no se ve contra la barra del navegador
     const tinta = getComputedStyle(document.documentElement).getPropertyValue('--punteo').trim();
     dibujo = trazoIcono(ICONO.borde + ICONO.banda / 2, 1.6, tinta);
   } else {
@@ -222,13 +180,11 @@ function dibujarIcono(renglones) {
       r.callado ? Math.max(0.5, grueso * 0.25) : grueso + 0.15,
       tramaDe(r.voz))).join('');
   }
-  // se pinta en cada tecla y cambia una de cada mil: el color de una parte sólo
-  // se mueve si se cambió el instrumento, se agregó una línea o se dio vuelta la luz
+  // se pinta en cada tecla y cambia una de cada mil
   if (dibujo === ultimoIcono) return;
   ultimoIcono = dibujo;
   pestaña.href = 'data:image/svg+xml,' + encodeURIComponent(
-    // el viewBox va con comas y no con espacios para que sea el mismo string que
-    // el escrito a mano en el html, que no puede llevar un espacio sin escapar
+    // con comas, como el escrito a mano en el html, que no puede llevar espacios sin escapar
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,16,16">' + dibujo + '</svg>');
 }
 
@@ -240,8 +196,7 @@ function reacomodar() {
 addEventListener('resize', reacomodar);
 
 // ------------------------------------------------------ señalar una franja
-// El puntito y la franja son la misma línea vista de dos lados, así que pasar
-// por uno enciende al otro. Por qué hace falta, en la hoja (#cinta.senalando).
+// el puntito y la franja son la misma línea: pasar por uno enciende al otro
 let franjaSeñalada = null;
 
 function aplicarFranja(l) {
@@ -252,12 +207,8 @@ function aplicarFranja(l) {
   for (const b of document.querySelectorAll('.punto')) b.classList.toggle('senalado', +b.dataset.l === l);
 }
 
-// El borde de arriba de la ventana es el camino obligado hacia las pestañas y la
-// barra del navegador, y la cinta está justo ahí: sin la espera, el marco entero
-// se apagaba cada vez que uno se iba de la página. Apuntarle a una franja lleva
-// más que cruzarla. Desde el puntito no hay espera —ir hasta un blanco de
-// veintidós píxeles en el margen ya es apuntar—, ni tampoco para pasar de una
-// franja a la de al lado con la cinta ya encendida, ni para apagar.
+// la cinta está en el camino a la barra del navegador: cruzarla no es apuntarle;
+// desde el puntito no hay espera, ni con la cinta ya encendida, ni para apagar
 const ESPERA_FRANJA = 140;
 let relojFranja;
 
@@ -267,9 +218,7 @@ function señalarFranja(l, desdeLaCinta) {
   relojFranja = setTimeout(() => aplicarFranja(l), ESPERA_FRANJA);
 }
 
-// Una sola escucha para los dos lados: lo que está abajo del mouse dice qué línea
-// es —sea la franja o el punto—, y si no hay ninguno se apaga. Dos escuchas
-// separadas se pisaban, porque la de arriba veía el punto como «nada».
+// una sola escucha para franja y punto: dos separadas se pisaban
 addEventListener('mouseover', e => {
   const el = e.target.closest && e.target.closest('.franja, .punto');
   señalarFranja(el ? +el.dataset.l : null, !!el && el.classList.contains('franja'));

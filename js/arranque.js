@@ -9,23 +9,17 @@ campoNombre.value = inicial.nombre;
 acomodarNombre();
 registrar(src.value, null);
 actualizar(false);
-// la hoja vacía dice «escribí una línea»: el cursor tiene que estar ahí para
-// que sea verdad. Con un tema abierto no se toca el foco, que en el teléfono
-// levanta el teclado sobre lo que uno venía a leer.
+// con un tema abierto no se toca el foco: en el teléfono levanta el teclado
 if (!src.value.trim()) src.focus();
-// La primera medición cae antes de que el navegador termine de acomodar el
-// alto del editor y los puntitos salen todos fuera de cuadro: se vuelven a
-// poner con la página ya quieta, y otra vez cuando entra la tipografía.
+// la primera medición cae antes de que el navegador acomode el alto del editor; y otra vez cuando entra la tipografía
 requestAnimationFrame(() => armarPuntos(marcasActuales, calladasActuales));
 document.fonts.ready.then(() => { medirTipografia(); reacomodar(); });
 
-// Fijado a un commit y no a «main»: si arriba renombran o sacan un sonido, acá
-// cambia o se calla sin que nadie lo haya pedido. Lo nuevo se trae cambiando el hash.
+// fijado a un commit y no a «main»: si arriba sacan un sonido, acá se calla
 const MUESTRAS = 'https://raw.githubusercontent.com/felixroos/dough-samples/9eacfc86ec4393e68a463ff52b01c19cfaa77f38/';
 const CROMA_GM = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
-// Una muestra cada tres semitonos, de do1 a do7: strudel afina las del medio y no
-// se llega a notar. Registrar es instantáneo, cada mp3 baja recién cuando suena.
+// una cada tres semitonos: strudel afina las del medio; cada mp3 baja recién cuando suena
 function muestrario(gm) {
   const m = {};
   for (let semi = 12; semi <= 84; semi += 3) {
@@ -38,9 +32,7 @@ const MUESTRAS_GM = Object.fromEntries(
   [...new Set(Object.values(INSTRUMENTOS))].filter(i => i.gm)
     .map(i => [i.sonido, muestrario(i.gm)]));
 
-// Sin red, o con unpkg caído, strudel no llega: la hoja anda igual —se escribe,
-// se guarda, se comparte— pero no suena, y eso se dice en vez de quedarse
-// «cargando» para siempre.
+// sin strudel la hoja anda igual, pero no suena: se dice en vez de quedar «cargando»
 if (typeof initStrudel !== 'function') {
   document.body.classList.remove('cargando');
   avisar('no cargó strudel: sin red no hay sonido, pero la hoja anda.');
@@ -52,10 +44,7 @@ if (typeof initStrudel !== 'function') {
   ]).then(() => {
     motorLevantado();
     document.body.classList.remove('cargando');
-    // Las cajas de ritmo se leen del propio strudel, así que hasta acá no
-    // existían: un tema con «en una 808» abría con un error falso y sonando con
-    // el banco de fábrica. Y recién ahora se pueden armar los espejos que
-    // encienden la palabra que suena.
+    // las cajas de ritmo se leen de strudel y hasta acá no existían; y recién ahora hay espejos
     actualizar(false);
   })
     .catch(() => { document.body.classList.remove('cargando'); avisar('no cargaron los sonidos.'); }),

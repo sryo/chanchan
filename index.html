@@ -3,17 +3,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>chanchán</title>
-<!-- El icono es el codo de la cinta, y lo redibuja pintarMarca() con los colores
-     del tema abierto; acá va lo que se ve antes de que corra el js —el marcador,
-     la vista previa—, que es lo mismo que la página dibuja con la hoja vacía: el
-     marco solo, esperando. Por qué va escrito adentro del href y no en un
-     archivo, en REGLAS.md. -->
+<!-- el codo de la cinta, y lo redibuja pintarMarca() con los colores del tema abierto; acá va
+     lo que se ve sin js: el marco solo. Por qué en el href y no en un archivo, en REGLAS.md -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0,0,16,16'%3E%3Cpath%20d='M4.30,16V8.4A4.10,4.10,0,0,1,8.4,4.30H16'%20fill='none'%20stroke='%238a8069'%20stroke-width='1.60'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@600&display=swap">
 <link rel="stylesheet" href="estilo.css">
 <script>
-  // antes de la primera pintada: si no, se ve un fogonazo de papel al abrir de noche
+  // antes de la primera pintada: si no, un fogonazo de papel al abrir de noche
   try {
     const guardada = localStorage.getItem('chanchan:luz') || localStorage.getItem('tungatunga:luz');
     document.documentElement.dataset.luz = guardada
@@ -22,8 +19,7 @@
 </script>
 <body>
 
-<!-- Los de trazo son de Lucide 1.33 (ISC, lucide.dev), en grilla de 24 — por qué
-     un sprite acá adentro y qué sostiene ese número, en REGLAS.md. La licencia
+<!-- los de trazo son de Lucide 1.33 (ISC, lucide.dev), en grilla de 24; ver REGLAS.md. La licencia
      pide que este aviso viaje con los trazos copiados:
      ISC License. Copyright (c) for portions of Lucide are held by Cole Bemis
      2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are
@@ -47,8 +43,7 @@
   <symbol id="i-tocar" viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></symbol>
   <symbol id="i-parar" viewBox="0 0 24 24"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></symbol>
   <symbol id="i-enlace" viewBox="0 0 24 24"><circle cx="8.5" cy="12" r="5.5"/><circle cx="15.5" cy="12" r="5.5"/></symbol>
-  <!-- la media luna va rellena por atributo y no por clase: el css del documento
-       no entra al árbol que arma <use>, así que una regla .lleno no la alcanzaría -->
+  <!-- rellena por atributo: el css del documento no entra al árbol que arma <use> -->
   <symbol id="i-luz" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path fill="currentColor" stroke="none" d="M12 3.5a8.5 8.5 0 0 0 0 17z"/></symbol>
 </svg>
 
