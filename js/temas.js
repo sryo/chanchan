@@ -68,10 +68,10 @@ function armarVacio() {
     '<div class="muestras"></div>' +
     (mios.length ? '<p class="pista">o volvé a uno tuyo</p><div class="muestras mios"></div>' : '') +
     '<p class="pista">o escuchá un tema hecho</p><div class="muestras temas"></div>';
-  const muestras = cajaVacio.querySelector('.muestras');
-  for (const linea of RENGLONES_DE_MUESTRA) {
-    const p = enlaceA('', linea);
+  const muestra = (txt, caja) => {
+    const p = enlaceA('', txt);
     p.className = 'muestra';
+    p.textContent = txt;
     let apreto = null, espera;
     p.addEventListener('mousedown', e => { apreto = [e.clientX, e.clientY]; });
     p.addEventListener('click', e => {
@@ -85,15 +85,16 @@ function armarVacio() {
       // arrastrar para copiar termina en un click: un arrastre no escribe
       if (a && Math.hypot(e.clientX - a[0], e.clientY - a[1]) > UMBRAL) return;
       espera = setTimeout(() => {
-        escribir(linea + '\n', linea.length);
+        escribir(txt + '\n', txt.length);
         registrar(src.value, null);
         // sin sonidos todavía, queda escrito: el botón ya dice que carga
         if (motorListo && !sonando) alternarTocar(); else actualizar(true);
         src.focus();
       }, ESPERA_CLICK);
     });
-    muestras.appendChild(p);
-  }
+    caja.appendChild(p);
+  };
+  for (const linea of RENGLONES_DE_MUESTRA) muestra(linea, cajaVacio.querySelector('.muestras'));
   // los temas se muestran como el renglón que los nombra: lo mismo que se escribe en la hoja
   const poner = (lista, caja) => {
     for (const e of lista) {

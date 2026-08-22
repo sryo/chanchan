@@ -156,7 +156,7 @@ function armarSecciones(r, soloPega) {
   }
 
   if (r.ranura === 'enlace')
-    return sec('tus temas', filtrar(temasTodos().map(m2 => op(' ' + m2.nombre, ' ' + m2.nombre))));
+    return sec('tus temas', filtrar(temasTodos().map(m2 => op(m2.nombre))));
 
   if (r.ranura === 'forma')
     return sec('secciones', filtrar([...seccionesEscritas().values()].map(n => op(n))));
@@ -254,9 +254,9 @@ function abrirSugeridor(aPedido) {
   if (r) r.l = l;                       // la vista previa suena con el instrumento de la línea
   const secs = r ? seccionesEnCaret(r) : [];
   const ops = secs.flatMap(x => x.ops);
-  // sólo con una palabra empezada y algo nuevo que ofrecer; la coma es la
-  // excepción: recién abierta una cláusula es cuando no se sabe qué puede ir
-  const reciénAbierta = r.ranura === 'clausula' && !r.prefijo;
+  // sólo con una palabra empezada y algo nuevo que ofrecer; la coma y el «@» son
+  // la excepción: recién abiertos es cuando no se sabe qué puede ir
+  const reciénAbierta = r.ranura === 'enlace' || (r.ranura === 'clausula' && !r.prefijo);
   if (!ops.length ||
       (!aPedido && !reciénAbierta &&
        (r.prefijo.length < 2 || (ops.length === 1 && norm(ops[0].txt) === norm(r.prefijo)))))
