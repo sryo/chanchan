@@ -88,7 +88,7 @@
   /* el relleno de arriba mide lo mismo que la cinta y le taparía las franjas */
   header {
     display: flex; align-items: center; gap: 26px;
-    padding: var(--sangria) 44px 26px var(--sangria);
+    padding: var(--sangria) 62px 26px var(--sangria);
     flex-wrap: wrap; pointer-events: none;
   }
   header > * { pointer-events: auto; }
@@ -163,8 +163,8 @@
   }
   #abrir:hover, #enlace:hover, #archivo:hover, #luz:hover { color: var(--texto); }
   #archivo { margin-left: -12px; }
-  /* el modo no es del tema: va solo, del otro lado */
-  #luz { margin-left: auto; }
+  /* el modo no es del tema: va solo en la esquina, a la altura del botón de tocar, sin quitarle lugar a la marca */
+  #luz { position: absolute; right: 44px; top: calc(var(--sangria) + 21px); }
   /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
   #enlace.dicho {
     color: var(--marca-tinta); font-size: var(--letra-chica);
@@ -321,5 +321,7 @@
     :root { --sangria: 52px; --marco: 40px; }
     header { gap: 16px; }
     #tocar { width: 48px; height: 48px; }
+    #luz { top: calc(var(--sangria) + 13px); }
+    .marca { gap: 12px; }
     :root { --letra-logo: 24px; }
   }

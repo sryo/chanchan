@@ -35,7 +35,7 @@ function desdeCuando(t) {
   return 'hace ' + Math.round(dias / 30) + ' meses';
 }
 
-// lo que encuentra quien llega por primera vez: un documento, con sus notas
+// lo que encuentra quien llega por primera vez, y lo que da «nuevo»: un documento, con sus notas
 const PRIMERA_HOJA = () => [
   '* acá la música se escribe con palabras.',
   '* empezá con una de éstas, o escribí la tuya:',
@@ -96,7 +96,7 @@ function abrirTemas() {
     mostrarTemas(false);
     // elegirArchivo() carga el tema solo
     if (el.dataset.archivo) return elegirArchivo();
-    cargarTema(el.dataset.nueva ? { nombre: '', txt: '' }
+    cargarTema(el.dataset.nueva ? { nombre: '', txt: PRIMERA_HOJA() }
       : el.dataset.mio ? mios[+el.dataset.mio]
       : EJEMPLOS[+el.dataset.i]);
     src.focus();
