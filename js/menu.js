@@ -419,7 +419,7 @@ function ponerManija(t) {
 // es lo único que no se ve solo. Sobre la palabra misma sería ruido.
 let sobreElBoton = false;
 const enElBoton = () => sobreElBoton || !!tokenDelMenu;
-const mirarBoton = quieto => { sobreElBoton = quieto; pintar(marcasActuales); };
+const mirarBoton = quieto => { sobreElBoton = quieto; realzar(); };
 manija.addEventListener('mouseenter', () => mirarBoton(true));
 manija.addEventListener('mouseleave', () => mirarBoton(false));
 

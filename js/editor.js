@@ -50,6 +50,43 @@ let anclaCaret = null;
 let activos = new Set();
 let señalado = null;
 
+// El span se rehace en cada pintada, así que lo que se ancle a un token tiene
+// que volver a buscarlo por posición en vez de guardarse el nodo.
+const spanDe = a => a && hl.querySelector('span[data-l="' + a.l + '"][data-i="' + a.i + '"]');
+
+// El realce —qué paso suena— y el subrayado del ▾ cambian en cada cuadro y con el
+// mouse, y no tocan la estructura: se prenden y se apagan en los spans que ya
+// están, en vez de rehacer el espejo. pintar() los deja puestos cuando sí lo
+// rehace, y anota qué dejó para que realzar() sepa qué mover.
+let realzados = new Set(), conManija = null;
+const claveManija = () => señalado && enElBoton() ? señalado.l + ':' + señalado.i : null;
+const vivoDe = t => 'color-mix(in oklab,' + tramaDe(t.voz) + ' 30%,var(--fondo))';
+const spanEn = clave => clave ? spanDe({ l: clave.split(':')[0], i: clave.split(':')[1] }) : null;
+const marcaEn = clave => {
+  const [l, i] = clave.split(':').map(Number);
+  return (marcasActuales[l] || []).find(x => x.i === i);
+};
+
+function realzar() {
+  for (const clave of realzados) if (!activos.has(clave)) {
+    const s = spanEn(clave);
+    if (s) { s.classList.remove('t-activo'); s.style.removeProperty('--vivo'); }
+  }
+  for (const clave of activos) if (!realzados.has(clave)) {
+    const s = spanEn(clave), t = marcaEn(clave);
+    if (!s) continue;
+    s.classList.add('t-activo');
+    if (t && t.voz) s.style.setProperty('--vivo', vivoDe(t));
+  }
+  realzados = new Set(activos);
+  const ahora = claveManija();
+  if (ahora === conManija) return;
+  const viejo = spanEn(conManija), nuevo = spanEn(ahora);
+  if (viejo) viejo.classList.remove('t-manija');
+  if (nuevo) nuevo.classList.add('t-manija');
+  conManija = ahora;
+}
+
 function pintar(marcas) {
   marcasActuales = marcas;
   const lineas = src.value.split('\n');
@@ -72,8 +109,6 @@ function pintar(marcas) {
       out += plano(cur, t.i);
       if (!ancPuesto && anc >= t.i && anc <= t.i + t.len) { ancPuesto = true; out += '<span id="ancla"></span>'; }
       const vivo = activos.has(n + ':' + t.i) ? ' t-activo' : '';
-      // la marca de hover se aplica desde acá y no tocando el nodo: pintar()
-      // reconstruye el html todo el tiempo mientras suena y se la llevaría puesta
       const editable = t.tipo && t.tipo !== 'mal' ? ' t-editable' : '';
       const bajoElMouse = !(señalado && señalado.l === n && señalado.i === t.i) ? ''
         : enElBoton() ? ' t-manija' : '';
@@ -86,7 +121,7 @@ function pintar(marcas) {
         // el «en pizzicato» dice quién, así que va del color de la parte; un
         // escalón atrás del sujeto, que es el que le puso el nombre
         : t.tipo === 'instrumento' ? ' style="color:color-mix(in oklab,' + tintaDe(t.voz) + ' 62%,var(--fondo))"'
-        : vivo ? ' style="--vivo:color-mix(in oklab,' + tramaDe(t.voz) + ' 30%,var(--fondo))"'
+        : vivo ? ' style="--vivo:' + vivoDe(t) + '"'
         : '';
       // el span de afuera es el que sigue midiendo para el ▾ y para el realce
       const crudo = l.substr(t.i, t.len);
@@ -104,6 +139,8 @@ function pintar(marcas) {
     // ahí las líneas largas cortan en distinto lugar y el espejo se corre
   }).join('\n');
   hl.scrollTop = src.scrollTop;
+  realzados = new Set(activos);
+  conManija = claveManija();
 }
 
 let ultimoCodigo = '';

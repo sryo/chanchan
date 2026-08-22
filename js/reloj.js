@@ -37,7 +37,7 @@ function seguir() {
   if (clave === claveActivos) return;
   claveActivos = clave;
   activos = nuevos;
-  pintar(marcasActuales);
+  realzar();
 }
 
 // strudel corta el reloj pero no las notas que ya salieron: sin apagar el

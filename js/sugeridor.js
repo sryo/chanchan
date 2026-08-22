@@ -338,7 +338,7 @@ src.addEventListener('mousemove', e => {
       : e.altKey && arrastrable(t) ? 'ns-resize' : '';
     if (antes === ahora) return;
     señalado = t && { l: t.l, i: t.i, m: !!t.enManija };
-    pintar(marcasActuales);
+    realzar();
     ponerManija(señalado);
   });
 });
@@ -346,7 +346,7 @@ src.addEventListener('mouseleave', e => {
   // irse hacia el propio ▾, o hacia el menú que abrió, no es irse
   if (tokenDelMenu || dentroDe(e.relatedTarget, manija, menu)) return;
   if (!señalado) return;
-  señalado = null; pintar(marcasActuales); ponerManija(null);
+  señalado = null; realzar(); ponerManija(null);
 });
 // va en mousedown y no en click, para ganarle al textarea antes de que mueva el cursor
 let arrastre = null;

@@ -193,10 +193,6 @@ btnEnlace.addEventListener('click', async () => {
   } catch (e) { decirEnElEnlace('quedó en la barra'); }
 });
 
-// El span se rehace en cada pintada, así que lo que se ancle a un token tiene
-// que volver a buscarlo por posición en vez de guardarse el nodo.
-const spanDe = a => a && hl.querySelector('span[data-l="' + a.l + '"][data-i="' + a.i + '"]');
-
 // ------------------------------------------- lo que cuelga de una palabra
 // El orden de la fila es el de esta lista: el ▾ va primero porque es de la
 // palabra —está mientras el mouse esté encima— y el deshacer es del cambio, que
