@@ -2,13 +2,16 @@
 // de grave a agudo: del orden salen la altura y el color de cada golpe
 const SONIDOS = {
   pum:  ['bd',  'bombo'],
+  dum:  ['lt',  'tom grave'],
   tum:  ['mt',  'tom'],
   tas:  ['sd',  'redoblante'],
   toc:  ['rim', 'aro'],
   chas: ['cp',  'palmas'],
+  clon: ['cb',  'cencerro'],
   chan: ['cr',  'platillo'],
   tin:  ['rd',  'ride'],
   chis: ['hh',  'hi-hat'],
+  shh:  ['sh',  'shaker'],
   tsss: ['oh',  'hi-hat abierto'],
 };
 const NOTAS = { do:'c', re:'d', mi:'e', fa:'f', sol:'g', la:'a', si:'b' };
@@ -167,16 +170,17 @@ function maquinas() {
   try {
     for (const n of Object.keys(strudel.soundMap.get())) {
       const m = n.match(/^([a-z0-9]+)_([a-z]+)$/);
-      if (m && piezas.includes(m[2])) (tiene[m[1]] = tiene[m[1]] || new Set()).add(m[2]);
+      if (m) (tiene[m[1]] = tiene[m[1]] || new Set()).add(m[2]);
     }
   } catch (e) { return {}; }
-  const listas = Object.entries(tiene).filter(([, v]) => v.size === 3).map(([k]) => k);
+  // una caja es un banco que tiene al menos bombo, redoblante y hi-hat
+  const listas = Object.entries(tiene).filter(([, v]) => piezas.every(p => v.has(p))).map(([k]) => k);
   if (!listas.length) return {};
   _maquinas = Object.create(null);
   for (const n of listas.sort()) {
     const marca = MARCAS.find(x => n.startsWith(x)) || 'otras';
     const modelo = marca === 'otras' ? n : (n.slice(marca.length) || marca);
-    _maquinas[norm(marca + ' ' + modelo)] = { nombre: marca + ' ' + modelo, marca, banco: n };
+    _maquinas[norm(marca + ' ' + modelo)] = { nombre: marca + ' ' + modelo, marca, banco: n, piezas: tiene[n] };
   }
   for (const [corto, largo] of Object.entries(ALIAS_MAQUINA)) {
     const halla = Object.values(_maquinas).find(m => m.banco === largo);
@@ -185,6 +189,7 @@ function maquinas() {
   return _maquinas;
 }
 const maquinaDe = n => maquinas()[norm(n)];
+const cajaDe = banco => Object.values(maquinas()).find(m => m.banco === banco);
 
 // la cuarta columna es cada cuántas vueltas vuelve al principio; distinto de .slow(), que estira
 const MODIFICADORES = [
@@ -193,8 +198,10 @@ const MODIFICADORES = [
   ['a un cuarto',         '.slow(4)',           'cuatro veces más lento'],
   ['cada golpe dos veces',  '.ply(2)',          'cada paso suena dos veces seguidas'],
   ['callado',             'mute',               'no suena, pero queda escrito'],
+  ['muy bajito',          '.gain(.25)',         'apenas se oye'],
   ['bajito',              '.gain(.45)',         'más callado'],
   ['fuerte',              '.gain(1.3)',         'más alto'],
+  ['muy fuerte',          '.gain(1.6)',         'lo más alto que va'],
   ['corto',               '.clip(.3)',          'cada nota dura un suspiro'],
   ['largo',               '.clip(2)',           'cada nota se estira sobre la siguiente'],
   ['entrando despacio',   '.attack(.3)',        'no arranca de golpe, aparece'],
@@ -205,6 +212,8 @@ const MODIFICADORES = [
   ['temblando',           '.vib(5).vibmod(.3)', 'la afinación tiembla'],
   ['con eco',             '.room(.6)',          'suena en una sala grande'],
   ['repicando',           '.delay(.5).delaytime(.125).delayfeedback(.4)', 'se repite y se va apagando'],
+  ['a la izquierda',      '.pan(.2)',           'del parlante izquierdo'],
+  ['a la derecha',        '.pan(.8)',           'del parlante derecho'],
   ['al revés',            '.rev()',             'de atrás para adelante'],
   ['con swing',           '.swingBy(1/3, 4)',   'desparejo, arrastrado'],
   ['arpegiado',           '.arp("0 1 2 3")',    'el acorde se desarma en notas, subiendo'],

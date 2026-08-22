@@ -23,13 +23,16 @@ otra cosa: `va a 150 en tres` es un vals.
 Golpes, para la batería:
 
 - `pum` bombo
+- `dum` tom grave
 - `tum` tom
 - `tas` redoblante
 - `toc` aro
 - `chas` palmas
+- `clon` cencerro
 - `chan` platillo
 - `tin` ride
 - `chis` hi-hat
+- `shh` shaker
 - `tsss` hi-hat abierto
 
 Notas: `do re mi fa sol la si`, con `sostenido` o `bemol` después. La altura
@@ -64,8 +67,10 @@ Cómo suena:
 - `a un cuarto` cuatro veces más lento
 - `cada golpe dos veces` cada paso suena dos veces seguidas
 - `callado` no suena, pero queda escrito
+- `muy bajito` apenas se oye
 - `bajito` más callado
 - `fuerte` más alto
+- `muy fuerte` lo más alto que va
 - `corto` cada nota dura un suspiro
 - `largo` cada nota se estira sobre la siguiente
 - `entrando despacio` no arranca de golpe, aparece
@@ -76,6 +81,8 @@ Cómo suena:
 - `temblando` la afinación tiembla
 - `con eco` suena en una sala grande
 - `repicando` se repite y se va apagando
+- `a la izquierda` del parlante izquierdo
+- `a la derecha` del parlante derecho
 - `al revés` de atrás para adelante
 - `con swing` desparejo, arrastrado
 - `arpegiado` el acorde se desarma en notas, subiendo

@@ -41,6 +41,8 @@ const CASOS = [
   ['transponer, sólo con notas',         'el bajo toca do re, una octava abajo\nla bata toca pum, un tono arriba'],
   ['cada dos vueltas, al doble',         'la bata toca pum tas, cada dos vueltas al doble'],
   ['compás de tres',                     'va a 150 en tres\nel bajo toca do - -'],
+  ['volumen y lugar',                    'el bajo toca do, muy bajito, a la izquierda\nla viola toca re, muy fuerte, a la derecha'],
+  ['golpes nuevos',                      'la bata toca pum dum clon shh'],
   ['compás por sección, y lo que no es compás', 'la estrofa:\nva a 120 en tres\nla bata toca pum - -\nel final:\nva a 120\nla bata toca pum tas\nva a 120 por minuto'],
 ];
 

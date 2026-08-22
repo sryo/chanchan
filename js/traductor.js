@@ -286,6 +286,16 @@ function traducirLinea(texto, nro) {
     error(rango[0], rango[1], 'no conozco «' + c.txt.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
   }
 
+  // un golpe que la caja no tiene sonaría mudo sin decir nada; el token se pinta, la línea sigue
+  const caja = modo === 'sonido' && cajaDe(maquina), avisados = new Set();
+  if (caja) for (const t of pasoTk) {
+    const w = norm(texto.substr(t.i, t.len));
+    if (SONIDOS[w] && !caja.piezas.has(SONIDOS[w][0])) {
+      t.cls = 'mal';
+      if (!avisados.has(w)) errs.push({ nro, msg: 'la ' + caja.nombre + ' no tiene ' + SONIDOS[w][1] + ': «' + w + '» ahí no suena.' });
+      avisados.add(w);
+    }
+  }
   if (modo === 'sonido' && instrumento)
     errs.push({ nro, msg: 'los golpes ya traen su sonido: «en ' + instrumento.nombre + '» sólo sirve con notas.' });
 
