@@ -132,7 +132,10 @@ function traducirLinea(texto, nro) {
       let k2 = k + 1;
       while (k2 < pw.length) {
         const n2 = norm(pw[k2].w);
-        if (ALTERACIONES[n2]) { alt = ALTERACIONES[n2]; altN = n2; }
+        // «menor séptima» antes que «menor»: el par de palabras le gana a la suelta
+        const n3 = k2 + 1 < pw.length ? n2 + ' ' + norm(pw[k2 + 1].w) : '';
+        if (n3 && ACORDE[n3]) { acorde = n3; k2++; }
+        else if (ALTERACIONES[n2]) { alt = ALTERACIONES[n2]; altN = n2; }
         else if (ACORDE[n2]) { acorde = n2; }
         else if (OCTAVAS[n2]) { oct = OCTAVAS[n2]; octN = n2; }
         else if (n2 === 'muy' && k2 + 1 < pw.length && OCTAVAS['muy ' + norm(pw[k2+1].w)]) {
@@ -251,6 +254,10 @@ function traducirLinea(texto, nro) {
     }
     const mod = modificadorDe(n);
     if (mod) {
+      if (mod[1].startsWith('.transpose') && modo === 'sonido') {
+        error(rango[0], rango[1], '«' + c.txt.trim() + '» sólo sirve con notas: los golpes no tienen altura.');
+        continue;
+      }
       if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
       else cola += mod[1];
       // sólo un .slow() entero: «que se abre» lleva uno adentro del filtro

@@ -19,6 +19,10 @@ const ACORDES = {
   quinta:     [0, 7],        // la viola distorsionada toca dos notas, no tres
   séptima:    [0, 4, 7, 10], // la de dominante, la del boogie
   disminuido: [0, 3, 6],
+  'menor séptima': [0, 3, 7, 10],
+  'mayor séptima': [0, 4, 7, 11],
+  suspendido: [0, 5, 7],
+  aumentado:  [0, 4, 8],
 };
 const CROMATICA = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
 const GRADOS = { c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
@@ -205,6 +209,13 @@ const MODIFICADORES = [
   ['con swing',           '.swingBy(1/3, 4)',   'desparejo, arrastrado'],
   ['arpegiado',           '.arp("0 1 2 3")',    'el acorde se desarma en notas, subiendo'],
   ['arpegiado bajando',   '.arp("2 1 0")',      'el acorde se desarma en notas, bajando'],
+  // sólo con notas: en una línea de golpes el traductor avisa
+  ['una octava arriba',   '.transpose(12)',     'lo mismo, una octava más agudo'],
+  ['una octava abajo',    '.transpose(-12)',    'lo mismo, una octava más grave'],
+  ['un tono arriba',      '.transpose(2)',      'lo mismo, un tono más agudo'],
+  ['un tono abajo',       '.transpose(-2)',     'lo mismo, un tono más grave'],
+  ['medio tono arriba',   '.transpose(1)',      'lo mismo, medio tono más agudo'],
+  ['medio tono abajo',    '.transpose(-1)',     'lo mismo, medio tono más grave'],
 ];
 
 // lo que se fue del idioma; el aviso dice con qué se escribe ahora, si hay con qué

@@ -14,12 +14,14 @@ const V = n => runInContext(n, ctx);
 const SONIDOS = V('SONIDOS'), OCTAVAS = V('OCTAVAS'), MODIFICADORES = V('MODIFICADORES'), FIGURAS = V('FIGURAS');
 const VECES = V('VECES'), ARREGLOS = V('ARREGLOS'), EUCLIDES = V('EUCLIDES'), FAMILIAS = V('FAMILIAS');
 const SIN_GM = V('SIN_GM'), ALIAS = V('ALIAS'), ALIAS_MAQUINA = V('ALIAS_MAQUINA'), NUMEROS = V('NUMEROS');
-const fraseArreglo = V('fraseArreglo'), fraseEuclides = V('fraseEuclides');
+const fraseArreglo = V('fraseArreglo'), fraseEuclides = V('fraseEuclides'), ACORDES = V('ACORDES');
 const VUELTAS_MAX = V('VUELTAS_MAX'), VUELTAS_FORMA = V('VUELTAS_FORMA'), TEMPO_MIN = V('TEMPO_MIN'), TEMPO_MAX = V('TEMPO_MAX');
 
 const ACORDES_GLOSA = {
   mayor: 'el acorde de siempre', menor: 'el triste', quinta: 'dos notas, como una viola distorsionada',
   séptima: 'el del blues', disminuido: 'el tenso',
+  'menor séptima': 'el menor con una nota más, el del soul', 'mayor séptima': 'el mayor con una nota más, el de la bossa',
+  suspendido: 'ni mayor ni menor, en el aire', aumentado: 'el mayor estirado, el raro',
 };
 const codigo = s => '`' + s + '`';
 const lista = xs => xs.map(x => '- ' + x).join('\n');
@@ -54,7 +56,7 @@ Notas: ${codigo('do re mi fa sol la si')}, con ${codigo('sostenido')} o ${codigo
 va después de la nota: ${alturas.slice(0, 2).map(codigo).join(', ')}, nada (la del medio), ${alturas.slice(2).map(codigo).join(', ')}.
 Acordes, con el nombre después de la nota:
 
-${lista(Object.keys(ACORDES_GLOSA).map(a => codigo('do ' + a) + ' ' + ACORDES_GLOSA[a]))}
+${lista(Object.keys(ACORDES).map(a => codigo('do ' + a) + ' ' + (ACORDES_GLOSA[a] || '')))}
 
 Y tres signos: ${codigo('-')} es un silencio, ${codigo('_')} estira el paso anterior, ${codigo('|')} separa
 compases — cada compás dura una vuelta, y cada uno reparte sus pasos por su cuenta.

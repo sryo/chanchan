@@ -37,6 +37,8 @@ const CASOS = [
    'va a 90\nla estrofa:\nla bata toca pum tas\nel estribillo dura 2 vueltas:\nva a 120\nel bajo toca do re\nva estrofa estribillo estrofa'],
   ['una parte callada no suena pero está', 'la bata toca pum tas, callado\nel bajo toca do'],
   ['acorde con altura',                  'el piano toca do mayor grave | fa menor agudo'],
+  ['acordes de dos palabras',            'el piano toca do menor séptima | re mayor séptima agudo | mi suspendido | fa aumentado'],
+  ['transponer, sólo con notas',         'el bajo toca do re, una octava abajo\nla bata toca pum, un tono arriba'],
   ['cada dos vueltas, al doble',         'la bata toca pum tas, cada dos vueltas al doble'],
 ];
 

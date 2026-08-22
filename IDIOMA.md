@@ -40,6 +40,10 @@ Acordes, con el nombre después de la nota:
 - `do quinta` dos notas, como una viola distorsionada
 - `do séptima` el del blues
 - `do disminuido` el tenso
+- `do menor séptima` el menor con una nota más, el del soul
+- `do mayor séptima` el mayor con una nota más, el de la bossa
+- `do suspendido` ni mayor ni menor, en el aire
+- `do aumentado` el mayor estirado, el raro
 
 Y tres signos: `-` es un silencio, `_` estira el paso anterior, `|` separa
 compases — cada compás dura una vuelta, y cada uno reparte sus pasos por su cuenta.
@@ -75,6 +79,12 @@ Cómo suena:
 - `con swing` desparejo, arrastrado
 - `arpegiado` el acorde se desarma en notas, subiendo
 - `arpegiado bajando` el acorde se desarma en notas, bajando
+- `una octava arriba` lo mismo, una octava más agudo
+- `una octava abajo` lo mismo, una octava más grave
+- `un tono arriba` lo mismo, un tono más agudo
+- `un tono abajo` lo mismo, un tono más grave
+- `medio tono arriba` lo mismo, medio tono más agudo
+- `medio tono abajo` lo mismo, medio tono más grave
 
 Cada nota, tantas veces por vuelta: `en blancas` (2), `en negras` (4), `en corcheas` (8), `en tresillos` (12), `en semicorcheas` (16).
 Sirve para rasguear acordes: `do mayor | fa mayor, en corcheas`.
