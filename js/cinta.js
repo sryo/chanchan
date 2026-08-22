@@ -163,39 +163,34 @@ function pintarMarca(renglones) {
 }
 
 // --------------------------------------------------------------- la pestaña
-// el codo de la cinta, ver REGLAS.md; a escala no entra: a 16 px la banda mide un cuarto de píxel
-const ICONO = { borde: 1.2, banda: 6.2, centro: 8.4 };
+// el logo con los colores del tema, como en la cabecera. A png por canvas: el svg de
+// una pestaña no carga la tipografía
 const pestaña = document.querySelector('link[rel="icon"]');
+const lienzo = document.createElement('canvas');
+lienzo.width = lienzo.height = 64;
 let ultimoIcono = '';
 
-// el centro del arco está en la diagonal: las franjas salen concéntricas, como las grandes
-const trazoIcono = (x, ancho, color) =>
-  '<path d="M' + x.toFixed(2) + ',16V' + ICONO.centro +
-  'A' + (ICONO.centro - x).toFixed(2) + ',' + (ICONO.centro - x).toFixed(2) +
-  ',0,0,1,' + ICONO.centro + ',' + x.toFixed(2) + 'H16"' +
-  ' fill="none" stroke="' + color + '" stroke-width="' + ancho.toFixed(2) + '"/>';
-
 function dibujarIcono(renglones) {
-  const n = renglones.length;
-  let dibujo;
-  if (!n) {
-    // el marco solo, en la tinta del punteo: la del marco no se ve contra la barra del navegador
-    const tinta = getComputedStyle(document.documentElement).getPropertyValue('--punteo').trim();
-    dibujo = trazoIcono(ICONO.borde + ICONO.banda / 2, 1.6, tinta);
-  } else {
-    const grueso = ICONO.banda / n;
-    dibujo = renglones.map((r, i) => trazoIcono(
-      ICONO.borde + grueso / 2 + i * grueso,
-      r.callado ? Math.max(0.5, grueso * 0.25) : grueso + 0.15,
-      tramaDe(r.voz))).join('');
-  }
+  const css = getComputedStyle(document.documentElement);
+  const fondo = css.getPropertyValue('--fondo').trim();
+  const arriba = renglones.length ? tramaDe(renglones[0].voz) : css.getPropertyValue('--texto').trim();
+  const abajo = renglones.length ? tramaDe(renglones[renglones.length - 1].voz) : arriba;
+  const fuente = '600 27px ' + css.getPropertyValue('--titular');
   // se pinta en cada tecla y cambia una de cada mil
-  if (dibujo === ultimoIcono) return;
-  ultimoIcono = dibujo;
-  pestaña.href = 'data:image/svg+xml,' + encodeURIComponent(
-    // con comas, como el escrito a mano en el html, que no puede llevar espacios sin escapar
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,16,16">' + dibujo + '</svg>');
+  const clave = fondo + arriba + abajo + document.fonts.check(fuente);
+  if (clave === ultimoIcono) return;
+  ultimoIcono = clave;
+  const c = lienzo.getContext('2d');
+  c.clearRect(0, 0, 64, 64);
+  c.fillStyle = fondo;
+  c.beginPath(); c.roundRect(0, 0, 64, 64, 12); c.fill();
+  c.font = fuente; c.textAlign = 'center'; c.letterSpacing = '-0.5px';
+  c.fillStyle = arriba; c.fillText('chan', 32, 30);
+  c.fillStyle = abajo;  c.fillText('chán', 32, 56);
+  pestaña.href = lienzo.toDataURL();
 }
+// hasta que baja la tipografía se dibuja con la de reserva
+document.fonts.ready.then(() => { ultimoIcono = ''; dibujarIcono(actual.renglones); });
 
 function reacomodar() {
   dibujarCinta(actual.renglones);

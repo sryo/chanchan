@@ -244,29 +244,18 @@ Es el único que no puede vivir en el sprite: `rel="icon"` no toma un fragmento.
 Pero tampoco es un archivo — va escrito adentro del `href`, en `data:`, que es la
 manera de que siga sin haber un pedido de red por un dibujo.
 
-Y no es un logo: es **la cinta**, con los colores del tema abierto, así que la
-pestaña dice qué tema está abierto y no qué página es. Por eso lo redibuja
-`pintarMarca()`, que es la que ya pinta la marca en las otras superficies.
+Es **el logo**, con los dos colores del tema abierto —la primera parte arriba, la
+última abajo, como en la cabecera—, sobre el papel de la página. Así la pestaña
+dice qué tema está abierto y no sólo qué página es; por eso lo redibuja
+`pintarMarca()`, que es la que ya pinta la marca en las otras superficies. Sin
+tema, en la tinta de la página.
 
-No se puede achicar a escala: la banda entera mide 65 píxeles contra una ventana
-de mil, o sea un cuarto de píxel a dieciséis. Lo que se achica es la ventana —y lo
-que queda es **el codo**, la esquina donde la cinta dobla, que es lo que se
-reconoce de lejos.
-
-El codo y nada más. Cerrarlo alrededor del botón, que es lo que la cinta hace en
-la página, se probó y a dieciséis píxeles es demasiado dibujo: pasa a haber una
-figura que entender —dónde abre, cuántos anillos, de qué lado— donde entraba una
-sola curva que se lee de una.
-
-Las franjas van de afuera para adentro, en el orden en que están escritas.
-Pasadas cinco o seis dejan de contarse y quedan como una banda de colores, que es
-lo que la cinta ya es cuando se la mira de lejos; lo que no hace nunca es mostrar
-un color que no sea de una parte escrita.
+Va a png por un canvas y no a svg: un svg de pestaña no carga la tipografía, y
+el logo es la tipografía. Hasta que Antonio baja se dibuja con la de reserva, y
+`document.fonts.ready` lo vuelve a pintar.
 
 Lo que el html trae escrito a mano es lo único que se ve sin js —el marcador, la
-vista previa— y por eso es la hoja vacía: el marco solo, esperando. En una tinta
-que se vea, que la del marco está calculada contra el papel de la página y la
-pestaña es la barra del navegador.
+vista previa—: el mismo logo en una tinta neutra, con la tipografía que haya.
 
 La aguja no entra ahí: el navegador frena los cuadros de las pestañas de atrás,
 así que una aguja en el icono miente sobre dónde está el tema.
