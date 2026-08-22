@@ -147,16 +147,10 @@ function seccionesDe(t) {
       ({ ...o, nuevo: o.txt, puesto: !!puesta && puesta.n === o.n && puesta.q === o.q })) }];
   }
 
-  if (t.tipo === 'enlace') {
-    const hay = !!temaLlamado(d.nombre);
-    return [
-      { titulo: 'el enlace', ops: [{ txt: (hay ? 'abrir ' : 'crear ') + d.nombre,
-        desc: hay ? 'o apretá el nombre' : 'una hoja nueva con ese nombre',
-        hacer: () => irAlTema(d.nombre) }] },
-      { titulo: 'apuntar a', detalle: true, ops: temasTodos().map(x =>
-        ({ txt: x.nombre, nuevo: x.nombre, puesto: norm(x.nombre) === norm(d.nombre) })) },
-    ];
-  }
+  // abrirlo no va acá: el nombre se aprieta
+  if (t.tipo === 'enlace')
+    return [{ titulo: 'apuntar a', ops: temasTodos().map(x =>
+      ({ txt: x.nombre, nuevo: x.nombre, puesto: norm(x.nombre) === norm(d.nombre) })) }];
 
   if (t.tipo === 'forma') {
     const vistas = seccionesEscritas();
