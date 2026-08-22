@@ -42,18 +42,46 @@ function desdeCuando(t) {
   return 'hace ' + Math.round(dias / 30) + ' meses';
 }
 
+// Tres renglones de muestra: uno de golpes, uno de notas con un silencio, uno de
+// acordes con barra — entre los tres está todo lo que el molde nombra. Apretar
+// uno lo escribe en la hoja, que es lo único que hace sonar algo. Queda como una
+// hoja tuya, sin nombre: no es un tema de la lista.
+const RENGLONES_DE_MUESTRA = ['la bata toca pum tas pum tas', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
+const TECLA_TOCAR = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘↩' : 'ctrl↩';
+
 function armarVacio() {
   const mios = misTemas();
+  // un ejemplo que ya está entre los tuyos con el mismo nombre es el mismo tema
+  // —ver REGLAS.md—, y acá iría dos veces, una arriba de la otra; el panel del
+  // nombre sí muestra los dos, que es la manera de volver a cómo venía
+  const ejemplos = EJEMPLOS.filter(e => !mios.some(t => t.nombre === e.nombre));
   cajaVacio.innerHTML =
+    '<p class="pista primera">escribí una línea, o tocá una de éstas:</p>' +
+    '<div class="ejemplos lineas"></div>' +
+    '<p class="pista">así se escribe</p>' +
     // las cuatro líneas que existen: el idioma entero puesto en el molde
     '<p class="molde">la <b>&lt;parte&gt;</b> toca <b>&lt;pasos&gt;</b> | <b>&lt;pasos&gt;</b>, <b>&lt;cómo&gt;</b></p>' +
     '<p class="molde">la <b>&lt;sección&gt;</b>:</p>' +
     '<p class="molde">el tema va <b>&lt;sección&gt;</b> <b>&lt;sección&gt;</b></p>' +
     '<p class="molde">va a <b>&lt;n&gt;</b></p>' +
+    '<p class="pista leyenda">los pasos son golpes (pum tas chas) o notas (do re mi); la raya es silencio</p>' +
+    '<p class="pista leyenda">para oírlo, ' + TECLA_TOCAR + ' o el botón de arriba · para cambiar una palabra, el ▾ que aparece al pasarle por encima</p>' +
     (mios.length ? '<p class="pista">volvé a uno tuyo</p><div class="ejemplos mios"></div>' : '') +
-    '<p class="pista">o abrí uno de estos</p>' +
-    '<div class="ejemplos"></div>' +
+    (ejemplos.length ? '<p class="pista">o abrí uno de estos</p><div class="ejemplos temas"></div>' : '') +
     '<p class="pista suelto">o soltá un archivo acá</p>';
+  const lineas = cajaVacio.querySelector('.ejemplos.lineas');
+  for (const linea of RENGLONES_DE_MUESTRA) {
+    const b = document.createElement('button');
+    b.className = 'linea';
+    b.textContent = linea;
+    b.addEventListener('click', () => {
+      escribir(linea + '\n', linea.length);
+      registrar(src.value, null);
+      actualizar(true);
+      src.focus();
+    });
+    lineas.appendChild(b);
+  }
   const poner = (lista, caja) => {
     for (const e of lista) {
       const b = document.createElement('button');
@@ -63,7 +91,7 @@ function armarVacio() {
     }
   };
   if (mios.length) poner(mios, cajaVacio.querySelector('.ejemplos.mios'));
-  poner(EJEMPLOS, cajaVacio.querySelector('.ejemplos:not(.mios)'));
+  if (ejemplos.length) poner(ejemplos, cajaVacio.querySelector('.ejemplos.temas'));
 }
 
 // --------------------------------------------------------- abrir otro tema

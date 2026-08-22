@@ -9,6 +9,10 @@ campoNombre.value = inicial.nombre;
 medirNombre();
 registrar(src.value, null);
 actualizar(false);
+// la hoja vacía dice «escribí una línea»: el cursor tiene que estar ahí para
+// que sea verdad. Con un tema abierto no se toca el foco, que en el teléfono
+// levanta el teclado sobre lo que uno venía a leer.
+if (!src.value.trim()) src.focus();
 // La primera medición cae antes de que el navegador termine de acomodar el
 // alto del editor y los puntitos salen todos fuera de cuadro: se vuelven a
 // poner con la página ya quieta, y otra vez cuando entra la tipografía.

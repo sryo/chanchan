@@ -178,11 +178,13 @@ function temaInicial() {
   }
   try {
     const guardado = recordado(GUARDADO);
-    // sin nada guardado se abre el primer ejemplo, y se abre con su nombre puesto
+    // Sin nada guardado, la hoja vacía: es la que explica cómo se escribe, y los
+    // ejemplos están ahí mismo. Abrir un tema ajeno con su nombre puesto le decía
+    // «esto ya es de alguien» justo a quien llega por primera vez.
     return guardado
       ? { txt: guardado, nombre: recordado(GUARDADO_NOMBRE) || '' }
-      : { txt: EJEMPLOS[0].txt, nombre: EJEMPLOS[0].nombre };
-  } catch (e) { return { txt: EJEMPLOS[0].txt, nombre: EJEMPLOS[0].nombre }; }
+      : { txt: '', nombre: '' };
+  } catch (e) { return { txt: '', nombre: '' }; }
 }
 
 // un input no se achica solo al contenido, y el subrayado tiene que terminar donde termina el nombre
