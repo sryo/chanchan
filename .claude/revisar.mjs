@@ -160,5 +160,10 @@ if (temas.status) {
   choques++;
 }
 
+// Y lo que el traductor da por cada tema, contra la última vez que alguien dijo
+// «esto está bien»: probar.mjs lo explica.
+const fotos = spawnSync(process.execPath, [new URL('probar.mjs', import.meta.url).pathname], { encoding: 'utf8' });
+if (fotos.status) { console.error((fotos.stderr || '').trim() || 'no se pudo probar el traductor'); choques++; }
+
 console.log('%d nombres de primer nivel, %d problemas', donde.size, choques);
 process.exit(choques ? 1 : 0);

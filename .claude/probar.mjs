@@ -1,0 +1,86 @@
+// El traductor es el producto, y hasta acá no tenía ninguna prueba: un cambio en
+// una tabla o en una rama del parser podía cambiar lo que sale de cualquier tema
+// sin que nada lo dijera. Esto compila los temas que vienen hechos y una lista
+// de renglones que alguna vez salieron mal, y compara con lo que salió la última
+// vez que alguien dijo «esto está bien». No prueba contra strudel —eso es del
+// navegador—: prueba que el castellano siga dando el mismo código.
+//   node .claude/probar.mjs            compara con esperado.json
+//   node .claude/probar.mjs --rehacer  acepta lo de ahora como lo esperado
+import { readFileSync, writeFileSync } from 'node:fs';
+import { runInContext, createContext } from 'node:vm';
+
+const raiz = new URL('../', import.meta.url);
+const leer = f => readFileSync(new URL(f, raiz), 'utf8');
+
+// Los scripts son scripts comunes que esperan un documento: lo justo para que
+// carguen. Ninguno de estos cuatro toca el DOM para traducir.
+const ctx = createContext({
+  console,
+  document: { documentElement: { dataset: { luz: 'claro' } } },
+  matchMedia: () => ({ matches: false }),
+  localStorage: { getItem: () => null, setItem() {} },
+  addEventListener() {},
+});
+for (const f of ['texto', 'ejemplos', 'vocabulario', 'color', 'traductor'])
+  runInContext(leer('js/' + f + '.js'), ctx, { filename: f + '.js' });
+const traducir = runInContext('traducir', ctx);
+const EJEMPLOS = runInContext('EJEMPLOS', ctx);
+
+// Renglones que alguna vez salieron mal, con el caso junto: si uno de éstos
+// cambia, alguien tocó justo lo que ya se había arreglado.
+const CASOS = [
+  ['al revés es una llamada',           'la viola toca do re, al revés'],
+  ['que se abre no estira la vuelta',   'el bajo toca do - - -, que se abre'],
+  ['a la mitad sí la estira',           'el bajo toca do - - -, a la mitad'],
+  ['constructor no es un golpe',        'la bata toca pum constructor'],
+  ['constructor no es un instrumento',  'el constructor toca do re'],
+  ['el tempo tiene techo',              'va a 405\nla bata toca pum tas'],
+  ['el nombre no corta el comentario',  'x alert(1),// toca pum\nla bata toca pum tas'],
+  ['la ligadura abre un compás',        'la viola toca do - | _ re'],
+  ['secciones, forma y tempo por sección',
+   'va a 90\nla estrofa:\nla bata toca pum tas\nel estribillo dura 2 vueltas:\nva a 120\nel bajo toca do re\nva estrofa estribillo estrofa'],
+  ['una parte callada no suena pero está', 'la bata toca pum tas, callado\nel bajo toca do'],
+  ['acorde con altura',                  'el piano toca do mayor grave | fa menor agudo'],
+  ['cada dos vueltas, al doble',         'la bata toca pum tas, cada dos vueltas al doble'],
+];
+
+const foto = txt => {
+  const r = traducir(txt);
+  return { codigo: r.codigo, vueltas: r.vueltas, bpm: r.bpm,
+           errores: r.errores.map(e => e.nro + ': ' + e.msg),
+           tramos: r.tramos.map(t => t.nom + '×' + t.largo), tempos: r.tempos };
+};
+const ahora = {};
+for (const e of EJEMPLOS) ahora['tema: ' + e.nombre] = foto(e.txt);
+for (const [nombre, txt] of CASOS) ahora[nombre] = foto(txt);
+
+const archivo = new URL('esperado.json', import.meta.url);
+if (process.argv.includes('--rehacer')) {
+  writeFileSync(archivo, JSON.stringify(ahora, null, 1) + '\n');
+  console.log('%d fotos escritas en esperado.json', Object.keys(ahora).length);
+  process.exit(0);
+}
+
+let esperado;
+try { esperado = JSON.parse(readFileSync(archivo, 'utf8')); }
+catch (e) { console.error('no hay esperado.json: node .claude/probar.mjs --rehacer'); process.exit(1); }
+
+let distintas = 0;
+for (const clave of new Set([...Object.keys(esperado), ...Object.keys(ahora)])) {
+  const a = JSON.stringify(esperado[clave]), b = JSON.stringify(ahora[clave]);
+  if (a === b) continue;
+  distintas++;
+  if (!esperado[clave]) { console.error('nueva: «%s» — no está en esperado.json', clave); continue; }
+  if (!ahora[clave]) { console.error('falta: «%s» — está en esperado.json y ya no se prueba', clave); continue; }
+  console.error('cambió: «%s»', clave);
+  for (const campo of Object.keys(ahora[clave]))
+    if (JSON.stringify(esperado[clave][campo]) !== JSON.stringify(ahora[clave][campo]))
+      console.error('  %s\n    era:   %s\n    ahora: %s', campo, JSON.stringify(esperado[clave][campo]), JSON.stringify(ahora[clave][campo]));
+}
+// Los errores que el idioma ya reporta solo se cuentan aparte, porque un tema
+// que viene hecho no puede tener ninguno.
+for (const e of EJEMPLOS)
+  if (ahora['tema: ' + e.nombre].errores.length) { distintas++; console.error('«%s» trae errores: %s', e.nombre, ahora['tema: ' + e.nombre].errores.join(' | ')); }
+
+console.log('%d fotos, %d distintas', Object.keys(ahora).length, distintas);
+process.exit(distintas ? 1 : 0);
