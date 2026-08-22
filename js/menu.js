@@ -148,13 +148,13 @@ function seccionesDe(t) {
   }
 
   if (t.tipo === 'enlace') {
-    const mios = misTemas();
-    const hay = mios.some(x => norm(x.nombre) === norm(d.nombre));
+    const todos = temasTodos();
+    const hay = !!temaLlamado(d.nombre);
     return [
       { titulo: 'el enlace', ops: [{ txt: (hay ? 'abrir ' : 'crear ') + d.nombre,
         desc: hay ? 'o ⌘+click en el nombre' : 'una hoja nueva con ese nombre',
         hacer: () => irAlTema(d.nombre) }] },
-      { titulo: 'apuntar a', detalle: true, ops: mios.map(x =>
+      { titulo: 'apuntar a', detalle: true, ops: todos.map(x =>
         ({ txt: x.nombre, nuevo: x.nombre, puesto: norm(x.nombre) === norm(d.nombre) })) },
     ];
   }

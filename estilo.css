@@ -303,15 +303,6 @@
   /* en --suave el contraste es 1,5 */
   .pista { color: var(--tenue); margin: 26px 0 10px; }
   .lema { margin: 0 0 22px; }
-  .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
-  /* son enlaces, y se ven como los botones que eran */
-  .ejemplos a {
-    font: inherit; color: var(--texto); text-decoration: none;
-    background: var(--panel); border: 1px solid var(--linea);
-    padding: 4px 11px; border-radius: 5px; cursor: pointer;
-  }
-  /* tinta de página: abren otro tema, no éste */
-  .ejemplos a:hover { border-color: var(--texto); }
   /* renglones de la hoja, no botones: se copian arrastrando, ver REGLAS.md */
   .muestras { margin: 0; }
   .muestra {

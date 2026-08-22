@@ -62,14 +62,12 @@ cajaVacio.addEventListener('click', e => {
 
 function armarVacio() {
   const mios = misTemas();
-  // mismo nombre, mismo tema, ver REGLAS.md: acá iría dos veces; el panel sí muestra los dos
-  const ejemplos = EJEMPLOS.filter(e => !mios.some(t => t.nombre === e.nombre));
   cajaVacio.innerHTML =
     '<p class="lema">acá la música se escribe con palabras.</p>' +
     '<p class="pista primera">empezá con una de éstas, o escribí la tuya:</p>' +
     '<div class="muestras"></div>' +
-    (mios.length ? '<p class="pista">volvé a uno tuyo</p><div class="ejemplos mios"></div>' : '') +
-    (ejemplos.length ? '<p class="pista">o escuchá un tema hecho</p><div class="ejemplos temas"></div>' : '');
+    (mios.length ? '<p class="pista">o volvé a uno tuyo</p><div class="muestras mios"></div>' : '') +
+    '<p class="pista">o escuchá un tema hecho</p><div class="muestras temas"></div>';
   const muestras = cajaVacio.querySelector('.muestras');
   for (const linea of RENGLONES_DE_MUESTRA) {
     const p = enlaceA('', linea);
@@ -96,9 +94,12 @@ function armarVacio() {
     });
     muestras.appendChild(p);
   }
+  // los temas se muestran como el renglón que los nombra: lo mismo que se escribe en la hoja
   const poner = (lista, caja) => {
     for (const e of lista) {
       const a = enlaceA(e.nombre, e.txt);
+      a.className = 'muestra';
+      a.textContent = '@' + e.nombre;
       a.addEventListener('click', ev => {
         if (afuera(ev)) return;                 // otra pestaña: que lo abra el enlace
         ev.preventDefault();
@@ -108,8 +109,9 @@ function armarVacio() {
       caja.appendChild(a);
     }
   };
-  if (mios.length) poner(mios, cajaVacio.querySelector('.ejemplos.mios'));
-  if (ejemplos.length) poner(ejemplos, cajaVacio.querySelector('.ejemplos.temas'));
+  if (mios.length) poner(mios, cajaVacio.querySelector('.muestras.mios'));
+  // mismo nombre, mismo tema, ver REGLAS.md: acá iría dos veces
+  poner(EJEMPLOS.filter(e => !mios.some(m => norm(m.nombre) === norm(e.nombre))), cajaVacio.querySelector('.muestras.temas'));
 }
 
 // --------------------------------------------------------- abrir otro tema

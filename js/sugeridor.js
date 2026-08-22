@@ -156,7 +156,7 @@ function armarSecciones(r, soloPega) {
   }
 
   if (r.ranura === 'enlace')
-    return sec('tus temas', filtrar(misTemas().map(m2 => op(' ' + m2.nombre, ' ' + m2.nombre))));
+    return sec('tus temas', filtrar(temasTodos().map(m2 => op(' ' + m2.nombre, ' ' + m2.nombre))));
 
   if (r.ranura === 'forma')
     return sec('secciones', filtrar([...seccionesEscritas().values()].map(n => op(n))));

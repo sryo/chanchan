@@ -96,9 +96,18 @@ function cargarTema(tema) {
   guardar();
 }
 
+// los tuyos y los que vienen hechos, sin repetir: con el mismo nombre gana el tuyo,
+// que es el que se escribe — ver REGLAS.md
+function temasTodos() {
+  const mios = misTemas();
+  return [...mios, ...EJEMPLOS.filter(e => !mios.some(m => norm(m.nombre) === norm(e.nombre)))];
+}
+
+const temaLlamado = nombre => temasTodos().find(t => norm(t.nombre) === norm(nombre));
+
 // el que no está todavía se crea: una hoja nueva con ese nombre
 function irAlTema(nombre) {
-  cargarTema(misTemas().find(t => norm(t.nombre) === norm(nombre)) || { nombre, txt: '' });
+  cargarTema(temaLlamado(nombre) || { nombre, txt: '' });
   src.focus();
 }
 
