@@ -104,9 +104,30 @@ function guardar() {
 // los 400 ms no pueden sobrevivir a cerrar la pestaña
 addEventListener('pagehide', guardarYa);
 
+// El tema entero viaja adentro del enlace, y en claro son miles de caracteres que
+// ningún chat muestra enteros. La «z» marca el comprimido; el nombre queda legible.
+const MARCA_Z = 'z';
+const aBase64 = b => btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const deBase64 = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+const hayZip = () => typeof CompressionStream === 'function';
+const noSePudo = () => hayZip() ? 'ese enlace no se pudo abrir.'
+  : 'ese enlace viene comprimido y este navegador no sabe abrirlo: hace falta uno más nuevo.';
+
+async function porElTubo(datos, tubo) {
+  return new Uint8Array(await new Response(new Blob([datos]).stream().pipeThrough(tubo)).arrayBuffer());
+}
+const desinflar = txt => porElTubo(new TextEncoder().encode(txt), new CompressionStream('deflate-raw'));
+const inflar = async b64 => new TextDecoder().decode(await porElTubo(deBase64(b64), new DecompressionStream('deflate-raw')));
+
 // los dos puntos son legales en un fragmento y encodeURIComponent los escapa: el primero es siempre el nuestro
-function armarHash() {
-  return encodeURIComponent(campoNombre.value.trim()) + ':' + encodeURIComponent(src.value);
+async function armarHash() {
+  const nombre = encodeURIComponent(campoNombre.value.trim()) + ':';
+  const plano = nombre + encodeURIComponent(src.value);
+  if (!hayZip()) return plano;
+  try {
+    const corto = nombre + MARCA_Z + aBase64(await desinflar(src.value));
+    return corto.length < plano.length ? corto : plano;
+  } catch (e) { return plano; }
 }
 
 // la barra vertical es de los enlaces viejos, y la barra de direcciones la reescribe «%7C»; vale
@@ -121,7 +142,7 @@ function cortarNombre(carga) {
   return null;
 }
 
-function abrirCarga(crudo) {
+async function abrirCarga(crudo) {
   try {
     // escapado de más, por un chat o un correo: trae «%25» y ningún separador literal, que le
     // quedó «%3A»; es lo que lo distingue de un nombre con «%» adentro
@@ -129,11 +150,16 @@ function abrirCarga(crudo) {
     for (let i = 0; i < 3 && /%25[0-9A-Fa-f]{2}/.test(carga) && !cortarNombre(carga); i++)
       carga = decodeURIComponent(carga);
     const corte = cortarNombre(carga);
+    const nombre = corte ? decodeURIComponent(carga.slice(0, corte[0])) : '';
+    const cuerpo = corte ? carga.slice(corte[0] + corte[1]) : carga;
+    // el comprimido es base64url y nada más; el plano siempre trae algún «%»
+    const comprimido = /^z[A-Za-z0-9_-]+$/.test(cuerpo);
+    if (comprimido && !hayZip()) return null;
+    // si inflar falla, era texto plano que empezaba con «z»
+    if (comprimido)
+      try { return { nombre, txt: alDia(await inflar(cuerpo.slice(1))) }; } catch (e) { /* texto plano */ }
     // un enlace de antes del cambio también se pasa al idioma de ahora
-    return corte
-      ? { nombre: decodeURIComponent(carga.slice(0, corte[0])),
-          txt:    alDia(decodeURIComponent(carga.slice(corte[0] + corte[1]))) }
-      : { nombre: '', txt: alDia(decodeURIComponent(carga)) };
+    return { nombre, txt: alDia(decodeURIComponent(cuerpo)) };
   } catch (e) { return null; }     // enlace roto
 }
 
@@ -141,27 +167,28 @@ function leerHash() {
   return location.hash.length < 2 ? null : abrirCarga(location.hash.slice(1));
 }
 
-// un enlace pegado en la hoja es un tema, no un texto; vale la dirección entera o lo que sigue al numeral
-function temaPegado(crudo) {
-  const limpio = crudo.trim();
-  // tiene que parecer un enlace, no apenas algo sin espacios
-  if (!limpio || /\s/.test(limpio) || !/%[0-9A-Fa-f]{2}/.test(limpio)) return null;
-  const tema = abrirCarga(limpio.slice(limpio.indexOf('#') + 1));
-  return tema && /\btocan?\b/i.test(tema.txt) ? tema : null;
-}
+// un enlace pegado en la hoja es un tema, no un texto; vale la dirección entera o lo que sigue al numeral.
+// La forma se mira antes de inflar, que es asíncrono y el pegado se corta o no ahora mismo
+const pareceEnlace = txt => !!txt && !/\s/.test(txt) &&
+  (/%[0-9A-Fa-f]{2}/.test(txt) || /[:|]z[A-Za-z0-9_-]+$/.test(txt));
 
 src.addEventListener('paste', e => {
-  const tema = temaPegado((e.clipboardData || window.clipboardData).getData('text'));
-  if (!tema) return;                                 // pegado común y corriente
+  const crudo = (e.clipboardData || window.clipboardData).getData('text').trim();
+  if (!pareceEnlace(crudo)) return;                  // pegado común y corriente
   e.preventDefault();
-  cargarTema(tema);
+  abrirCarga(crudo.slice(crudo.indexOf('#') + 1)).then(tema => {
+    if (tema && /\btocan?\b/i.test(tema.txt)) cargarTema(tema);
+    else avisar(noSePudo());
+  });
 });
 
 // termina en un renglón vacío: la hoja dice que ahí se puede seguir
 const conRenglonFinal = txt => txt.replace(/\n*$/, '\n');
 
-function temaInicial() {
-  const delEnlace = leerHash();
+async function temaInicial() {
+  const delEnlace = await leerHash();
+  // el enlace estaba y no se pudo abrir: se avisa recién en arranque.js, que actualizar() pisa el cajón
+  if (!delEnlace && location.hash.length > 1) return { txt: '', nombre: '', roto: true };
   if (delEnlace) {
     // el enlace se consume: si quedara en la barra, recargar abriría esa versión vieja encima de lo escrito
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
@@ -189,7 +216,7 @@ function acomodarNombre() {
 campoNombre.addEventListener('input', () => { acomodarNombre(); guardar(); });
 
 btnEnlace.addEventListener('click', async () => {
-  location.hash = armarHash();
+  location.hash = await armarHash();
   try {
     await navigator.clipboard.writeText(location.href);
     decirEnElEnlace('enlace copiado');

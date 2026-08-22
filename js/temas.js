@@ -35,7 +35,7 @@ function desdeCuando(t) {
   return 'hace ' + Math.round(dias / 30) + ' meses';
 }
 
-// apretar uno escribe y suena; queda como hoja tuya, sin nombre
+// se copian como cualquier párrafo, y apretar uno lo escribe y lo hace sonar
 const RENGLONES_DE_MUESTRA = ['la bata toca pum pa pum pa', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
 
 // el texto recibe el mouse para poder copiarlo, así que apretarlo ya no cae en la
@@ -51,17 +51,17 @@ function armarVacio() {
   cajaVacio.innerHTML =
     '<p class="lema">acá la música se escribe con palabras.</p>' +
     '<p class="pista primera">empezá con una de éstas, o escribí la tuya:</p>' +
-    '<div class="ejemplos lineas"></div>' +
+    '<div class="muestras"></div>' +
     (mios.length ? '<p class="pista">volvé a uno tuyo</p><div class="ejemplos mios"></div>' : '') +
     (ejemplos.length ? '<p class="pista">o escuchá un tema hecho</p><div class="ejemplos temas"></div>' : '');
-  const lineas = cajaVacio.querySelector('.ejemplos.lineas');
+  const muestras = cajaVacio.querySelector('.muestras');
   for (const linea of RENGLONES_DE_MUESTRA) {
-    const b = document.createElement('button');
-    b.className = 'linea';
-    b.textContent = linea;
+    const p = document.createElement('p');
+    p.className = 'muestra';
+    p.textContent = linea;
     let apreto = null;
-    b.addEventListener('mousedown', e => { apreto = [e.clientX, e.clientY]; });
-    b.addEventListener('click', e => {
+    p.addEventListener('mousedown', e => { apreto = [e.clientX, e.clientY]; });
+    p.addEventListener('click', e => {
       const a = apreto; apreto = null;
       // arrastrar para copiar termina en un click: un arrastre no escribe
       if (a && Math.hypot(e.clientX - a[0], e.clientY - a[1]) > UMBRAL) return;
@@ -71,7 +71,7 @@ function armarVacio() {
       if (motorListo && !sonando) alternarTocar(); else actualizar(true);
       src.focus();
     });
-    lineas.appendChild(b);
+    muestras.appendChild(p);
   }
   const poner = (lista, caja) => {
     for (const e of lista) {

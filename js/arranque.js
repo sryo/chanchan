@@ -3,16 +3,20 @@ armarVacio();
 seguir();
 refrescarTransporte();
 document.body.classList.add('cargando');
-const inicial = temaInicial();
-src.value = conRenglonFinal(inicial.txt);
-campoNombre.value = inicial.nombre;
-acomodarNombre();
-registrar(src.value, null);
-actualizar(false);
-// con un tema abierto no se toca el foco: en el teléfono levanta el teclado
-if (!src.value.trim()) src.focus();
-// la primera medición cae antes de que el navegador acomode el alto del editor; y otra vez cuando entra la tipografía
-requestAnimationFrame(() => armarPuntos(marcasActuales, calladasActuales));
+// sin enlace la promesa ya está resuelta y esto cae antes de la primera pintada
+temaInicial().then(inicial => {
+  src.value = conRenglonFinal(inicial.txt);
+  campoNombre.value = inicial.nombre;
+  acomodarNombre();
+  registrar(src.value, null);
+  actualizar(false);
+  if (inicial.roto) avisar(noSePudo());
+  // con un tema abierto no se toca el foco: en el teléfono levanta el teclado
+  if (!src.value.trim()) src.focus();
+  // la primera medición cae antes de que el navegador acomode el alto del editor
+  requestAnimationFrame(() => armarPuntos(marcasActuales, calladasActuales));
+});
+// y otra vez cuando entra la tipografía
 document.fonts.ready.then(() => { medirTipografia(); reacomodar(); });
 
 // fijado a un commit y no a «main»: si arriba sacan un sonido, acá se calla

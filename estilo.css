@@ -301,15 +301,18 @@
   /* en --suave el contraste es 1,5 */
   .pista { color: var(--tenue); margin: 26px 0 10px; }
   .lema { margin: 0 0 22px; }
-  .lema, .pista { pointer-events: auto; }
+  .lema, .pista, .muestra { pointer-events: auto; }
   .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
   .ejemplos button { padding: 4px 11px; }
   /* tinta de página: abren otro tema, no éste */
   .ejemplos button:hover { border-color: var(--texto); color: var(--texto); }
-  /* los renglones de muestra se leen como renglones de la hoja */
-  .ejemplos.lineas { flex-direction: column; align-items: flex-start; gap: 6px; }
-  /* son notación y se copian, ver REGLAS.md */
-  .ejemplos.lineas button { user-select: text; }
+  /* renglones de la hoja, no botones: se copian arrastrando, ver REGLAS.md */
+  .muestras { margin: 0; }
+  .muestra {
+    margin: 0 -6px; padding: 1px 6px; border-radius: 3px;
+    width: max-content; max-width: 100%; cursor: pointer;
+  }
+  .muestra:hover { background: var(--realce); }
   .pista.primera { margin-top: 0; }
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
   /* el botón mide lo mismo que el ▾; el color lo pone el js en currentColor */
