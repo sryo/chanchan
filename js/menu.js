@@ -390,6 +390,9 @@ src.addEventListener('mousemove', e => {
     pidiendoCuadro = false;
     if (arrastre) return;
     const bajo = tokenEn(e.clientX, e.clientY, true);
+    // el encabezado de una sección no tiene menú, así que va por «bajo» y no por «t»
+    const d = bajo && datosDe(bajo);
+    señalarTramo(d && (d.tipo === 'seccion' || d.tipo === 'forma') ? d.nombre : null);
     const t = tieneMenu(bajo) ? bajo : null;
     const antes = señalado && señalado.l + ':' + señalado.i + ':' + señalado.m;
     const ahora = t && t.l + ':' + t.i + ':' + !!t.enManija;
@@ -405,6 +408,7 @@ src.addEventListener('mousemove', e => {
 src.addEventListener('mouseleave', e => {
   // irse al ▾ o al menú no es irse
   if (tokenDelMenu || dentroDe(e.relatedTarget, manija, menu)) return;
+  señalarTramo(null);
   if (!señalado) return;
   señalado = null; realzar(); ponerManija(null);
 });

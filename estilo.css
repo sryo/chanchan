@@ -71,6 +71,11 @@
   #cinta .franja { transition: opacity .12s; }
   #cinta.senalando .franja { opacity: .25; }
   #cinta.senalando .franja.sola { opacity: 1; }
+  /* una sección es tiempo y no una voz: el velo va en tinta de página, ver REGLAS.md */
+  #cinta .tramo { fill: var(--fondo); fill-opacity: 0; transition: fill-opacity .12s; }
+  #cinta.senalandoTramo .tramo { fill-opacity: .75; }
+  #cinta.senalandoTramo .tramo.sola { fill-opacity: 0; }
+  #cinta.senalandoTramo .rotulo.sola { fill: var(--texto); }
   /* en tinta y no en papel: una raya clara es igual al hueco entre dos golpes */
   #cinta .regla { stroke: var(--texto); stroke-width: 1.5; stroke-opacity: .5; }
   /* el corte baja más que la regla porque dice otra cosa: dónde cambia el tema */

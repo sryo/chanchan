@@ -47,10 +47,7 @@ function anotarTema(nombre, txt, nombreViejo) {
 
 const olvidarTema = nombre => escribirTemas(misTemas().filter(t => t.nombre !== nombre));
 
-// ----------------------------------------------- lo escrito antes del cambio
-// Un tema guardado con el idioma de antes abre lleno de errores. Se pasa al de
-// ahora al leerlo: los golpes que cambiaron de nombre, y «una por vuelta», que
-// era un paso por vuelta y hoy es una barra entre paso y paso.
+// «una por vuelta» era un paso por vuelta: hoy es una barra entre paso y paso
 function conBarras(linea) {
   const limpia = linea.replace(/\s*,\s*una por vuelta\b/i, '');
   const pasos = traducirLinea(limpia, 1).tk.filter(t => t.tipo === 'paso' || t.tipo === 'nota');
