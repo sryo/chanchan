@@ -82,13 +82,12 @@ function dibujarCinta(renglones) {
   });
   // el velo de cada sección: tapa las franjas, no la regla ni los rótulos
   let vt = 0;
-  for (const t of (n ? actual.tramos : [])) {
+  (n ? actual.tramos : []).forEach((t, k) => {
     const x = enX(vt), ancho2 = enX(vt + t.largo) - x;
-    svg += '<rect class="tramo' + (t.nom === tramoSeñalado ? ' sola' : '') + '"' +
-      ' data-nom="' + esc(t.nom) + '" x="' + x.toFixed(1) + '" y="0"' +
-      ' width="' + ancho2.toFixed(1) + '" height="' + marco + '" />';
+    svg += '<rect class="tramo' + (esSola(t, k) ? ' sola' : '') + '"' + datosTramo(t, k) +
+      ' x="' + x.toFixed(1) + '" y="0" width="' + ancho2.toFixed(1) + '" height="' + marco + '" />';
     vt += t.largo;
-  }
+  });
   // la regla se calla cuando no entra: sesenta compases en mil píxeles son una trama, no una cuenta
   const ancho = (fin - arranque) / vueltas;
   if (n && (!actual.tramos.length || ancho >= 7))
@@ -96,17 +95,16 @@ function dibujarCinta(renglones) {
       svg += '<line class="regla" x1="' + enX(k).toFixed(1) + '" x2="' + enX(k).toFixed(1) + '"' +
         ' y1="0" y2="' + (marco + 5) + '" />';
   let v = 0;
-  for (const t of (n ? actual.tramos : [])) {
+  (n ? actual.tramos : []).forEach((t, k) => {
     const x = enX(v);
-    const sola = t.nom === tramoSeñalado ? ' sola' : '';
     svg += '<line class="corte" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '"' +
       ' y1="0" y2="' + (marco + 16) + '" />';
     // el nombre sólo si su sección le da lugar
     if (t.largo * ancho > t.escrito.length * 6 + 8)
-      svg += '<text class="rotulo' + sola + '" data-nom="' + esc(t.nom) + '"' +
+      svg += '<text class="rotulo' + (esSola(t, k) ? ' sola' : '') + '"' + datosTramo(t, k) +
         ' x="' + (x + 5).toFixed(1) + '" y="' + (marco + 13) + '">' + esc(t.escrito) + '</text>';
     v += t.largo;
-  }
+  });
   // el anillo lleva la vuelta corta, la que se cuenta con el pie; la aguja, la forma entera.
   // del color de la aguja y no de la marca: es tiempo, ver REGLAS.md
   vueltaAnillo = 2 * Math.PI * ((caja.width || 64) / 2 + 6);
@@ -211,17 +209,22 @@ function aplicarFranja(l) {
   for (const b of document.querySelectorAll('.punto')) b.classList.toggle('senalado', +b.dataset.l === l);
 }
 
-// pasar por el nombre de una sección apaga el resto del tiempo
+// pasar por el nombre de una sección apaga el resto del tiempo: el encabezado
+// enciende todas sus vueltas, un nombre de la forma sólo la suya
 let tramoSeñalado = null;
+const datosTramo = (t, k) => ' data-nom="' + esc(t.nom) + '" data-k="' + k + '"';
+const coincide = (cual, nom, k) => cual === 'k:' + k || cual === 'n:' + nom;
+const esSola = (t, k) => coincide(tramoSeñalado, t.nom, k);
 
-function señalarTramo(nom) {
+function señalarTramo(nom, k) {
+  let cual = k != null ? 'k:' + k : nom != null ? 'n:' + nom : null;
   // sin tramo en la forma no hay qué encender
-  if (nom != null && !actual.tramos.some(t => t.nom === nom)) nom = null;
-  if (tramoSeñalado === nom) return;
-  tramoSeñalado = nom;
-  cinta.classList.toggle('senalandoTramo', nom != null);
+  if (cual && !actual.tramos.some((t, j) => coincide(cual, t.nom, j))) cual = null;
+  if (tramoSeñalado === cual) return;
+  tramoSeñalado = cual;
+  cinta.classList.toggle('senalandoTramo', cual != null);
   for (const el of cinta.querySelectorAll('.tramo, .rotulo'))
-    el.classList.toggle('sola', el.dataset.nom === nom);
+    el.classList.toggle('sola', coincide(cual, el.dataset.nom, el.dataset.k));
 }
 
 // la cinta está en el camino a la barra del navegador: cruzarla no es apuntarle;

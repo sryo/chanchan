@@ -382,7 +382,7 @@ src.addEventListener('mousemove', e => {
     const bajo = tokenEn(e.clientX, e.clientY, true);
     // el encabezado de una sección no tiene menú, así que va por «bajo» y no por «t»
     const d = bajo && datosDe(bajo);
-    señalarTramo(d && (d.tipo === 'seccion' || d.tipo === 'forma') ? d.nombre : null);
+    señalarTramo(d && (d.tipo === 'seccion' || d.tipo === 'forma') ? d.nombre : null, d && d.tipo === 'forma' ? d.tramo : null);
     const t = tieneMenu(bajo) ? bajo : null;
     const antes = señalado && señalado.l + ':' + señalado.i + ':' + señalado.m;
     const ahora = t && t.l + ':' + t.i + ':' + !!t.enManija;

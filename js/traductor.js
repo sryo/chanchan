@@ -430,10 +430,17 @@ function traducir(fuente) {
     }
   }
   // recién con la hoja entera se sabe qué secciones hay; cambia el color y no el
-  // tipo, así el ▾ sigue siendo el de la forma
-  if (nroForma) for (const t of marcas[nroForma - 1])
-    if (t.tipo === 'forma' && !secciones.has(t.nombre)) t.cls = 'mal';
-  const orden = (forma || escritas).filter(nom => secciones.get(nom)?.suyas.length);
+  // tipo, así el ▾ sigue siendo el de la forma. Y cada nombre sabe cuál tramo es
+  const suena = nom => !!secciones.get(nom)?.suyas.length;
+  if (nroForma) {
+    let k = 0;
+    for (const t of marcas[nroForma - 1]) {
+      if (t.tipo !== 'forma') continue;
+      if (!secciones.has(t.nombre)) t.cls = 'mal';
+      if (suena(t.nombre)) t.tramo = k++;
+    }
+  }
+  const orden = (forma || escritas).filter(suena);
   const largoDe = sec => Math.min(VUELTAS_FORMA,
     sec.vueltas || sec.suyas.reduce((a, r) => mcm(a, r.vueltas), 1));
   const tramos = orden.map(nom => {
