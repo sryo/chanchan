@@ -8,7 +8,7 @@ document.querySelector('.wrap').appendChild(puntos);
 const sacarCallado = ln => ln.replace(/\s*,\s*callado\b/i, '');
 const ponerCallado = ln => sacarCallado(ln) + ', callado';
 
-// tienen menú pero no son partes: nada que callar
+// no son partes: nada que callar
 const NO_SUENA = ['tempo', 'compas', 'mal', 'seccion', 'forma', 'enlace', 'comentario'];
 
 function lineasQueSuenan(marcas) {

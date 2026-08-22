@@ -12,14 +12,14 @@
 <script>
   // antes de la primera pintada: si no, un fogonazo de papel al abrir de noche
   try {
-    const guardada = localStorage.getItem('chanchan:luz') || localStorage.getItem('tungatunga:luz');
+    const guardada = localStorage.getItem('chanchan:luz');
     document.documentElement.dataset.luz = guardada
       || (matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro');
   } catch (e) { document.documentElement.dataset.luz = 'claro'; }
 </script>
 <body>
 
-<!-- los de trazo son de Lucide 1.33 (ISC, lucide.dev), en grilla de 24; ver REGLAS.md. La licencia
+<!-- los de trazo son de Lucide (ISC, lucide.dev), en grilla de 24; ver REGLAS.md. La licencia
      pide que este aviso viaje con los trazos copiados:
      ISC License. Copyright (c) for portions of Lucide are held by Cole Bemis
      2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are

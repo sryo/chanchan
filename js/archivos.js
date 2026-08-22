@@ -7,7 +7,7 @@ const nombreDeArchivo = f => f.name.replace(/\.[^.]*$/, '');
 // lo que ningún sistema acepta en un nombre de archivo
 const comoArchivo = nombre => (nombre.trim() || 'sin título').replace(/[\/:\\?%*|"<>]/g, '-') + EXT;
 
-// lo mismo que pide temaPegado()
+// lo mismo que pide el pegado, en guardado.js
 const pareceUnTema = txt => /\btocan?\b/i.test(txt);
 
 // ------------------------------------------------------------------ el handle

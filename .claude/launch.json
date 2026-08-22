@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "tungatunga",
+      "name": "chanchan",
       "runtimeExecutable": "node",
       "runtimeArgs": ["/Users/mateoyadarola/Documents/tungatunga/.claude/servidor.mjs"],
       "port": 8137

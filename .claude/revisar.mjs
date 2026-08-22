@@ -13,9 +13,8 @@ const RESERVADOS = new Set([
   'tri', 'rand', 'perlin', 'hush', 'evaluate', 'samples', 'initStrudel', 'getTime',
   'getAudioContext', 'strudel', 'chord', 'voicing',
   // las que aparecen en el código generado
-  'every', 'sometimes', 'rarely', 'arp', 'rev', 'iter', 'ply', 'palindrome',
-  'clip', 'crush', 'vowel', 'distort', 'jux', 'orbit', 'range',
-  'arrange', 'silence', 'timeCat', 'cat', 'slowcat', 'seq',
+  'every', 'sometimes', 'rarely', 'almostNever', 'almostAlways', 'arp', 'rev', 'ply',
+  'clip', 'distort', 'orbit', 'arrange', 'silence',
   'name', 'status', 'origin', 'length', 'top', 'event', 'self', 'parent', 'closed',
 ]);
 

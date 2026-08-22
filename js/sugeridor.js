@@ -6,7 +6,7 @@
 let anclaCaret = null;
 
 // la pasada por palabra suelta es la que hace que «corche» encuentre «en corcheas»
-function candidatos(prefijo, lista, clave = x => x, soloPega) {
+function candidatos(prefijo, lista, clave, soloPega) {
   const p = norm(prefijo || '');
   if (!p) return lista.slice();
   const pega = [], parecidas = [];
@@ -52,7 +52,7 @@ function ranuraEn(linea, col) {
   if (/^\s*(?:(?:la banda|el tema|la cancion|la canción)\s+)?va(\s|$)/i.test(linea))
     return { ranura: 'forma', ...palabraEn() };
 
-  const iVerbo = ws.findIndex(x => /^(toca|tocan)$/i.test(x.w));
+  const iVerbo = ws.findIndex(x => VERBO.test(x.w));
   if (iVerbo < 0) return { ranura: 'linea', ...trozo(0, linea.length) };
 
   const finVerbo = ws[iVerbo].i + ws[iVerbo].w.length;
@@ -67,7 +67,7 @@ function ranuraEn(linea, col) {
   let pos = finVerbo;
   for (const t of linea.slice(finVerbo).split(',')) { cl.push({ txt: t, i: pos }); pos += t.length + 1; }
   const cual = cl.findIndex(c => col >= c.i && col <= c.i + c.txt.length);
-  const c = cl[cual < 0 ? cl.length - 1 : cual];
+  const c = cl[cual];
 
   // el modo lo fija el primer paso reconocido: «en <caja>» sólo vale con golpes,
   // «en <instrumento>» sólo con notas
@@ -293,6 +293,7 @@ src.addEventListener('keydown', e => {
     sug.elegido = (sug.elegido + (e.key === 'ArrowDown' ? 1 : -1) + sug.ops.length) % sug.ops.length;
     return marcarElegido();
   }
+  // Esc a mano: con el foco en el textarea el navegador no cierra el popover
   if (['Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) cerrarSugeridor();
 });
 src.addEventListener('input', () => abrirSugeridor(false));

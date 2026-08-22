@@ -12,7 +12,7 @@ let familiaElegida = null;
 
 // la franja a la derecha de un token cuenta como el token: así la palabra sigue
 // señalada mientras el mouse va hacia su ▾
-function tokenEn(x, y, conManija) {
+function tokenEn(x, y, conFranja) {
   // el cuerpo de un token le gana a la franja de otro
   let franja = null;
   for (const sp of hl.querySelectorAll('span[data-tipo]')) {
@@ -26,8 +26,8 @@ function tokenEn(x, y, conManija) {
       const d = { l: +sp.dataset.l, i: +sp.dataset.i, len: +sp.dataset.len, tipo: sp.dataset.tipo, r };
       if (x >= r.left && x <= r.right) return d;
       // sólo en el último trozo: el ▾ cuelga del final de la palabra
-      if (conManija && !franja && r === trozos[trozos.length - 1] &&
-          x > r.right && x <= r.right + anchoManija()) franja = { ...d, enManija: true };
+      if (conFranja && !franja && r === trozos[trozos.length - 1] &&
+          x > r.right && x <= r.right + anchoManija()) franja = d;
     }
   }
   return franja;
@@ -60,6 +60,8 @@ function reemplazar(t, texto, grupo) {
 
 const arrastrable = t => t && (t.tipo === 'tempo' || (t.tipo === 'nota' && datosDe(t).raiz));
 
+const SIN_EN = /^en (un |una |el |la |los |las )?/;
+
 function seccionesDe(t) {
   const d = datosDe(t), hoy = textoDe(t), voz = vozDeLinea(t.l);
   const como = (ops, nuevo = o => o.txt) => ops.map(o =>
@@ -77,10 +79,8 @@ function seccionesDe(t) {
       (vacio ? [{ txt: vacio, nuevo: con(clave, ''), puesto: !p[clave] }] : []).concat(
         ofertas.map(o => ({ ...o, nuevo: con(clave, o.txt), puesto: norm(p[clave]) === norm(o.txt) })));
     return [
-      { titulo: 'notas',      ops: campo(ofrecerNotas(voz), 'raiz') },
-      { titulo: 'medio tono', ops: campo(ofrecerAlteraciones(voz), 'altN', 'sin alterar') },
-      { titulo: 'altura',     ops: campo(ofrecerOctavas(voz), 'octN', 'normal') },
-      { titulo: 'acorde',     ops: campo(ofrecerAcordes(voz), 'acorde', 'una nota sola') },
+      { titulo: 'notas', ops: campo(ofrecerNotas(voz), 'raiz') },
+      ...CAMPOS_NOTA(voz).map(([titulo, clave, vacio, ofertas]) => ({ titulo, ops: campo(ofertas, clave, vacio) })),
       alPie,
     ];
   }
@@ -89,7 +89,7 @@ function seccionesDe(t) {
     const todas = ofrecerMaquinas();
     if (!todas.length) return null;
     const marcas = [...new Set(todas.map(m => m.marca))].sort();
-    const puesta = d.conEn ? maquinaDe(hoy.replace(/^en (un |una |el |la |los |las )?/, '')) : null;
+    const puesta = d.conEn ? maquinaDe(hoy.replace(SIN_EN, '')) : null;
     const marca = marcas.includes(familiaElegida) ? familiaElegida
       : ((puesta || {}).marca || 'roland');
     return [
@@ -102,7 +102,7 @@ function seccionesDe(t) {
   if (t.tipo === 'instrumento') {
     // ver REGLAS.md, 133 instrumentos
     const pre = d.conEn ? 'en ' : '';
-    const pedido = norm(hoy.replace(/^en (un |una |el |la |los |las )?/, ''));
+    const pedido = norm(hoy.replace(SIN_EN, ''));
     const puesta = instrumentoDe(pedido);   // «en un piano» y «en piano» son el mismo
     const familias = ofrecerFamilias();
     const suya = (puesta || {}).fam;
@@ -121,13 +121,13 @@ function seccionesDe(t) {
   if (t.tipo === 'modificador')
     return [{ titulo: 'cómo', ops: como(ofrecerModificadores()) }];
 
-  // las dos mitades se leen del texto: elegir una respeta la otra
   if (t.tipo === 'euclides') {
     const puesto = leerEuclides(hoy);
     return [{ titulo: 'el reparto', ops: ofrecerEuclides().map(o =>
       ({ ...o, nuevo: o.txt, puesto: !!puesto && puesto.n === o.n && puesto.m === o.m })) }];
   }
 
+  // las dos mitades se leen del texto: elegir una respeta la otra
   if (t.tipo === 'veces') {
     const partida = partirEnvoltura(hoy);
     const pre = partida ? partida.frase : ENVOLTURAS[2];
@@ -135,7 +135,7 @@ function seccionesDe(t) {
     return [
       { titulo: 'cada cuánto', ops: ofrecerEnvolturas().map(o =>
         ({ ...o, nuevo: o.txt + ' ' + dentro, puesto: norm(o.txt) === norm(pre) })) },
-      { titulo: 'y ahí, qué', detalle: true, ops: ofrecerEnvolvibles().map(o =>
+      { titulo: 'y ahí, qué', ops: ofrecerEnvolvibles().map(o =>
         ({ ...o, nuevo: pre + ' ' + o.txt, puesto: norm(o.txt) === norm(dentro) })) },
     ];
   }
@@ -167,7 +167,7 @@ function seccionesDe(t) {
     // sin compás escrito se ofrece acá, pisando el número y lo que le sigue
     if (!(marcasActuales[t.l] || []).some(x => x.tipo === 'compas')) {
       const linea = src.value.split('\n')[t.l];
-      secs.push({ titulo: 'compás', detalle: true, ops: ofrecerCompases().map(o => ({ ...o, puesto: o.tiempos === 4,
+      secs.push({ titulo: 'compás', ops: ofrecerCompases().map(o => ({ ...o, puesto: o.tiempos === 4,
         hacer: () => reemplazar({ ...t, len: linea.length - t.i }, hoy + (o.tiempos === 4 ? '' : ' ' + o.txt)) })) });
     }
     return secs;
@@ -368,9 +368,7 @@ manija.addEventListener('mousedown', e => {
   const t = tokenDelSpan(señalado);
   if (t) abrirMenu(t);
 });
-// como invocador, soltar el click sobre él no cuenta como «afuera»; abrir y cerrar ya lo hace el mousedown
-manija.popoverTargetElement = menu;
-manija.addEventListener('click', e => e.preventDefault());
+invocaPanel(manija, menu);
 
 // ------------------------------------------ el rastro del mouse, y el arrastre
 src.addEventListener('mousemove', e => {
@@ -384,13 +382,13 @@ src.addEventListener('mousemove', e => {
     const d = bajo && datosDe(bajo);
     señalarTramo(d && (d.tipo === 'seccion' || d.tipo === 'forma') ? d.nombre : null, d && d.tipo === 'forma' ? d.tramo : null);
     const t = tieneMenu(bajo) ? bajo : null;
-    const antes = señalado && señalado.l + ':' + señalado.i + ':' + señalado.m;
-    const ahora = t && t.l + ':' + t.i + ':' + !!t.enManija;
+    const antes = señalado && señalado.l + ':' + señalado.i;
+    const ahora = t && t.l + ':' + t.i;
     src.style.cursor = !t ? ''
       : t.tipo === 'tempo' ? 'ew-resize'
       : e.altKey && arrastrable(t) ? 'ns-resize' : '';
     if (antes === ahora) return;
-    señalado = t && { l: t.l, i: t.i, m: !!t.enManija };
+    señalado = t && { l: t.l, i: t.i };
     realzar();
     ponerManija(señalado);
   });
@@ -410,13 +408,11 @@ addEventListener('keyup', e => { if (e.key === 'Alt') src.style.cursor = ''; });
 
 // en mousedown y no en click: le gana al textarea antes de que mueva el cursor
 src.addEventListener('mousedown', e => {
-  cerrarMenu();
   // el tempo se arrastra sin Alt: es un número suelto y no hay texto que
   // seleccionar; las notas lo piden para no pelearse con la selección
   const t = editable(e.clientX, e.clientY);
   // soltar sin moverse va al tema; arrastrar selecciona
   if (t && t.tipo === 'enlace' && e.button === 0) {
-    e.preventDefault();
     enlaceApretado = { nombre: datosDe(t).nombre, x: e.clientX, y: e.clientY };
     return;
   }
@@ -464,4 +460,6 @@ addEventListener('mouseup', e => {
   if (a && Math.hypot(e.clientX - a.x, e.clientY - a.y) <= UMBRAL) irAlTema(a.nombre);
 });
 src.addEventListener('input', cerrarMenu);
+// Esc a mano: con el foco en el textarea el navegador no cierra el popover
+src.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMenu(); });
 

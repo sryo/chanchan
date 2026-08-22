@@ -52,8 +52,8 @@ function notaDesdeSemi(semi, acorde) {
   const oct = Math.floor(semi / 12), clase = ((semi % 12) + 12) % 12;
   const exacta = Object.entries(NOTAS).find(([, en]) => GRADOS[en] === clase);
   const abajo = exacta || Object.entries(NOTAS).find(([, en]) => GRADOS[en] === clase - 1);
-  return [abajo[0], exacta ? '' : 'sostenido',
-          oct === OCTAVA_BASE ? '' : OCT_NOMBRE[oct], acorde].filter(Boolean).join(' ');
+  return armarNota({ raiz: abajo[0], altN: exacta ? '' : 'sostenido',
+                     octN: oct === OCTAVA_BASE ? '' : OCT_NOMBRE[oct], acorde });
 }
 
 // ------------------------------------------------------------------- la altura
@@ -196,7 +196,6 @@ function maquinas() {
 const maquinaDe = n => maquinas()[norm(n)];
 const cajaDe = banco => Object.values(maquinas()).find(m => m.banco === banco);
 
-// la cuarta columna es cada cuántas vueltas vuelve al principio; distinto de .slow(), que estira
 const MODIFICADORES = [
   ['al doble',            '.fast(2)',           'el doble de rápido'],
   ['a la mitad',          '.slow(2)',           'la mitad de rápido'],
@@ -245,7 +244,7 @@ const FIGURAS = { blancas: 2, negras: 4, corcheas: 8, tresillos: 12, semicorchea
 function leerFigura(texto) {
   const m = norm(texto).match(/^en (\S+)$/);
   const n = m && FIGURAS[m[1]];
-  return n ? { nombre: m[1], codigo: '.struct("x*' + n + '")' } : null;
+  return n ? { codigo: '.struct("x*' + n + '")' } : null;
 }
 
 // ------------------------------------------------------------------ el arreglo
@@ -320,7 +319,6 @@ const modificadorDe = t => MODIFICADORES.find(m => norm(m[0]) === norm(t));
 const envolvible = mod => !!mod && mod[1] !== 'mute';
 const comoFuncion = codigo => 'x => x' + codigo;
 
-// «vueltas» y «adentro» son los dos períodos; el mcm lo saca el traductor
 function leerCada(texto) {
   const t = norm(texto).match(/^cada (\S+) vueltas?\s*(.*)$/);
   if (!t) return null;
@@ -328,7 +326,7 @@ function leerCada(texto) {
   if (!(n >= 2 && n <= VUELTAS_MAX)) return { falla: 'numero' };
   const mod = modificadorDe(t[2]);
   if (!envolvible(mod)) return { falla: mod ? 'centinela' : 'dentro', dentro: t[2] };
-  return { codigo: '.every(' + n + ', ' + comoFuncion(mod[1]) + ')', vueltas: n, adentro: mod[3] || 1 };
+  return { codigo: '.every(' + n + ', ' + comoFuncion(mod[1]) + ')', vueltas: n };
 }
 
 function leerVeces(texto) {
@@ -339,13 +337,15 @@ function leerVeces(texto) {
     const resto = n.slice(frente.length).trim();
     const mod = modificadorDe(resto);
     if (!envolvible(mod)) return { falla: mod ? 'centinela' : 'dentro', dentro: resto };
-    return { codigo: fn + '(' + comoFuncion(mod[1]) + ')', vueltas: 1, adentro: mod[3] || 1 };
+    return { codigo: fn + '(' + comoFuncion(mod[1]) + ')', vueltas: 1 };
   }
   return null;
 }
 
 const SUJETOS_BANDA = ['la banda', 'el tema', 'la cancion'];
-const SUJETO_BANDA = /^(?:la banda |el tema |la cancion )?/;
+const SUJETO_BANDA = new RegExp('^(?:' + SUJETOS_BANDA.map(s => s + ' ').join('|') + ')?');
+// una línea con el verbo es una parte, sea lo que sea el resto
+const VERBO = /^(toca|tocan)$/i, CON_VERBO = /\b(toca|tocan)\b/i;
 
 // ------------------------------------------------------------- la forma
 
@@ -355,7 +355,7 @@ const VUELTAS_FORMA = 256;
 // «nombre» es el normalizado, para comparar; «escrito» como se tecleó, para mostrar.
 // crudas y cuerpo van palabra a palabra porque norm() no parte ni junta palabras
 function leerSeccion(texto) {
-  if (/\b(toca|tocan)\b/i.test(texto)) return null;
+  if (CON_VERBO.test(texto)) return null;
   const m = texto.match(/^\s*(.*?)\s*:\s*$/);
   if (!m) return null;
   const cuerpo = norm(m[1]).replace(SUJETO_BANDA, '').replace(/^(?:el|la|los|las) /, '');
@@ -374,7 +374,7 @@ function leerSeccion(texto) {
 
 // «va a» es tempo sólo con número: una sección se puede llamar «a»
 function leerForma(texto) {
-  if (/\b(toca|tocan)\b/i.test(texto)) return null;
+  if (CON_VERBO.test(texto)) return null;
   const m = norm(texto).replace(SUJETO_BANDA, '').match(/^va\s+(.+)$/);
   if (!m || /^a(\s+\d|$)/.test(m[1])) return null;
   return { nombres: m[1].split(' ').filter(Boolean) };
@@ -386,8 +386,7 @@ const TEMPO_MIN = 20, TEMPO_MAX = 400;
 const TIEMPOS_MAX = 12;
 
 function esTempo(texto) {
-  // «la banda toca…» es una parte
-  if (/\b(toca|tocan)\b/i.test(texto)) return false;
+  if (CON_VERBO.test(texto)) return false;
   // «el tema va estrofa» es la forma
   if (leerForma(texto)) return false;
   const dos = norm(texto).split(' ').slice(0, 2).join(' ');

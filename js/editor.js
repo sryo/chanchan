@@ -16,6 +16,11 @@ const icono = (n, clase) =>
 const dentroDe = (nodo, ...donde) => donde.some(el => el && el.contains(nodo));
 // abrir lo que ya está abierto tira
 const mostrarPanel = (el, si) => { if (el.matches(':popover-open') !== si) el.togglePopover(si); };
+// el botón abre y cierra en su mousedown; como invocador, soltar el click sobre él no cuenta como «afuera»
+const invocaPanel = (boton, panel) => {
+  boton.popoverTargetElement = panel;
+  boton.addEventListener('click', e => e.preventDefault());
+};
 
 let relojDicho;
 // el botón es un signo: la palabra aparece sólo cuando tiene algo que decir

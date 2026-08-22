@@ -9,14 +9,13 @@ let tokensSel = [];
 function tokensEnSeleccion() {
   const a = src.selectionStart, b = src.selectionEnd;
   if (a === b) return [];
-  const bases = []; let acum = 0;
-  for (const ln of src.value.split('\n')) { bases.push(acum); acum += ln.length + 1; }
+  const lineas = src.value.split('\n');
   const out = [];
   marcasActuales.forEach((tks, l) => {
     for (const t of tks || []) {
       // sólo los tipos que seccionesSeleccion() sabe editar
       if (!PLURAL[t.tipo]) continue;
-      const ini = bases[l] + t.i;
+      const ini = baseDe(lineas, l) + t.i;
       if (ini < b && ini + t.len > a) out.push({ ...t, l, abs: ini });
     }
   });
@@ -30,7 +29,7 @@ function tenirTextarea() {
   const tocadas = [];
   let ini = 0;
   for (const [l, ln] of src.value.split('\n').entries()) {
-    if (ini <= b && ini + ln.length >= a) tocadas.push({ l, tipo: esTempo(ln) ? 'tempo' : '' });
+    if (ini <= b && ini + ln.length >= a) tocadas.push({ l });
     ini += ln.length + 1;
   }
   pintarDeQuien(src, tocadas);
@@ -62,6 +61,7 @@ function aplicarAVarios(fn) {
   registrar(src.value, null);      // toda la operación es un paso solo
   actualizar(true);
   botonSel.classList.remove('vivo');
+  acomodarColgantes();
 }
 
 function transponer(delta) {
@@ -84,9 +84,7 @@ function seccionesSeleccion() {
     { titulo: 'transponer', ops: [['+1 octava',12],['+1 tono',2],['+1 semitono',1],
         ['−1 semitono',-1],['−1 tono',-2],['−1 octava',-12]]
         .map(([txt, d]) => ({ txt, hacer: () => transponer(d) })) },
-    { titulo: 'medio tono', ops: campo(ofrecerAlteraciones(), 'altN', 'sin alterar') },
-    { titulo: 'altura', detalle: true, ops: campo(ofrecerOctavas(), 'octN', 'normal') },
-    { titulo: 'acorde', ops: campo(ofrecerAcordes(), 'acorde', 'una nota sola') },
+    ...CAMPOS_NOTA().map(([titulo, clave, vacio, ofertas]) => ({ titulo, ops: campo(ofertas, clave, vacio) })),
   ];
   if (que === 'paso') return [
     { titulo: 'golpes', ops: aTodos(ofrecerGolpes(), o => aplicarAVarios(() => o.txt)) },
@@ -107,7 +105,6 @@ botonSel.addEventListener('mousedown', e => {
   mostrarPanel(menu, true);
   acomodar(menu, r);
 });
-botonSel.popoverTargetElement = menu;
-botonSel.addEventListener('click', e => e.preventDefault());
+invocaPanel(botonSel, menu);
 
 document.addEventListener('selectionchange', () => { if (document.activeElement === src) mirarSeleccion(); });

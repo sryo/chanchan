@@ -18,7 +18,7 @@ function golpesDe(pat, vueltas) {
     const desde = Math.max(0, Number(h.whole.begin));
     const hasta = Math.min(vueltas, Number(h.whole.end));
     if (hasta <= desde) continue;
-    out.push({ desde, hasta, n: h.value && h.value.n });
+    out.push({ desde, hasta });
     if (out.length >= TOPE_GOLPES) break;
   }
   return out;
@@ -27,7 +27,7 @@ function golpesDe(pat, vueltas) {
 // mientras strudel no está, el ancho se reparte entre los pasos escritos
 function golpesParejos(r, vueltas) {
   const paso = vueltas / r.lugares.length;
-  return r.lugares.map((l, k) => l && { desde: k * paso, hasta: (k + 1) * paso, n: k })
+  return r.lugares.map((l, k) => l && { desde: k * paso, hasta: (k + 1) * paso })
     .filter(Boolean);
 }
 
@@ -80,31 +80,28 @@ function dibujarCinta(renglones) {
     svg += '<path class="toque" d="M ' + arranque + ' ' + y + ' L ' + fin + ' ' + y +
       '" stroke-width="' + grueso.toFixed(2) + '" /></g>';
   });
-  // el velo de cada sección: tapa las franjas, no la regla ni los rótulos
-  let vt = 0;
+  // el velo de cada sección tapa las franjas y va debajo de la regla; el corte y el rótulo, encima
+  const ancho = (fin - arranque) / vueltas;
+  let velos = '', cortes = '', vt = 0;
   (n ? actual.tramos : []).forEach((t, k) => {
-    const x = enX(vt), ancho2 = enX(vt + t.largo) - x;
-    svg += '<rect class="tramo' + (esSola(t, k) ? ' sola' : '') + '"' + datosTramo(t, k) +
-      ' x="' + x.toFixed(1) + '" y="0" width="' + ancho2.toFixed(1) + '" height="' + marco + '" />';
+    const x = enX(vt), sola = esSola(t, k) ? ' sola' : '';
+    velos += '<rect class="tramo' + sola + '"' + datosTramo(t, k) + ' x="' + x.toFixed(1) + '" y="0"' +
+      ' width="' + (enX(vt + t.largo) - x).toFixed(1) + '" height="' + marco + '" />';
+    cortes += '<line class="corte" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '"' +
+      ' y1="0" y2="' + (marco + 16) + '" />';
+    // el nombre sólo si su sección le da lugar
+    if (t.largo * ancho > t.escrito.length * 6 + 8)
+      cortes += '<text class="rotulo' + sola + '"' + datosTramo(t, k) +
+        ' x="' + (x + 5).toFixed(1) + '" y="' + (marco + 13) + '">' + esc(t.escrito) + '</text>';
     vt += t.largo;
   });
+  svg += velos;
   // la regla se calla cuando no entra: sesenta compases en mil píxeles son una trama, no una cuenta
-  const ancho = (fin - arranque) / vueltas;
   if (n && (!actual.tramos.length || ancho >= 7))
     for (let k = 0; k < vueltas; k++)
       svg += '<line class="regla" x1="' + enX(k).toFixed(1) + '" x2="' + enX(k).toFixed(1) + '"' +
         ' y1="0" y2="' + (marco + 5) + '" />';
-  let v = 0;
-  (n ? actual.tramos : []).forEach((t, k) => {
-    const x = enX(v);
-    svg += '<line class="corte" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '"' +
-      ' y1="0" y2="' + (marco + 16) + '" />';
-    // el nombre sólo si su sección le da lugar
-    if (t.largo * ancho > t.escrito.length * 6 + 8)
-      svg += '<text class="rotulo' + (esSola(t, k) ? ' sola' : '') + '"' + datosTramo(t, k) +
-        ' x="' + (x + 5).toFixed(1) + '" y="' + (marco + 13) + '">' + esc(t.escrito) + '</text>';
-    v += t.largo;
-  });
+  svg += cortes;
   // el anillo lleva la vuelta corta, la que se cuenta con el pie; la aguja, la forma entera.
   // del color de la aguja y no de la marca: es tiempo, ver REGLAS.md
   vueltaAnillo = 2 * Math.PI * ((caja.width || 64) / 2 + 6);
@@ -129,19 +126,17 @@ function moverAguja() {
   if (sonando) { try { t = getTime(); } catch (e) { t = null; } }
   if (t == null) {
     aguja.style.display = 'none';
-    if (anillo) anillo.style.display = 'none';
+    anillo.style.display = 'none';
     return;
   }
-  const v = tramo.vueltas || 1;
+  const v = tramo.vueltas;
   const x = tramo.desde + (tramo.hasta - tramo.desde) * ((t % v) / v);
   aguja.setAttribute('x1', x.toFixed(1));
   aguja.setAttribute('x2', x.toFixed(1));
   aguja.style.display = '';
-  if (anillo) {
-    anillo.setAttribute('stroke-dasharray',
-      ((t % 1) * vueltaAnillo).toFixed(1) + ' ' + vueltaAnillo.toFixed(1));
-    anillo.style.display = '';
-  }
+  anillo.setAttribute('stroke-dasharray',
+    ((t % 1) * vueltaAnillo).toFixed(1) + ' ' + vueltaAnillo.toFixed(1));
+  anillo.style.display = '';
 }
 
 // el botón y el logo se tiñen con las puntas del tema, en trama: son una pieza con la cinta

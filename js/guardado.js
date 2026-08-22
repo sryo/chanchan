@@ -8,16 +8,6 @@ function recordado(clave) {
   try { return localStorage.getItem(clave); } catch (e) { return null; }   // modo privado
 }
 
-// lo de tungatunga se pasa una vez y se borra; index.html lee la luz vieja antes de esto
-try {
-  for (const fin of ['', ':nombre', ':luz']) {
-    const viejo = localStorage.getItem('tungatunga' + fin);
-    if (viejo === null) continue;
-    if (localStorage.getItem(CASA + fin) === null) localStorage.setItem(CASA + fin, viejo);
-    localStorage.removeItem('tungatunga' + fin);
-  }
-} catch (e) { /* modo privado */ }
-
 // -------------------------------------------------------------- mis temas
 // el nombre es el guardado, ver REGLAS.md; sin nombre la hoja restaurada es una sola, la última
 const GUARDADO_TEMAS = CASA + ':temas';
@@ -45,25 +35,6 @@ function anotarTema(nombre, txt, nombreViejo) {
 }
 
 const olvidarTema = nombre => escribirTemas(misTemas().filter(t => t.nombre !== nombre));
-
-// «una por vuelta» era un paso por vuelta: hoy es una barra entre paso y paso
-function conBarras(linea) {
-  const limpia = linea.replace(/\s*,\s*una por vuelta\b/i, '');
-  const pasos = traducirLinea(limpia, 1).tk.filter(t => t.tipo === 'paso' || t.tipo === 'nota');
-  let out = limpia;
-  for (let k = pasos.length - 1; k >= 1; k--) out = out.slice(0, pasos[k].i) + '| ' + out.slice(pasos[k].i);
-  return out;
-}
-
-const alDia = txt => txt.replace(/\btas\b/g, 'pa').replace(/\bchas\b/g, 'plas')
-  .split('\n').map(l => /,\s*una por vuelta\b/i.test(l) ? conBarras(l) : l).join('\n');
-
-try {
-  const abierto = localStorage.getItem(GUARDADO);
-  if (abierto && alDia(abierto) !== abierto) localStorage.setItem(GUARDADO, alDia(abierto));
-  const lista = misTemas();
-  if (lista.some(t => alDia(t.txt) !== t.txt)) escribirTemas(lista.map(t => ({ ...t, txt: alDia(t.txt) })));
-} catch (e) { /* modo privado */ }
 
 let relojGuardar, nombreAbierto = '';   // con qué nombre está la hoja en la lista
 
@@ -166,17 +137,6 @@ function guardarTraidos(traidos) {
     if (!mios.some(m => norm(m.nombre) === norm(t.nombre))) anotarTema(t.nombre, t.txt, null);
 }
 
-// la barra vertical es de los enlaces viejos, y la barra de direcciones la reescribe «%7C»; vale
-// sólo sin dos puntos: un nombre de ahora puede traer un «%7C» adentro
-function cortarNombre(carga) {
-  const i = carga.indexOf(':');
-  if (i >= 0) return [i, 1];
-  for (const [marca, largo] of [['|', 1], ['%7C', 3]]) {
-    const j = carga.indexOf(marca);
-    if (j >= 0) return [j, largo];
-  }
-  return null;
-}
 
 // «;» sólo puede ser nuestro: encodeURIComponent lo escapa y base64url no lo trae
 async function abrirCarga(crudo) {
@@ -189,18 +149,18 @@ async function abrirPieza(crudo) {
     // escapado de más, por un chat o un correo: trae «%25» y ningún separador literal, que le
     // quedó «%3A»; es lo que lo distingue de un nombre con «%» adentro
     let carga = crudo;
-    for (let i = 0; i < 3 && /%25[0-9A-Fa-f]{2}/.test(carga) && !cortarNombre(carga); i++)
+    for (let i = 0; i < 3 && /%25[0-9A-Fa-f]{2}/.test(carga) && carga.indexOf(':') < 0; i++)
       carga = decodeURIComponent(carga);
-    const corte = cortarNombre(carga);
-    const nombre = corte ? decodeURIComponent(carga.slice(0, corte[0])) : '';
-    const cuerpo = corte ? carga.slice(corte[0] + corte[1]) : carga;
+    const corte = carga.indexOf(':');
+    const nombre = corte >= 0 ? decodeURIComponent(carga.slice(0, corte)) : '';
+    const cuerpo = carga.slice(corte + 1);
     // el comprimido es base64url y nada más; el plano siempre trae algún «%»
     const comprimido = /^z[A-Za-z0-9_-]+$/.test(cuerpo);
     if (comprimido && !hayZip()) return null;
     // si inflar falla, era texto plano que empezaba con «z»
     if (comprimido)
-      try { return { nombre, txt: alDia(await inflar(cuerpo.slice(1))) }; } catch (e) { /* texto plano */ }
-    return { nombre, txt: alDia(decodeURIComponent(cuerpo)) };
+      try { return { nombre, txt: await inflar(cuerpo.slice(1)) }; } catch (e) { /* texto plano */ }
+    return { nombre, txt: decodeURIComponent(cuerpo) };
   } catch (e) { return null; }     // enlace roto
 }
 

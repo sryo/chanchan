@@ -9,6 +9,8 @@ function acotarVueltas(v) {
   return 1;
 }
 
+const MEZCLA = 'no mezclés golpes con notas en la misma línea: hacé dos líneas.';
+
 // los tokens pintan el editor y arman el código
 function traducirLinea(texto, nro) {
   const tk = [], errs = [];
@@ -116,13 +118,13 @@ function traducirLinea(texto, nro) {
       tk.pop();
       const desde = finNum + (cola.length - cola.trimStart().length);
       marcar(finNum, desde - finNum, 'estructura');
-      marcar(desde, cola.trim().length, 'estructura', { tipo: 'compas', tiempos });
+      marcar(desde, cola.trim().length, 'estructura', { tipo: 'compas' });
     }
     return { tipo: 'tempo', bpm, tiempos, tk, errs };
   }
 
   // ---- la <parte> toca <pasos>[, <modificador>]*
-  const iVerbo = ws.findIndex(x => /^(toca|tocan)$/i.test(x.w));
+  const iVerbo = ws.findIndex(x => VERBO.test(x.w));
   if (iVerbo < 0) {
     error(0, texto.length, 'no entiendo la línea. Va «la bata toca pum - pa -» o «va a 92».');
     return { tipo: 'mala', tk, errs };
@@ -147,7 +149,7 @@ function traducirLinea(texto, nro) {
     pos += trozo.length + 1;
   }
 
-  const nombre = ws.slice(ws.length - sinArticulo.length, iVerbo).map(x => x.w).join(' ') || 'parte';
+  const nombre = ws.slice(iNombre, iVerbo).map(x => x.w).join(' ') || 'parte';
 
   // ---- los pasos
   // la barra no es un paso: corta, y cada tramo reparte los suyos
@@ -171,7 +173,7 @@ function traducirLinea(texto, nro) {
     } else if (SONIDOS[w]) {
       pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'sonido', { tipo: 'paso', alto: ALTO_GOLPE[w] }));
       if (!primerGolpe) primerGolpe = w;
-      if (modo === 'nota') { roto = true; error(pw[k].i, pw[k].w.length, 'no mezclés golpes con notas en la misma línea: hacé dos líneas.'); }
+      if (modo === 'nota') { roto = true; error(pw[k].i, pw[k].w.length, MEZCLA); }
       pasos.push(SONIDOS[w][0]); lugares.push({ i: pw[k].i, len: pw[k].w.length }); acentos[pasos.length - 1] = acento;
       modo = 'sonido';
     } else if (NOTAS[w]) {
@@ -202,7 +204,7 @@ function traducirLinea(texto, nro) {
       } else {
         pasos.push(NOTAS[w] + alt + oct);
       }
-      if (modo === 'sonido') { roto = true; error(pw[k].i, fin - pw[k].i, 'no mezclés golpes con notas en la misma línea: hacé dos líneas.'); }
+      if (modo === 'sonido') { roto = true; error(pw[k].i, fin - pw[k].i, MEZCLA); }
       acentos[pasos.length - 1] = acento;
       modo = 'nota';
       k = k2 - 1;
@@ -265,7 +267,7 @@ function traducirLinea(texto, nro) {
     const euclid = leerEuclides(c.txt);
     if (euclid) {
       cola += euclid.codigo;
-      marcar(rango[0], rango[1], 'mod', { tipo: 'euclides', n: euclid.n, m: euclid.m });
+      marcar(rango[0], rango[1], 'mod', { tipo: 'euclides' });
       continue;
     }
     const figura = leerFigura(c.txt);
@@ -281,7 +283,7 @@ function traducirLinea(texto, nro) {
           'con un número de 2 a ' + VUELTAS_MAX + '.');
         continue;
       }
-      // «callado» y «una por vuelta» existen pero no son código: el error lo dice
+      // «callado» existe pero no es código: el error lo dice
       if (envuelve.falla === 'centinela') {
         error(rango[0], rango[1], '«' + envuelve.dentro + '» no puede ir adentro de ' +
           'una frase que la aplique de a ratos: va sola, en su propia cláusula.');
@@ -295,7 +297,7 @@ function traducirLinea(texto, nro) {
         continue;
       }
       cola += envuelve.codigo;
-      vueltasMod = mcm(mcm(vueltasMod, envuelve.vueltas), envuelve.adentro);
+      vueltasMod = mcm(vueltasMod, envuelve.vueltas);
       marcar(rango[0], rango[1], 'mod', { tipo: 'veces' });
       continue;
     }
@@ -311,10 +313,8 @@ function traducirLinea(texto, nro) {
       }
       if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
       else cola += mod[1];
-      // sólo un .slow() entero: «que se abre» lleva uno adentro del filtro
       const frena = /^\.slow\((\d+)\)$/.exec(mod[1]);
       if (frena) lento *= +frena[1];
-      if (mod[3]) vueltasMod = mcm(vueltasMod, mod[3]);
       marcar(rango[0], rango[1], 'mod', { tipo: 'modificador' });
       continue;
     }
@@ -355,18 +355,14 @@ function traducirLinea(texto, nro) {
   // velocity y no gain: multiplica, así «bajito» y el acento conviven
   if (acentos.some(Boolean))
     cola = '.velocity("' + juntar(pasos.map((x, k) => (x === '-' || x === '_') ? x : acentos[k] ? '1.4' : '1')) + '")' + cola;
-  let codigo;
-  if (modo === 'nota') {
-    const ins = instrumento || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO];
-    codigo = 'note("' + patron + '").sound("' + ins.sonido + '")' + ins.cola + cola;
-  } else {
-    codigo = 's("' + patron + '").bank("' + maquina + '")' + cola;
-  }
+  const ins = instrumento || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO];
+  const codigo = modo === 'nota'
+    ? 'note("' + patron + '").sound("' + ins.sonido + '")' + ins.cola + cola
+    : 's("' + patron + '").bank("' + maquina + '")' + cola;
   // el mismo patrón con el número de paso, para preguntarle a strudel cuál suena
   const espejo = pasos.map((x, k) => (x === '-' || x === '_') ? x : String(k));
   const cotejo = 'n("' + juntar(espejo) + '")' + cola;
-  const voz = modo === 'sonido' ? primerGolpe
-    : (instrumento || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO]).nombre;
+  const voz = modo === 'sonido' ? primerGolpe : ins.nombre;
   if (sujetoTk) sujetoTk.voz = voz;
   for (const t of pasoTk) t.voz = voz;
   for (const t of quiénTk) t.voz = voz;

@@ -41,7 +41,13 @@ const ofrecerInstrumentos = () => [...new Set(Object.values(INSTRUMENTOS))]
   .map(i => ({ txt: i.nombre, desc: i.fam, receta: recetaDe('instrumento', i.nombre) }));
 const ofrecerAlias = () => Object.keys(ALIAS)
   .map(a => ({ txt: a, desc: ALIAS[a], receta: recetaDe('instrumento', a) }));
-const ofrecerFamilias = () => [...FAMILIAS.map(f => f[0]), 'osciladores']
+const ofrecerFamilias = () => [...new Set([...FAMILIAS.map(f => f[0]), ...Object.values(SIN_GM).map(i => i.fam)])]
   .map(txt => ({ txt, color: tintaDeFamilia(txt) }));
+// los campos de una nota después de la raíz: título, clave, cómo se dice «sin», y lo que se ofrece
+const CAMPOS_NOTA = voz => [
+  ['medio tono', 'altN', 'sin alterar', ofrecerAlteraciones(voz)],
+  ['altura', 'octN', 'normal', ofrecerOctavas(voz)],
+  ['acorde', 'acorde', 'una nota sola', ofrecerAcordes(voz)],
+];
 const ofrecerMaquinas = () => [...new Map(Object.values(maquinas()).map(m => [m.banco, m])).values()]
   .map(m => ({ txt: m.nombre, desc: m.marca, marca: m.marca, banco: m.banco, receta: recetaDe('maquina', m.banco) }));

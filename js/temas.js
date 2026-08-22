@@ -1,4 +1,5 @@
-// -------------------------------------------------------------- la primera hoja
+// ------------------------------------- la primera hoja y la lista de temas
+
 // ------------------------------------------- el tema visto de lejísimos
 // una barra por instrumento y no por renglón, y hasta cinco: más dicen «muchos».
 // traducirLinea() y no traducir(): la forma y las secciones acá no dicen nada
