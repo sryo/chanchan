@@ -84,7 +84,7 @@ function cargarTema(tema) {
   cambiarDeTema(tema.nombre);
   src.value = conRenglonFinal(tema.txt);
   campoNombre.value = tema.nombre;
-  medirNombre();
+  acomodarNombre();
   registrar(src.value, null);
   actualizar(true);
   guardar();
@@ -187,12 +187,22 @@ function temaInicial() {
   } catch (e) { return { txt: '', nombre: '' }; }
 }
 
-// un input no se achica solo al contenido, y el subrayado tiene que terminar donde termina el nombre
-function medirNombre() {
+// El nombre del tema sale del campo por dos lados: el ancho del propio input —que
+// no se achica solo al contenido, y el subrayado tiene que terminar donde termina
+// el nombre— y la pestaña, que es donde el nombre queda escrito para cuando la
+// página no se está viendo: el historial, un marcador, la lista de ventanas.
+// El de la página se lee del html y no se escribe otra vez acá.
+const TITULO = document.title;
+
+function acomodarNombre() {
   const largo = (campoNombre.value || campoNombre.placeholder).length;
   campoNombre.style.width = Math.min(40, Math.max(6, largo)) + 'ch';
+  // «sin título» es lo que dice un campo vacío, no un nombre: dejarlo en un
+  // marcador sería inventarle uno. Sin nombre la pestaña es la página sola.
+  const nombre = campoNombre.value.trim();
+  document.title = nombre ? nombre + ' — ' + TITULO : TITULO;
 }
-campoNombre.addEventListener('input', () => { medirNombre(); guardar(); });
+campoNombre.addEventListener('input', () => { acomodarNombre(); guardar(); });
 
 btnEnlace.addEventListener('click', async () => {
   location.hash = armarHash();

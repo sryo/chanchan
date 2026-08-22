@@ -6,7 +6,7 @@ document.body.classList.add('cargando');
 const inicial = temaInicial();
 src.value = conRenglonFinal(inicial.txt);
 campoNombre.value = inicial.nombre;
-medirNombre();
+acomodarNombre();
 registrar(src.value, null);
 actualizar(false);
 // la hoja vacía dice «escribí una línea»: el cursor tiene que estar ahí para

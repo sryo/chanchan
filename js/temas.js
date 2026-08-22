@@ -135,7 +135,7 @@ function abrirTemas() {
       // en la hoja, pero sin nombre, que es lo que deja de escribirlo en la lista
       if (nombre === campoNombre.value.trim()) {
         campoNombre.value = '';
-        medirNombre();
+        acomodarNombre();
         guardarYa();
       }
       // sin cortarlo acá, el que cierra el panel al apretar afuera lo cerraría:

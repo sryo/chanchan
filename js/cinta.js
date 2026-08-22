@@ -166,6 +166,7 @@ function moverAguja() {
 // el logo va apoyado contra él, así que son una sola pieza.
 function pintarMarca(renglones) {
   const raiz = document.documentElement.style;
+  dibujarIcono(renglones);
   if (!renglones.length) {
     for (const v of ['--marca', '--marca-fin', '--marca-tinta']) raiz.removeProperty(v);
     // Sin tema el botón no es un color de la rueda: es la tinta de la página. Y de
@@ -178,6 +179,57 @@ function pintarMarca(renglones) {
   raiz.setProperty('--marca', tramaDe(renglones[0].voz));
   raiz.setProperty('--marca-fin', tramaDe(renglones[renglones.length - 1].voz));
   raiz.setProperty('--marca-tinta', tintaDe(renglones[0].voz));
+}
+
+// --------------------------------------------------------------- la pestaña
+// El icono es esta misma cinta, el codo y nada más. A escala no se puede: la
+// banda entera mide 65 píxeles contra una ventana de mil, así que a dieciséis
+// daría un cuarto de píxel. Lo que se achica es la ventana y no la cinta, y lo
+// que queda es la esquina donde dobla — una curva sola, que es todo el dibujo que
+// entra a este tamaño.
+//
+// Las franjas son las de siempre: una por parte, de afuera para adentro,
+// repartiéndose un grosor que no cambia, y la callada fina. Pasadas cinco o seis
+// dejan de contarse y quedan como una banda de colores, que es lo que la cinta ya
+// es cuando se la mira de lejos; lo que no hace nunca es mostrar un color que no
+// sea de una parte escrita.
+const ICONO = { borde: 1.2, banda: 6.2, centro: 8.4 };
+const pestaña = document.querySelector('link[rel="icon"]');
+let ultimoIcono = '';
+
+// Entra por abajo, dobla y sale por arriba. El centro del arco está en la
+// diagonal y a la misma distancia de los dos bordes, así que las franjas salen
+// concéntricas como las grandes y el codo queda derecho.
+const trazoIcono = (x, ancho, color) =>
+  '<path d="M' + x.toFixed(2) + ',16V' + ICONO.centro +
+  'A' + (ICONO.centro - x).toFixed(2) + ',' + (ICONO.centro - x).toFixed(2) +
+  ',0,0,1,' + ICONO.centro + ',' + x.toFixed(2) + 'H16"' +
+  ' fill="none" stroke="' + color + '" stroke-width="' + ancho.toFixed(2) + '"/>';
+
+function dibujarIcono(renglones) {
+  const n = renglones.length;
+  let dibujo;
+  if (!n) {
+    // lo mismo que la página con la hoja vacía: el marco solo, esperando. Va en
+    // la tinta del punteado —lo que todavía no está escrito— porque la del marco
+    // no se ve contra la barra del navegador, que no es el papel de la página.
+    const tinta = getComputedStyle(document.documentElement).getPropertyValue('--punteo').trim();
+    dibujo = trazoIcono(ICONO.borde + ICONO.banda / 2, 1.6, tinta);
+  } else {
+    const grueso = ICONO.banda / n;
+    dibujo = renglones.map((r, i) => trazoIcono(
+      ICONO.borde + grueso / 2 + i * grueso,
+      r.callado ? Math.max(0.5, grueso * 0.25) : grueso + 0.15,
+      tramaDe(r.voz))).join('');
+  }
+  // se pinta en cada tecla y cambia una de cada mil: el color de una parte sólo
+  // se mueve si se cambió el instrumento, se agregó una línea o se dio vuelta la luz
+  if (dibujo === ultimoIcono) return;
+  ultimoIcono = dibujo;
+  pestaña.href = 'data:image/svg+xml,' + encodeURIComponent(
+    // el viewBox va con comas y no con espacios para que sea el mismo string que
+    // el escrito a mano en el html, que no puede llevar un espacio sin escapar
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0,0,16,16">' + dibujo + '</svg>');
 }
 
 function reacomodar() {
