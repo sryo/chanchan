@@ -61,39 +61,33 @@ const arrastrable = t => t && (t.tipo === 'tempo' || (t.tipo === 'nota' && datos
 
 function seccionesDe(t) {
   const d = datosDe(t), hoy = textoDe(t), voz = vozDeLinea(t.l);
-  // «-» y «_» van al pie: sonar, callar o estirar es una sola dimensión
-  const golpes = Object.entries(SONIDOS).map(([p, [, desc]]) =>
-    ({ txt: p, desc, nuevo: p, puesto: norm(hoy) === p, receta: recetaDe('golpe', p) }));
+  // cada oferta se vuelve un reemplazo del token; el que ya está va marcado
+  const como = (ops, nuevo = o => o.txt) => ops.map(o =>
+    ({ ...o, nuevo: nuevo(o), puesto: norm(hoy) === norm(nuevo(o)) }));
   // sin rótulo: en versalitas chicas «o nada» se leía «0 nada»
-  const alPie = { titulo: '', pie: true, ops: [
-    { txt: '-', desc: 'este paso queda en silencio', nuevo: '-', puesto: hoy === '-' },
-    { txt: '_', desc: 'sigue sonando la anterior',   nuevo: '_', puesto: hoy === '_' },
-  ] };
+  const alPie = { titulo: '', pie: true, ops: como(ofrecerSilencios()) };
 
   if (t.tipo === 'paso' && d.modo !== 'nota')
-    return [{ titulo: 'golpes', ops: golpes }, alPie];
+    return [{ titulo: 'golpes', ops: como(ofrecerGolpes()) }, alPie];
 
   if (t.tipo === 'paso' || t.tipo === 'nota') {
     const p = { raiz: d.raiz || 'do', altN: d.altN || '', octN: d.octN || '', acorde: d.acorde || '' };
     const con = (campo, val) => armarNota({ ...p, [campo]: val });
+    // cada campo de la nota se cambia solo y respeta los otros
+    const campo = (ofertas, clave, vacio) =>
+      (vacio ? [{ txt: vacio, nuevo: con(clave, ''), puesto: !p[clave] }] : []).concat(
+        ofertas.map(o => ({ ...o, nuevo: con(clave, o.txt), puesto: norm(p[clave]) === norm(o.txt) })));
     return [
-      { titulo: 'notas',     ops: Object.keys(NOTAS).map(x =>
-          ({ txt: x, nuevo: con('raiz', x), puesto: p.raiz === x, receta: recetaDe('nota', x, voz) })) },
-      { titulo: 'medio tono', ops: [{ txt: 'sin alterar', nuevo: con('altN', ''), puesto: !p.altN }].concat(
-          Object.keys(ALTERACIONES).map(x =>
-          ({ txt: x, nuevo: con('altN', x), puesto: p.altN === x, receta: recetaDe('alteracion', x, voz) }))) },
-      { titulo: 'altura',    ops: [{ txt: 'normal', nuevo: con('octN', ''), puesto: !p.octN }].concat(
-          Object.keys(OCTAVAS).map(x =>
-          ({ txt: x, nuevo: con('octN', x), puesto: p.octN === x, receta: recetaDe('octava', x, voz) }))) },
-      { titulo: 'acorde',    ops: [{ txt: 'una nota sola', nuevo: con('acorde', ''), puesto: !p.acorde }].concat(
-          Object.keys(ACORDES).map(x =>
-          ({ txt: x, nuevo: con('acorde', x), puesto: norm(p.acorde) === norm(x), receta: recetaDe('acorde', x, voz) }))) },
+      { titulo: 'notas',      ops: campo(ofrecerNotas(voz), 'raiz') },
+      { titulo: 'medio tono', ops: campo(ofrecerAlteraciones(voz), 'altN', 'sin alterar') },
+      { titulo: 'altura',     ops: campo(ofrecerOctavas(voz), 'octN', 'normal') },
+      { titulo: 'acorde',     ops: campo(ofrecerAcordes(voz), 'acorde', 'una nota sola') },
       alPie,
     ];
   }
 
   if (t.tipo === 'instrumento' && d.modo === 'sonido') {
-    const todas = [...new Map(Object.values(maquinas()).map(m => [m.banco, m])).values()];
+    const todas = ofrecerMaquinas();
     if (!todas.length) return null;
     const marcas = [...new Set(todas.map(m => m.marca))].sort();
     const puesta = d.conEn ? maquinaDe(hoy.replace(/^en (un |una |el |la |los |las )?/, '')) : null;
@@ -102,70 +96,55 @@ function seccionesDe(t) {
     return [
       { titulo: 'marcas', ops: marcas.map(x => ({ txt: x, familia: x, puesto: x === marca })) },
       { titulo: marca, detalle: true, ops: todas.filter(m => m.marca === marca).map(m =>
-          ({ txt: m.nombre, clausula: 'en una ' + m.nombre,
-             puesto: !!puesta && puesta.banco === m.banco, receta: recetaDe('maquina', m.banco) })) },
+          ({ ...m, clausula: 'en una ' + m.txt, puesto: !!puesta && puesta.banco === m.banco })) },
     ];
   }
 
   if (t.tipo === 'instrumento') {
-    const pre = d.conEn ? 'en ' : '';
-    const op = i => ({ txt: i.nombre, nuevo: pre + i.nombre,
-      puesto: puesta === i, receta: recetaDe('instrumento', i.nombre) });
     // ver REGLAS.md, 133 instrumentos
-    const secs = [];
+    const pre = d.conEn ? 'en ' : '';
     const pedido = norm(hoy.replace(/^en (un |una |el |la |los |las )?/, ''));
-    const familias = [...FAMILIAS.map(f => f[0]), 'osciladores'];
-    const deFamilia = fam => [...new Set(Object.values(INSTRUMENTOS))].filter(i => i.fam === fam);
     const puesta = instrumentoDe(pedido);   // «en un piano» y «en piano» son el mismo
+    const familias = ofrecerFamilias();
     const suya = (puesta || {}).fam;
-    const fam = familias.includes(familiaElegida) ? familiaElegida : (suya || familias[0]);
-
-    secs.push({ titulo: 'familias', ops: familias.map(f =>
-      ({ txt: f, familia: f, puesto: f === fam, color: tintaDeFamilia(f) })) });
-    secs.push({ titulo: fam, detalle: true, ops: deFamilia(fam).map(op) });
-    return secs;
+    const fam = familias.some(f => f.txt === familiaElegida) ? familiaElegida
+      : (suya || familias[0].txt);
+    return [
+      { titulo: 'familias', ops: familias.map(f => ({ ...f, familia: f.txt, puesto: f.txt === fam })) },
+      { titulo: fam, detalle: true, ops: ofrecerInstrumentos().filter(i => i.desc === fam).map(i =>
+          ({ ...i, desc: null, nuevo: pre + i.txt, puesto: !!puesta && puesta.nombre === i.txt })) },
+    ];
   }
 
   if (t.tipo === 'figura')
-    return [{ titulo: 'cada nota', ops: Object.entries(FIGURAS).map(([f, n]) =>
-      ({ txt: 'en ' + f, desc: n + ' por vuelta', nuevo: 'en ' + f, puesto: norm(hoy) === 'en ' + f })) }];
+    return [{ titulo: 'cada nota', ops: como(ofrecerFiguras()) }];
 
   if (t.tipo === 'modificador')
-    return [{ titulo: 'cómo', ops: MODIFICADORES.map(m =>
-      ({ txt: m[0], desc: m[2], nuevo: m[0], puesto: norm(hoy) === norm(m[0]) })) }];
+    return [{ titulo: 'cómo', ops: como(ofrecerModificadores()) }];
 
   // las dos mitades se leen del texto: elegir una respeta la otra
   if (t.tipo === 'euclides') {
     const puesto = leerEuclides(hoy);
-    return [{ titulo: 'el reparto', ops: EUCLIDES.map(([n, m]) => ({
-      txt: fraseEuclides(n, m), desc: n + ' golpes en ' + m + ' pasos',
-      nuevo: fraseEuclides(n, m),
-      puesto: !!puesto && puesto.n === n && puesto.m === m })) }];
+    return [{ titulo: 'el reparto', ops: ofrecerEuclides().map(o =>
+      ({ ...o, nuevo: o.txt, puesto: !!puesto && puesto.n === o.n && puesto.m === o.m })) }];
   }
 
   if (t.tipo === 'veces') {
     const partida = partirEnvoltura(hoy);
     const pre = partida ? partida.frase : ENVOLTURAS[2];
     const dentro = (partida && partida.dentro) || 'al doble';
-    const cuanSeguido = p => {
-      const v = VECES.find(x => norm(x[0]) === norm(p));
-      if (v) return v[2];
-      const k = (norm(p).match(/^cada (\S+) vueltas?$/) || [])[1];
-      return 'una de cada ' + (k || '') + ', y las otras como está';
-    };
     return [
-      { titulo: 'cada cuánto', ops: ENVOLTURAS.map(p =>
-        ({ txt: p, desc: cuanSeguido(p), nuevo: p + ' ' + dentro, puesto: norm(p) === norm(pre) })) },
-      { titulo: 'y ahí, qué', detalle: true, ops: MODIFICADORES.filter(envolvible).map(m =>
-        ({ txt: m[0], desc: m[2], nuevo: pre + ' ' + m[0], puesto: norm(m[0]) === norm(dentro) })) },
+      { titulo: 'cada cuánto', ops: ofrecerEnvolturas().map(o =>
+        ({ ...o, nuevo: o.txt + ' ' + dentro, puesto: norm(o.txt) === norm(pre) })) },
+      { titulo: 'y ahí, qué', detalle: true, ops: ofrecerEnvolvibles().map(o =>
+        ({ ...o, nuevo: pre + ' ' + o.txt, puesto: norm(o.txt) === norm(dentro) })) },
     ];
   }
 
   if (t.tipo === 'arreglo') {
     const puesta = leerArreglo(hoy);
-    return [{ titulo: 'entra y sale', ops: ARREGLOS.map(([n, q]) => ({
-      txt: fraseArreglo(n, q), desc: (n + q) + ' vueltas', nuevo: fraseArreglo(n, q),
-      puesto: !!puesta && puesta.n === n && puesta.q === q })) }];
+    return [{ titulo: 'entra y sale', ops: ofrecerArreglos().map(o =>
+      ({ ...o, nuevo: o.txt, puesto: !!puesta && puesta.n === o.n && puesta.q === o.q })) }];
   }
 
   if (t.tipo === 'forma') {
@@ -175,7 +154,6 @@ function seccionesDe(t) {
       ({ txt: escrito, nuevo: escrito, puesto: norm(hoy) === clave })) }];
   }
 
-  const COMPASES = [['en dos', 2], ['en tres', 3], ['en cuatro', 4], ['en seis', 6]];
   if (t.tipo === 'tempo') {
     const n = parseFloat(hoy.replace(',', '.')) || 90;
     const acotado = paso => Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, n + paso));
@@ -185,15 +163,14 @@ function seccionesDe(t) {
     // sin compás escrito se ofrece acá, pisando el número y lo que le sigue
     if (!(marcasActuales[t.l] || []).some(x => x.tipo === 'compas')) {
       const linea = src.value.split('\n')[t.l];
-      secs.push({ titulo: 'compás', detalle: true, ops: COMPASES.map(([c, k]) => ({ txt: c, desc: k + ' tiempos por vuelta', puesto: k === 4,
-        hacer: () => reemplazar({ ...t, len: linea.length - t.i }, hoy + (k === 4 ? '' : ' ' + c)) })) });
+      secs.push({ titulo: 'compás', detalle: true, ops: ofrecerCompases().map(o => ({ ...o, puesto: o.tiempos === 4,
+        hacer: () => reemplazar({ ...t, len: linea.length - t.i }, hoy + (o.tiempos === 4 ? '' : ' ' + o.txt)) })) });
     }
     return secs;
   }
 
   if (t.tipo === 'compas')
-    return [{ titulo: 'compás', ops: COMPASES.map(([c, k]) =>
-      ({ txt: c, desc: k + ' tiempos por vuelta', nuevo: c, puesto: norm(hoy) === c })) }];
+    return [{ titulo: 'compás', ops: como(ofrecerCompases()) }];
 
   if (t.tipo === 'mal') {
     const s = parecida(hoy);

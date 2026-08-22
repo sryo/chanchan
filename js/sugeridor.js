@@ -123,10 +123,9 @@ function armarSecciones(r, soloPega) {
   // no son instrumentos, son lo que uno escribe
   const DE_SIEMPRE = ['melodía', 'bata', 'bajo', 'piano', 'platillos', 'voz'];
 
-  // los alias comparten objeto con su instrumento: por .nombre «guitarra» dice «viola»
-  const instrumentos = () => [...new Set(Object.values(INSTRUMENTOS))]
-    .map(i => op(i.nombre, i.nombre, i.fam, recetaDe('instrumento', i.nombre)))
-    .concat(Object.keys(ALIAS).map(a => op(a, a, ALIAS[a], recetaDe('instrumento', a))));
+  // lo que se ofrece sale de ofertas.js; acá cada uno se vuelve algo que se inserta
+  const comoOps = ofertas => ofertas.map(o => op(o.txt, null, o.desc, o.receta));
+  const instrumentos = () => comoOps([...ofrecerInstrumentos(), ...ofrecerAlias()]);
 
   if (r.ranura === 'linea') {
     // se matchea sólo el nombre de la parte: contra la plantilla entera «la» pega
@@ -161,41 +160,32 @@ function armarSecciones(r, soloPega) {
 
   if (r.ranura === 'paso') {
     const secs = [];
-    const sufijos = [
-      ...Object.keys(ALTERACIONES).map(w => op(w, w, 'medio tono', recetaDe('alteracion', w, vozDeLinea(r.l)))),
-      ...Object.keys(OCTAVAS).map(w => op(w, w, 'otra altura', recetaDe('octava', w, vozDeLinea(r.l)))),
-      ...Object.keys(ACORDES).map(w => op(w, w, 'notas juntas', recetaDe('acorde', w, vozDeLinea(r.l)))),
-    ];
+    const voz = vozDeLinea(r.l);
+    const sufijos = comoOps([...ofrecerAlteraciones(voz), ...ofrecerOctavas(voz), ...ofrecerAcordes(voz)]);
     if (r.modo !== 'sonido' && r.trasNota) secs.push(...sec('seguir la nota', filtrar(sufijos)));
-    if (r.modo !== 'nota') secs.push(...sec('golpes', filtrar(Object.entries(SONIDOS)
-      .map(([w, [, d]]) => op(w, w, d, recetaDe('golpe', w))))));
-    if (r.modo !== 'sonido') secs.push(...sec('notas', filtrar(Object.keys(NOTAS)
-      .map(w => op(w, w, null, recetaDe('nota', w, vozDeLinea(r.l)))))));
-    secs.push(...sec('o', filtrar([op('-', null, 'este paso no suena'),
-                                   op('_', null, 'sigue sonando la anterior')])));
+    if (r.modo !== 'nota') secs.push(...sec('golpes', filtrar(comoOps(ofrecerGolpes()))));
+    if (r.modo !== 'sonido') secs.push(...sec('notas', filtrar(comoOps(ofrecerNotas(voz)))));
+    secs.push(...sec('o', filtrar(comoOps(ofrecerSilencios()))));
     return secs;
   }
 
   if (r.ranura === 'clausula') {
     // las no envolvibles arman el patrón o sacan la línea del stack: no son código
     if (r.envuelve)
-      return sec('y ahí, qué', filtrar(MODIFICADORES.filter(envolvible)
-        .map(m => op(m[0], ' ' + m[0], m[2]))));
-    const mods = MODIFICADORES.map(m => op(m[0], null, m[2]));
-    const figuras = Object.entries(FIGURAS).map(([f, n]) => op('en ' + f, null, n + ' por vuelta'));
+      return sec('y ahí, qué', filtrar(ofrecerEnvolvibles().map(o => op(o.txt, ' ' + o.txt, o.desc))));
+    const mods = comoOps(ofrecerModificadores());
+    const figuras = comoOps(ofrecerFiguras());
     // «en un viol» no empieza como «en una viola»: se matchea contra el nombre
     // pelado. El artículo exige espacio o fin («en laúd»), y «una» antes que «un»
     const m = norm(r.prefijo).match(/^en\s*(?:(?:una|un|los|las|el|la)(?:\s+|$))?\s*(.*)$/);
     const pelado = m ? m[1] : r.prefijo;
     const conEn = r.modo === 'sonido'
-      ? [...new Map(Object.values(maquinas()).map(m2 => [m2.banco, m2])).values()]
-          .map(m2 => ({ ...op('en una ' + m2.nombre, null, m2.marca, recetaDe('maquina', m2.banco)),
-                        // «808» tiene que encontrar la «roland tr808»
-                        buscar: m2.nombre + ' ' + (APODOS_MAQUINA[m2.banco] || []).join(' ') }))
+      ? ofrecerMaquinas().map(m2 => ({ ...op('en una ' + m2.txt, null, m2.desc, m2.receta),
+                                       // «808» tiene que encontrar la «roland tr808»
+                                       buscar: m2.txt + ' ' + (APODOS_MAQUINA[m2.banco] || []).join(' ') }))
       : instrumentos().map(o => ({ ...op(unDe(o.txt) + o.txt, null, o.desc, o.receta), buscar: o.txt }));
-    const arreglos = ARREGLOS.map(([n, q]) => op(fraseArreglo(n, q), null, (n + q) + ' vueltas'));
-    const euclides = EUCLIDES.map(([n, m]) =>
-      op(fraseEuclides(n, m), null, n + ' golpes en ' + m + ' pasos'));
+    const arreglos = comoOps(ofrecerArreglos());
+    const euclides = comoOps(ofrecerEuclides());
     // sólo el prefijo: al aceptarlo el sugeridor vuelve a abrirse con la otra mitad
     const envolturas = ENVOLTURAS.map(p => op(p, p + ' ', 'y después, qué hace'));
     return [...sec('cómo', filtrar(mods)),

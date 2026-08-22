@@ -77,30 +77,24 @@ function transponer(delta) {
 
 function seccionesSeleccion() {
   const que = tokensSel[0].tipo;
+  // cada oferta se aplica a todos los tokens elegidos, y la de la nota respeta los otros campos
+  const aTodos = (ops, hacer) => ops.map(o => ({ ...o, hacer: () => hacer(o) }));
+  const campo = (ops, clave, vacio) =>
+    aTodos([{ txt: vacio }].concat(ops), o => aplicarAVarios(t => armarNota({ ...t, [clave]: o.txt === vacio ? '' : o.txt })));
   if (que === 'nota') return [
     { titulo: 'transponer', ops: [['+1 octava',12],['+1 tono',2],['+1 semitono',1],
         ['−1 semitono',-1],['−1 tono',-2],['−1 octava',-12]]
         .map(([txt, d]) => ({ txt, hacer: () => transponer(d) })) },
-    { titulo: 'medio tono', ops: [{ txt: 'sin alterar', v: '' }]
-        .concat(Object.keys(ALTERACIONES).map(v => ({ txt: v, v })))
-        .map(o => ({ txt: o.txt, hacer: () => aplicarAVarios(t => armarNota({ ...t, altN: o.v })) })) },
-    { titulo: 'altura', detalle: true, ops: [{ txt: 'normal', v: '' }]
-        .concat(Object.keys(OCTAVAS).map(v => ({ txt: v, v })))
-        .map(o => ({ txt: o.txt, hacer: () => aplicarAVarios(t => armarNota({ ...t, octN: o.v })) })) },
-    { titulo: 'acorde', ops: [{ txt: 'una nota sola', v: '' }]
-        .concat(Object.keys(ACORDES).map(v => ({ txt: v, v })))
-        .map(o => ({ txt: o.txt, hacer: () => aplicarAVarios(t => armarNota({ ...t, acorde: o.v })) })) },
+    { titulo: 'medio tono', ops: campo(ofrecerAlteraciones(), 'altN', 'sin alterar') },
+    { titulo: 'altura', detalle: true, ops: campo(ofrecerOctavas(), 'octN', 'normal') },
+    { titulo: 'acorde', ops: campo(ofrecerAcordes(), 'acorde', 'una nota sola') },
   ];
   if (que === 'paso') return [
-    { titulo: 'golpes', ops: Object.entries(SONIDOS).map(([p, [, d]]) =>
-        ({ txt: p, desc: d, receta: recetaDe('golpe', p), hacer: () => aplicarAVarios(() => p) })) },
-    { titulo: '', pie: true, ops: [
-        { txt: '-', desc: 'este paso queda en silencio', hacer: () => aplicarAVarios(() => '-') },
-        { txt: '_', desc: 'sigue sonando la anterior',   hacer: () => aplicarAVarios(() => '_') }] },
+    { titulo: 'golpes', ops: aTodos(ofrecerGolpes(), o => aplicarAVarios(() => o.txt)) },
+    { titulo: '', pie: true, ops: aTodos(ofrecerSilencios(), o => aplicarAVarios(() => o.txt)) },
   ];
   if (que === 'modificador') return [
-    { titulo: 'cómo', ops: MODIFICADORES.map(m =>
-        ({ txt: m[0], desc: m[2], hacer: () => aplicarAVarios(() => m[0]) })) }];
+    { titulo: 'cómo', ops: aTodos(ofrecerModificadores(), o => aplicarAVarios(() => o.txt)) }];
   return null;
 }
 
