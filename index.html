@@ -17,7 +17,21 @@
 <body>
 
 <!-- Los de trazo son de Lucide 1.33 (ISC, lucide.dev), en grilla de 24 — por qué
-     un sprite acá adentro y qué sostiene ese número, en REGLAS.md. -->
+     un sprite acá adentro y qué sostiene ese número, en REGLAS.md. La licencia
+     pide que este aviso viaje con los trazos copiados:
+     ISC License. Copyright (c) for portions of Lucide are held by Cole Bemis
+     2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are
+     held by Lucide Contributors 2022. Permission to use, copy, modify, and/or
+     distribute this software for any purpose with or without fee is hereby
+     granted, provided that the above copyright notice and this permission
+     notice appear in all copies. THE SOFTWARE IS PROVIDED "AS IS" AND THE
+     AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+     IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+     AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+     DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+     PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+     ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+     THIS SOFTWARE. -->
 <svg hidden aria-hidden="true">
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
   <symbol id="i-deshacer" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
@@ -34,14 +48,14 @@
 
 <svg id="cinta" aria-hidden="true"></svg>
 <header>
-  <button id="tocar" title="tocar"></button>
+  <button id="tocar" title="tocar" aria-label="tocar"><svg class="i maciza"><use href="#i-tocar"/></svg></button>
   <div class="marca">
     <h1>chan<span>chán</span></h1>
     <span class="rayita"></span>
     <span class="nombre">
       <input id="nombre" placeholder="sin título" spellcheck="false" autocomplete="off"
              maxlength="60" aria-label="nombre del tema">
-      <button id="abrir" title="abrir otro tema"><svg class="i chica"><use href="#i-chevron"/></svg></button>
+      <button id="abrir" title="abrir otro tema" aria-expanded="false" aria-controls="temas"><svg class="i chica"><use href="#i-chevron"/></svg></button>
     </span>
     <button id="enlace" title="copiar un enlace con este tema adentro" aria-label="copiar enlace"><svg class="i"><use href="#i-enlace"/></svg></button>
     <button id="archivo" title="exportar este tema como archivo" aria-label="exportar archivo"><svg class="i"><use href="#i-bajar"/></svg></button>
@@ -51,7 +65,7 @@
   <section class="editor">
     <div class="wrap">
       <pre id="hl" aria-hidden="true"></pre>
-      <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+      <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="el tema"></textarea>
       <div id="vacio" hidden></div>
     </div>
     <div class="abajo">
@@ -67,7 +81,9 @@
   </section>
 </main>
 
-<script src="https://unpkg.com/@strudel/web@1.3.0"></script>
+<!-- fijado por hash: si unpkg sirviera otra cosa bajo este número, el navegador no la corre -->
+<script src="https://unpkg.com/@strudel/web@1.3.0/dist/index.js"
+        integrity="sha384-Be7toEZy01lox8utUZEOBM2nCd1jVX8R9A3YwfZ7j5kBTv/MKy+LlCbTWqE97W8x" crossorigin="anonymous"></script>
 
 <script src="js/texto.js"></script>       <!-- leer y comparar palabras -->
 <script src="js/ejemplos.js"></script>    <!-- los temas que vienen hechos -->

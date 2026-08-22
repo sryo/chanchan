@@ -32,6 +32,7 @@ function armarPuntos(marcas, calladas, renglones = actual.renglones) {
     if (y < 0 || y > caja.height) continue;
     const b = document.createElement('button');
     b.className = 'punto' + (calladas.has(l) ? ' callado' : '');
+    b.setAttribute('aria-pressed', calladas.has(l));
     if (color.has(l)) b.style.color = color.get(l);
     b.dataset.l = l;
     b.title = 'silenciar · may+click deja sólo ésta';

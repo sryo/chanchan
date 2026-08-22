@@ -15,7 +15,9 @@ actualizar(false);
 requestAnimationFrame(() => armarPuntos(marcasActuales, calladasActuales));
 document.fonts.ready.then(() => { medirTipografia(); reacomodar(); });
 
-const MUESTRAS = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
+// Fijado a un commit y no a «main»: si arriba renombran o sacan un sonido, acá
+// cambia o se calla sin que nadie lo haya pedido. Lo nuevo se trae cambiando el hash.
+const MUESTRAS = 'https://raw.githubusercontent.com/felixroos/dough-samples/9eacfc86ec4393e68a463ff52b01c19cfaa77f38/';
 const CROMA_GM = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 // Una muestra cada tres semitonos, de do1 a do7: strudel afina las del medio y no
@@ -32,7 +34,13 @@ const MUESTRAS_GM = Object.fromEntries(
   [...new Set(Object.values(INSTRUMENTOS))].filter(i => i.gm)
     .map(i => [i.sonido, muestrario(i.gm)]));
 
-initStrudel({
+// Sin red, o con unpkg caído, strudel no llega: la hoja anda igual —se escribe,
+// se guarda, se comparte— pero no suena, y eso se dice en vez de quedarse
+// «cargando» para siempre.
+if (typeof initStrudel !== 'function') {
+  document.body.classList.remove('cargando');
+  avisar('no cargó strudel: sin red no hay sonido, pero la hoja anda.');
+} else initStrudel({
   prebake: () => Promise.all([
     samples(MUESTRAS + 'tidal-drum-machines.json'),
     samples(MUESTRAS + 'piano.json'),

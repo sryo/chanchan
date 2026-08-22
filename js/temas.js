@@ -74,6 +74,9 @@ panelTemas.className = 'panel';
 document.body.appendChild(panelTemas);
 const btnAbrir = document.getElementById('abrir');
 
+// el botón dice si su lista está abierta, para quien no la ve
+const mostrarTemas = si => { panelTemas.classList.toggle('abierto', si); btnAbrir.setAttribute('aria-expanded', si); };
+
 function abrirTemas() {
   const mios = misTemas();
   const abierto = campoNombre.value.trim();
@@ -117,7 +120,7 @@ function abrirTemas() {
       ev.stopPropagation();
       return abrirTemas();
     }
-    panelTemas.classList.remove('abierto');
+    mostrarTemas(false);
     // elegirArchivo() carga el tema solo: acá no hay nada que cargar todavía
     if (el.dataset.archivo) return elegirArchivo();
     cargarTema(el.dataset.nueva ? { nombre: '', txt: '' }
@@ -128,13 +131,13 @@ function abrirTemas() {
   const r = btnAbrir.getBoundingClientRect();
   panelTemas.style.left = Math.round(r.left) + 'px';
   panelTemas.style.top = Math.round(r.bottom + 6) + 'px';
-  panelTemas.classList.add('abierto');
+  mostrarTemas(true);
 }
 
 btnAbrir.addEventListener('click', () => {
-  panelTemas.classList.contains('abierto') ? panelTemas.classList.remove('abierto') : abrirTemas();
+  panelTemas.classList.contains('abierto') ? mostrarTemas(false) : abrirTemas();
 });
 addEventListener('mousedown', e => {
-  if (!dentroDe(e.target, panelTemas, btnAbrir)) panelTemas.classList.remove('abierto');
+  if (!dentroDe(e.target, panelTemas, btnAbrir)) mostrarTemas(false);
 });
-addEventListener('keydown', e => { if (e.key === 'Escape') panelTemas.classList.remove('abierto'); });
+addEventListener('keydown', e => { if (e.key === 'Escape') mostrarTemas(false); });

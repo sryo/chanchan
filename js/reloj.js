@@ -24,7 +24,6 @@ function seguir() {
   if (sonando) {
     let t;
     try { t = getTime(); } catch (e) { t = null; }
-    if (t != null) seguirTempo(t);
     if (t != null) for (const e of actual.espejos) {
       let haps;
       try { haps = e.pat.queryArc(t, t + 0.0001); } catch (err) { continue; }
@@ -39,6 +38,20 @@ function seguir() {
   claveActivos = clave;
   realzar(nuevos);
 }
+
+// El cambio de tempo en el borde de una sección no puede esperar al cuadro que
+// sigue: el navegador frena requestAnimationFrame en una pestaña escondida y
+// strudel sigue tocando desde su worker, así que la estrofa quedaba al tempo
+// de antes hasta que uno volvía a mirar. Y un cuadro es tarde de todos modos:
+// strudel ya agendó un décimo de segundo del tramo nuevo al tempo viejo. Un
+// timer aparte, mirando ese décimo adelante, le gana al agendador.
+setInterval(() => {
+  if (!sonando) return;
+  let t;
+  try { t = getTime(); } catch (e) { return; }
+  const bpm = bpmPuesto || (actual.tempos[0] || {}).bpm || 90;
+  seguirTempo(t + 0.1 * bpm / 240);     // 0,1 s, contado en vueltas
+}, 40);
 
 // strudel corta el reloj pero no las notas que ya salieron: sin apagar el
 // audio, «parar» deja sonando la cola de los acordes largos y del eco.
@@ -101,7 +114,7 @@ function seguirElTema(r) {
   // stack que evaluó y el parlante suena mientras la pantalla dice que no hay nada
   if (!r.codigo) { sonando = false; silenciar(); refrescarTransporte(); }
   // con secciones el número que vale es el de la tabla nueva, y quién lo mira es
-  // seguirTempo(), en el cuadro que sigue: acá sólo se le hace olvidar el de antes
+  // seguirTempo(), en el tic que sigue: acá sólo se le hace olvidar el de antes
   else if (soloElTempo) { bpmPuesto = null; ponerTempo(r.bpm); }
   else correr(r.codigo);
 }
@@ -121,6 +134,7 @@ function alternarTocar() {
     ultimoCodigo = '';
     silenciar();
   } else {
+    if (typeof evaluate !== 'function') { avisar('no cargó strudel: sin red no hay sonido.'); return; }
     const r = actualizar(false);
     if (!r.codigo) { avisar('escribí algo primero: «el bombo toca pum - pum -».'); return; }
     sonando = true;
