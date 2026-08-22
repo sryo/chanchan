@@ -22,8 +22,7 @@ function traducirLinea(texto, nro) {
   const sinArticulo = ws[0] && /^(el|la|los|las)$/i.test(ws[0].w) ? ws.slice(1) : ws;
 
   // ---- * una nota
-  // no suena y no dice nada del tema; va primero, que «* la estrofa:» no es una sección.
-  // Puede llevar un enlace, «* escuchá @la base»: el nombre llega hasta el punto final
+  // va primero: «* la estrofa:» no es una sección; puede llevar «@la base»
   if (texto.trimStart().startsWith('*')) {
     const ast = texto.indexOf('*'), arroba = texto.indexOf('@', ast);
     const nombre = arroba < 0 ? '' : texto.slice(arroba + 1).replace(/[.,;:!?\s]+$/, '').trim();
@@ -61,7 +60,7 @@ function traducirLinea(texto, nro) {
   }
 
   // ---- @la base
-  // no suena: apunta a otro tema. Un signo y no una palabra, ver REGLAS.md
+  // un signo y no una palabra, ver REGLAS.md
   const arroba = texto.indexOf('@');
   if (arroba >= 0 && !texto.slice(0, arroba).trim()) {
     marcar(arroba, 1, 'estructura');

@@ -35,7 +35,7 @@ function desdeCuando(t) {
   return 'hace ' + Math.round(dias / 30) + ' meses';
 }
 
-// lo que encuentra quien llega por primera vez, y lo que da «nuevo»: un documento, con sus notas
+// la primera visita, y «nuevo»
 const PRIMERA_HOJA = [
   '* en chanchán podés escribir música con palabras, así:',
   'la bata toca pum pa pum pa',
@@ -52,7 +52,11 @@ document.body.appendChild(panelTemas);
 const btnAbrir = document.getElementById('abrir');
 
 // para quien no ve la lista
-const mostrarTemas = si => { panelTemas.classList.toggle('abierto', si); btnAbrir.setAttribute('aria-expanded', si); };
+const mostrarTemas = si => {
+  panelTemas.classList.toggle('abierto', si);
+  btnAbrir.setAttribute('aria-expanded', si);
+  if (!si) panelTemas.style.minWidth = '';
+};
 
 function abrirTemas() {
   const mios = misTemas();
@@ -88,6 +92,8 @@ function abrirTemas() {
       }
       // sin esto el de afuera lo cerraría: abrirTemas() rehizo el panel y la fila apretada ya no está en él
       ev.stopPropagation();
+      // abierto no se angosta: el puntero seguiría sobre otra fila
+      panelTemas.style.minWidth = panelTemas.offsetWidth + 'px';
       return abrirTemas();
     }
     mostrarTemas(false);
@@ -98,10 +104,8 @@ function abrirTemas() {
       : EJEMPLOS[+el.dataset.i]);
     src.focus();
   }));
-  const r = btnAbrir.getBoundingClientRect();
-  panelTemas.style.left = Math.round(r.left) + 'px';
-  panelTemas.style.top = Math.round(r.bottom + 6) + 'px';
   mostrarTemas(true);
+  acomodar(panelTemas, btnAbrir.getBoundingClientRect());
 }
 
 btnAbrir.addEventListener('click', () => {

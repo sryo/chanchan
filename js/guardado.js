@@ -95,8 +95,7 @@ function cargarTema(tema) {
   guardar();
 }
 
-// los tuyos y los que vienen hechos, sin repetir: con el mismo nombre gana el tuyo,
-// que es el que se escribe — ver REGLAS.md
+// con el mismo nombre gana el tuyo, ver REGLAS.md
 function temasTodos() {
   const mios = misTemas();
   return [...mios, ...EJEMPLOS.filter(e => !mios.some(m => norm(m.nombre) === norm(e.nombre)))];
@@ -104,7 +103,6 @@ function temasTodos() {
 
 const temaLlamado = nombre => temasTodos().find(t => norm(t.nombre) === norm(nombre));
 
-// el que no está todavía se crea: una hoja nueva con ese nombre
 function irAlTema(nombre) {
   cargarTema(temaLlamado(nombre) || { nombre, txt: '' });
   src.focus();
@@ -118,8 +116,7 @@ function guardar() {
 // los 400 ms no pueden sobrevivir a cerrar la pestaña
 addEventListener('pagehide', guardarYa);
 
-// El tema entero viaja adentro del enlace, y en claro son miles de caracteres que
-// ningún chat muestra enteros. La «z» marca el comprimido; el nombre queda legible.
+// comprimido porque en claro son miles de caracteres; la «z» lo marca
 const aBase64 = b => btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const deBase64 = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 const hayZip = () => typeof CompressionStream === 'function';
@@ -155,14 +152,14 @@ function nombrados(nombre, txt) {
   return lista;
 }
 
-// el enlace lleva el tema abierto y, separados por «;», los que nombra: del otro lado resuelven
+// el abierto y, tras «;», los que nombra
 async function armarHash() {
   const nombre = campoNombre.value.trim();
   const piezas = [[nombre, src.value], ...nombrados(nombre, src.value).map(t => [t.nombre, t.txt])];
   return (await Promise.all(piezas.map(([n, x]) => hashDe(n, x)))).join(';');
 }
 
-// los que vienen con el enlace se guardan si no hay uno con ese nombre: el tuyo no se pisa
+// el tuyo no se pisa
 function guardarTraidos(traidos) {
   const mios = misTemas();
   for (const t of traidos || [])
@@ -203,7 +200,6 @@ async function abrirPieza(crudo) {
     // si inflar falla, era texto plano que empezaba con «z»
     if (comprimido)
       try { return { nombre, txt: alDia(await inflar(cuerpo.slice(1))) }; } catch (e) { /* texto plano */ }
-    // un enlace de antes del cambio también se pasa al idioma de ahora
     return { nombre, txt: alDia(decodeURIComponent(cuerpo)) };
   } catch (e) { return null; }     // enlace roto
 }
@@ -213,7 +209,7 @@ function leerHash() {
 }
 
 // un enlace pegado en la hoja es un tema, no un texto; vale la dirección entera o lo que sigue al numeral.
-// La forma se mira antes de inflar, que es asíncrono y el pegado se corta o no ahora mismo
+// Se decide por la forma: inflar es asíncrono y el pegado se corta o no ahora mismo
 const pareceEnlace = txt => !!txt && !/\s/.test(txt) &&
   (/%[0-9A-Fa-f]{2}/.test(txt) || /[:|]z[A-Za-z0-9_-]+$/.test(txt));
 
@@ -233,7 +229,7 @@ const conRenglonFinal = txt => txt.replace(/\n*$/, '\n');
 
 async function temaInicial() {
   const delEnlace = await leerHash();
-  // el enlace estaba y no se pudo abrir: se avisa recién en arranque.js, que actualizar() pisa el cajón
+  // se avisa en arranque.js: actualizar() pisa el cajón
   if (!delEnlace && location.hash.length > 1) return { txt: '', nombre: '', roto: true };
   if (delEnlace) {
     // el enlace se consume: si quedara en la barra, recargar abriría esa versión vieja encima de lo escrito
@@ -259,8 +255,7 @@ function acomodarNombre() {
 }
 campoNombre.addEventListener('input', () => { acomodarNombre(); guardar(); });
 
-// un enlace que llega de afuera —pegado en la barra, apretado en otra pestaña— abre
-// ese tema sin recargar; el hash se consume igual que al arrancar
+// un enlace pegado en la barra abre sin recargar
 let hashPropio = false;
 addEventListener('hashchange', async () => {
   if (hashPropio) { hashPropio = false; return; }

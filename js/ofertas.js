@@ -1,7 +1,5 @@
 // ------------------------------------------------------------- lo que se ofrece
-// Las listas del ▾, la selección y el sugeridor: hacen cosas distintas con lo
-// elegido, pero ofrecen lo mismo. Cada opción es { txt, desc, receta }, y la
-// receta es lo que oir() necesita para hacerla sonar al pasarle por encima.
+// las listas del ▾, la selección y el sugeridor; la receta es lo que oir() necesita
 const ofrecerGolpes = () => Object.entries(SONIDOS)
   .map(([txt, [, desc]]) => ({ txt, desc, receta: recetaDe('golpe', txt) }));
 

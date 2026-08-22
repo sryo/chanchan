@@ -71,7 +71,7 @@
   #cinta .franja { transition: opacity .12s; }
   #cinta.senalando .franja { opacity: .25; }
   #cinta.senalando .franja.sola { opacity: 1; }
-  /* una sección es tiempo y no una voz: el velo va en tinta de página, ver REGLAS.md */
+  /* tinta de página: una sección es tiempo, no una voz */
   #cinta .tramo { fill: var(--fondo); fill-opacity: 0; transition: fill-opacity .12s; }
   #cinta.senalandoTramo .tramo { fill-opacity: .75; }
   #cinta.senalandoTramo .tramo.sola { fill-opacity: 0; }
@@ -102,8 +102,7 @@
   /* el ojo del color del fondo no se vería sobre el gris */
   body.cargando #tocar { background: var(--linea); cursor: progress; }
   body.cargando #tocar svg { fill: var(--tenue); }
-  /* centrado y no por línea de base: flexbox tomaría la del primer renglón del logo.
-     No envuelve: el nombre cede antes que la fila, y recorta con puntos */
+  /* centrado y no por línea de base: flexbox tomaría la del primer renglón del logo */
   .marca { display: flex; align-items: center; gap: 14px; min-width: 0; flex: 1; }
   .nombre { min-width: 0; }
   /* el margen negativo descuenta el padding, que es área de click y no aire */
@@ -163,8 +162,7 @@
   }
   #abrir:hover, #enlace:hover, #archivo:hover, #luz:hover { color: var(--texto); }
   #archivo { margin-left: -12px; }
-  /* el modo no es del tema: va solo en la esquina, a la altura del botón de tocar, sin
-     quitarle lugar a la marca; fijo y por encima de main, que va después en el documento */
+  /* el modo no es del tema: va solo en la esquina, por encima de main */
   #luz { position: fixed; right: 44px; top: calc(var(--sangria) + 21px); z-index: 2; }
   /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
   #enlace.dicho {
@@ -212,15 +210,15 @@
   .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
   /* tinta de página: apunta a otro tema, no suena */
   .t-enlace { color: var(--texto); text-decoration: underline dotted currentColor; text-underline-offset: 4px; }
-  /* en cursiva se distingue de un vistazo; en monoespaciada no cambia el ancho, así el espejo sigue calzando */
   .t-comentario { color: var(--tenue); font-style: italic; }
   /* «de esta palabra cuelga el ▾»: sale con el mouse en el botón, no en la palabra */
   .t-editable.t-manija {
     text-decoration: underline dotted currentColor;
     text-underline-offset: 4px;
   }
+  /* encima de lo que cuelga de una palabra */
   .panel {
-    position: fixed; z-index: 10; display: none;
+    position: fixed; z-index: 12; display: none;
     background: var(--panel); border: 1px solid var(--linea);
     border-radius: 6px; padding: 6px 0; min-width: 190px;
     max-height: 80vh; max-width: calc(100vw - 16px);
@@ -228,7 +226,7 @@
   }
   .panel.abierto { display: block; }
   .panel .op.conSub { padding-right: 8px; }
-  #sugerencias { z-index: 12; max-height: 300px; }
+  #sugerencias { max-height: 300px; }
   #sugerencias .op.elegido { background: var(--realce); color: var(--parte, var(--texto)); }
   /* las columnas las fija pintarPanel() con la cantidad real */
   #menu.columnas.abierto { display: grid; gap: 1px; padding: 0; background: var(--linea); }
@@ -324,8 +322,7 @@
     header { gap: 10px; padding-right: var(--marco); }
     #tocar { width: 48px; height: 48px; }
     .marca { gap: 8px; }
-    /* en un teléfono la fila está llena: el modo baja a la esquina de abajo, dentro del arco,
-       sobre un disco del fondo porque el texto pasa por debajo */
+    /* no entra en la fila: baja a la esquina; el disco tapa el texto que pasa por debajo */
     #luz {
       top: auto; bottom: calc(var(--marco) + 6px); right: calc(var(--marco) + 6px);
       width: 34px; height: 34px; padding: 0; border-radius: 50%; background: var(--fondo);

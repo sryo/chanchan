@@ -61,7 +61,6 @@ const arrastrable = t => t && (t.tipo === 'tempo' || (t.tipo === 'nota' && datos
 
 function seccionesDe(t) {
   const d = datosDe(t), hoy = textoDe(t), voz = vozDeLinea(t.l);
-  // cada oferta se vuelve un reemplazo del token; el que ya está va marcado
   const como = (ops, nuevo = o => o.txt) => ops.map(o =>
     ({ ...o, nuevo: nuevo(o), puesto: norm(hoy) === norm(nuevo(o)) }));
   // sin rótulo: en versalitas chicas «o nada» se leía «0 nada»
@@ -73,7 +72,6 @@ function seccionesDe(t) {
   if (t.tipo === 'paso' || t.tipo === 'nota') {
     const p = { raiz: d.raiz || 'do', altN: d.altN || '', octN: d.octN || '', acorde: d.acorde || '' };
     const con = (campo, val) => armarNota({ ...p, [campo]: val });
-    // cada campo de la nota se cambia solo y respeta los otros
     const campo = (ofertas, clave, vacio) =>
       (vacio ? [{ txt: vacio, nuevo: con(clave, ''), puesto: !p[clave] }] : []).concat(
         ofertas.map(o => ({ ...o, nuevo: con(clave, o.txt), puesto: norm(p[clave]) === norm(o.txt) })));
@@ -214,7 +212,7 @@ function pintarPanel(panel, secs, t, dueño = t) {
     '">' + (s.titulo ? '<h3>' + esc(s.titulo) + '</h3>' : '') + s.ops.map((o, j) =>
       '<div class="op' + (o.puesto ? ' puesto' : '') + (o.familia ? ' conSub' : '') +
       '" data-op="' + j + '" data-sec="' + secs.indexOf(s) + '"' +
-      // la fila señalada lleva su propio color, que .puesto lee de --parte
+      // .puesto lo lee de --parte
       (o.color ? ' style="--parte:' + o.color + '"' : '') + '>' +
       '<span>' + esc(o.txt) + '</span>' +
       (o.desc ? '<span class="d">' + esc(o.desc) + '</span>' : '') +
@@ -253,11 +251,15 @@ function pintarPanel(panel, secs, t, dueño = t) {
   });
 }
 
+// el lado con más aire, y nunca más alto que el aire: taparía la palabra
 function acomodar(el, r) {
-  const alto = el.offsetHeight, ancho = el.offsetWidth;
-  const abajo = r.bottom + 4 + alto < innerHeight;
-  el.style.top = (abajo ? r.bottom + 4 : Math.max(4, r.top - alto - 4)) + 'px';
-  el.style.left = Math.max(8, Math.min(r.left, innerWidth - ancho - 8)) + 'px';
+  el.style.maxHeight = '';
+  const debajo = innerHeight - r.bottom - 12, encima = r.top - 12;
+  const abajo = el.offsetHeight <= debajo || debajo >= encima;
+  const aire = abajo ? debajo : encima;
+  if (el.offsetHeight > aire) el.style.maxHeight = aire + 'px';
+  el.style.top = (abajo ? r.bottom + 4 : r.top - 4 - el.offsetHeight) + 'px';
+  el.style.left = Math.max(8, Math.min(r.left, innerWidth - el.offsetWidth - 8)) + 'px';
 }
 
 // ------------------------------------------------- el triángulo de seguridad
@@ -408,7 +410,7 @@ src.addEventListener('mousedown', e => {
   // el tempo se arrastra sin Alt: es un número suelto y no hay texto que
   // seleccionar; las notas lo piden para no pelearse con la selección
   const t = editable(e.clientX, e.clientY);
-  // un enlace se aprieta: soltar sin moverse va al tema; arrastrar selecciona
+  // soltar sin moverse va al tema; arrastrar selecciona
   if (t && t.tipo === 'enlace' && e.button === 0) {
     e.preventDefault();
     enlaceApretado = { nombre: datosDe(t).nombre, x: e.clientX, y: e.clientY };

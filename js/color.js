@@ -69,7 +69,7 @@ function enLaRueda(banda, voz) {
   return enLaBanda(banda, m.tono, n in pasoDelTema ? pasoDelTema[n] : m.paso);
 }
 
-// una familia es el tono entero, sin una luz propia: va al medio de la banda, que es lo más legible
+// una familia no tiene luz propia: el medio de la banda
 const tintaDeFamilia = fam => fam in TONO ? enLaBanda('tinta', TONO[fam], 0.5) : null;
 
 const tintaDe = voz => enLaRueda('tinta', voz);

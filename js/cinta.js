@@ -80,7 +80,7 @@ function dibujarCinta(renglones) {
     svg += '<path class="toque" d="M ' + arranque + ' ' + y + ' L ' + fin + ' ' + y +
       '" stroke-width="' + grueso.toFixed(2) + '" /></g>';
   });
-  // tapa las franjas y deja la regla, los cortes y los rótulos, que son el marco
+  // el velo de cada sección: tapa las franjas, no la regla ni los rótulos
   let vt = 0;
   for (const t of (n ? actual.tramos : [])) {
     const x = enX(vt), ancho2 = enX(vt + t.largo) - x;
@@ -220,7 +220,7 @@ function aplicarFranja(l) {
 let tramoSeñalado = null;
 
 function señalarTramo(nom) {
-  // una sección que la forma no toca no tiene dónde encenderse, y apagar todo sería peor
+  // sin tramo en la forma no hay qué encender
   if (nom != null && !actual.tramos.some(t => t.nom === nom)) nom = null;
   if (tramoSeñalado === nom) return;
   tramoSeñalado = nom;

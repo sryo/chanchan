@@ -133,7 +133,6 @@ function armarSecciones(r, soloPega) {
   // no son instrumentos, son lo que uno escribe
   const DE_SIEMPRE = ['melodía', 'bata', 'bajo', 'piano', 'platillos', 'voz'];
 
-  // lo que se ofrece sale de ofertas.js; acá cada uno se vuelve algo que se inserta
   const comoOps = ofertas => ofertas.map(o => op(o.txt, null, o.desc, o.receta));
   const instrumentos = () => comoOps([...ofrecerInstrumentos(), ...ofrecerAlias()]);
 

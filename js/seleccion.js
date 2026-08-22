@@ -77,7 +77,6 @@ function transponer(delta) {
 
 function seccionesSeleccion() {
   const que = tokensSel[0].tipo;
-  // cada oferta se aplica a todos los tokens elegidos, y la de la nota respeta los otros campos
   const aTodos = (ops, hacer) => ops.map(o => ({ ...o, hacer: () => hacer(o) }));
   const campo = (ops, clave, vacio) =>
     aTodos([{ txt: vacio }].concat(ops), o => aplicarAVarios(t => armarNota({ ...t, [clave]: o.txt === vacio ? '' : o.txt })));
@@ -106,8 +105,7 @@ botonSel.addEventListener('mousedown', e => {
   menu.classList.add('columnas');
   pintarPanel(menu, secs, null, tokensSel);
   menu.classList.add('abierto');
-  menu.style.top = (r.bottom + 4) + 'px';
-  menu.style.left = Math.max(8, Math.min(r.left, innerWidth - menu.offsetWidth - 8)) + 'px';
+  acomodar(menu, r);
 });
 
 document.addEventListener('selectionchange', () => { if (document.activeElement === src) mirarSeleccion(); });
