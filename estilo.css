@@ -6,40 +6,29 @@
     --tenue: #756e5d;
     --suave: #c6bda6;
     --punteo: #8a8069;
-    /* El silencio se cuenta —es la grilla, es lo que dice en qué corchea estás—, así
-       que tiene que verse; el andamio se lee una vez y después estorba. */
+    /* el silencio es la grilla y tiene que verse; el andamio se lee una vez */
     --silencio: #978f7b;
     --andamio: #aba493;
-    /* Las dos puntas de la altura no van de oscuro a claro sino de tinta a aire, así
-       que «grave» es lo más oscuro de día y lo más claro de noche: es el mismo gesto,
-       y ninguno de los dos modos se sale de lo suyo. Los tres del medio se mezclan. */
+    /* la altura va de tinta a aire, no de oscuro a claro; los tres del medio se mezclan */
     --grave: var(--texto);
     --agudo: #557884;
-    /* Lo único plenamente saturado de la página —0,184 de día y 0,229 de noche,
-       el máximo que entra en pantalla—, que es lo que lo separa de la rueda y no
-       el tono. Por qué no puede ser un tono, en REGLAS.md. */
+    /* lo único saturado de la página (0,184 de día, 0,229 de noche): ver REGLAS.md */
     --mal: #a3000e;
     --vivo: #f0dcab;
     --realce: #ded2b7;
     --sombra: #1235401f;
-    /* El color del tema, en las dos bandas de la rueda: la marca pinta —el botón
-       de tocar y el logo— y la tinta escribe. Lo que escribe es el tema como
-       archivo y no lo que el tema dice; el reparto entero, en REGLAS.md.
-       Sin tema abierto las tres caen en la tinta de la página, que es lo que
-       queda cuando todavía no hay tema del que sacar un color. */
+    /* el color del tema: la marca pinta y la tinta escribe —ver REGLAS.md—; sin
+       tema, las tres son la tinta de la página */
     --marca: var(--texto);
     --marca-fin: var(--texto);
     --marca-tinta: var(--texto);
-    /* El ojo del botón de tocar se apoya sobre un color de la rueda y no sobre el
-       papel, así que no puede ir del color del papel: sobre la trama va del lado
-       claro del par, que se lee sobre cualquiera de los dieciocho tonos. Sin tema
-       el botón es la tinta de la página y ahí lo da vuelta pintarMarca(). */
+    /* el ojo se apoya sobre la rueda y no sobre el papel: el lado claro del par
+       se lee sobre los dieciocho tonos; sin tema lo da vuelta pintarMarca() */
     --ojo: var(--fondo);
     --marco: 65px;
     --sangria: 88px;
     --canal: 30px;
-    /* Cuatro y nada más: el logo, la notación —que pesa más que todo porque es el
-       documento—, la interfaz, y las versalitas de los rótulos. */
+    /* cuatro tamaños y nada más */
     --letra-logo: 30px;
     --letra-tema: 16px;
     --letra: 14px;
@@ -65,9 +54,7 @@
     --ojo: var(--texto);
   }
   * { box-sizing: border-box; }
-  /* El [hidden] del navegador es una regla del namespace html, así que no alcanza
-     a un <svg>, y como es del navegador cualquier regla nuestra con display le
-     gana. El !important hace que «escondido» quiera decir escondido en todos lados. */
+  /* el [hidden] del navegador no alcanza a un <svg>, y cualquier display nuestro le gana */
   [hidden] { display: none !important; }
   html, body { height: 100%; margin: 0; }
   body {
@@ -76,21 +63,15 @@
     display: flex; flex-direction: column;
   }
   #cinta { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-  /* Cada franja tiene su blanco invisible, del grosor que le tocó y sólo sobre el
-     tramo que es tiempo: apuntar a una parte es apuntarle a ella y no a un
-     rectángulo que la contenga. Sin cursor de mano: no hay nada que apretar. */
+  /* el blanco invisible de cada franja; sin cursor de mano porque no hay nada que apretar */
   #cinta .toque { fill: none; stroke: transparent; pointer-events: stroke; }
-  /* En una pantalla táctil la cinta vuelve a ser sólo el marco: sin mouse no hay
-     manera de señalar sin apretar, y acá apretar no hace nada. */
+  /* sin mouse no se puede señalar sin apretar, y apretar no hace nada */
   @media (hover: none) { #cinta .toque { pointer-events: none; } }
-  /* Al señalar una, las demás se van al fondo: dos partes de la misma familia
-     comparten el tono a propósito, así que el color solo no las separa. */
+  /* dos partes de la misma familia comparten el tono: el color solo no las separa */
   #cinta .franja { transition: opacity .12s; }
   #cinta.senalando .franja { opacity: .25; }
   #cinta.senalando .franja.sola { opacity: 1; }
-  /* La regla de vueltas va en tinta y no en el color del papel: una raya casi
-     blanca sobre la cinta es exactamente lo mismo que el hueco entre dos golpes,
-     y la vuelta —que es la unidad con la que se escribe— se perdía entre ellos. */
+  /* en tinta y no en papel: una raya clara es igual al hueco entre dos golpes */
   #cinta .regla { stroke: var(--texto); stroke-width: 1.5; stroke-opacity: .5; }
   /* el corte baja más que la regla porque dice otra cosa: dónde cambia el tema */
   #cinta .corte { stroke: var(--texto); stroke-width: 1.5; }
@@ -99,8 +80,7 @@
     text-transform: lowercase; dominant-baseline: auto;
   }
   header, main, .abajo { position: relative; z-index: 1; }
-  /* La cabecera no recibe el mouse, sólo lo suyo: su relleno de arriba mide lo mismo
-     que la cinta y se la comía entera, así que no había manera de señalar una franja. */
+  /* el relleno de arriba mide lo mismo que la cinta y le taparía las franjas */
   header {
     display: flex; align-items: center; gap: 26px;
     padding: var(--sangria) 44px 26px var(--sangria);
@@ -114,40 +94,30 @@
   }
   #tocar svg { width: 22px; height: 22px; fill: var(--ojo); display: block; }
   #tocar:hover { filter: brightness(1.08); }
-  /* mientras carga strudel el botón se apaga, pero el ojo tiene que seguir
-     viéndose: pintado del color del fondo sobre gris claro no quedaba nada */
+  /* el ojo del color del fondo no se vería sobre el gris */
   body.cargando #tocar { background: var(--linea); cursor: progress; }
   body.cargando #tocar svg { fill: var(--tenue); }
-  /* Con el logo en dos renglones la marca es un bloque y no una línea, así que
-     lo de al lado se centra contra él: por línea de base flexbox toma la del
-     primer renglón y «chán» entero quedaría colgando debajo del nombre. */
+  /* centrado y no por línea de base: flexbox tomaría la del primer renglón del logo */
   .marca {
     display: flex; align-items: center; gap: 14px; min-width: 0; flex-wrap: wrap;
   }
-  /* El enlace va pegado al nombre: es lo que se comparte, no un control aparte.
-     El margen negativo descuenta su padding, que es área de click y no aire. */
+  /* el margen negativo descuenta el padding, que es área de click y no aire */
   .marca #enlace { margin-left: -9px; }
-  /* Un cartel que tape el tema para avisar que se puede soltar un tema es justo lo
-     que no hace falta: el borde ya dice dónde va a caer. */
+  /* sin cartel: el borde ya dice dónde va a caer */
   body.soltando .wrap { box-shadow: inset 0 0 0 2px var(--marca, var(--texto)); }
   body.soltando #src { cursor: copy; }
-  /* El recorte es por Antonio, que reparte el aire muy para un lado —a 30px, 35
-     de alto contra 4 de bajo—: sin él la caja del renglón no cae centrada sobre
-     la tinta, y centrarla deja la palabra baja y la raya corta. La palabra es
-     toda baja, pero la versal y el asta de la «h» están a un cuarto de píxel,
-     así que «cap» sirve de tope. */
+  /* el recorte es por Antonio, que a 30px reparte 35 arriba y 4 abajo; «cap» sirve
+     de tope porque la versal y el asta de la «h» están a un cuarto de píxel */
   h1 {
     font-family: var(--titular); font-size: var(--letra-logo); line-height: .8;
     text-box: trim-both cap alphabetic;
     margin: 0; font-weight: 600; letter-spacing: -.02em; color: var(--marca);
   }
-  /* Va por display y no por un <br> para que el título se copie de una pieza. */
+  /* display y no <br>: el título se copia de una pieza */
   h1 span { display: block; color: var(--marca-fin); }
-  /* Se estira en vez de medirse: así corta contra el logo —que es lo más alto— sin
-     un número que mantener sincronizado. */
+  /* se estira en vez de medirse: corta contra el logo sin un número que sincronizar */
   .rayita { width: 1px; align-self: stretch; background: var(--linea); flex: none; }
-  /* El ancho lo pone el propio texto: con ancho fijo queda una raya larguísima
-     colgando después de la última letra. */
+  /* el ancho lo pone el texto: con ancho fijo la raya cuelga después de la última letra */
   .nombre {
     display: inline-flex; align-items: baseline; gap: 7px;
     border-bottom: 1px dotted var(--punteo); padding-bottom: 3px;
@@ -165,11 +135,8 @@
   }
   button:active { opacity: .6; }
   /* ------------------------------------------------------------ los dibujos
-     Una sola perilla de peso para todos: el trazo. Los de Lucide están
-     dibujados en grilla de 24, así que a dieciséis píxeles un trazo de 2 cae en
-     1,33 y se ve blando; 2,25 lo deja en uno y medio, que a este tamaño es lo
-     único que sale nítido. Los chicos van a doce y por eso llevan más trazo: la
-     línea tiene que caer en el mismo uno y medio, no en el mismo número. */
+     grilla de 24 —ver REGLAS.md—: a 16px el trazo de 2,25 cae en 1,5, que es lo
+     que sale nítido; los de 12 llevan más trazo para caer en el mismo 1,5 */
   .i {
     width: 16px; height: 16px; flex: none; display: block;
     fill: none; stroke: currentColor; stroke-width: 2.25;
@@ -177,16 +144,12 @@
   }
   .i.chica { width: 12px; height: 12px; stroke-width: 3; }
   .i.derecha { transform: rotate(-90deg); }
-  /* lo que suena es macizo y lo que hace es de trazo: la misma regla del puntito
-     del margen, que está lleno si la parte suena y hueco si está callada */
+  /* lo que suena es macizo y lo que hace es de trazo, como el punto del margen */
   .i.maciza { fill: currentColor; stroke: none; }
   button:hover { border-color: var(--tenue); }
   /* ------------------------------------------------ los tres pesos de un botón
-     Macizo, con caja o desnudo, y lo decide desde dónde interrumpe. Macizo va uno
-     solo: tocar. Con caja, lo que flota encima del texto y necesita despegarse para
-     poder apretarse. Desnudo, lo que vive en un borde fijo y no le compite a nada.
-     La caja mide veintidós aunque el dibujo mida doce: la tinta puede ser chica, el
-     blanco al que hay que apuntarle no. */
+     macizo sólo tocar, con caja lo que flota sobre el texto, desnudo lo que vive en
+     un borde; la caja mide 22 aunque el dibujo mida 12 */
   #abrir, #enlace, #archivo, #luz {
     flex: none; background: none; border: 0; border-radius: 4px;
     padding: 0 4px; min-height: 22px;
@@ -216,12 +179,10 @@
     background: transparent; color: transparent;
     caret-color: var(--parte, var(--texto)); resize: none; outline: none;
   }
-  /* el textarea va arriba con el texto transparente y lo que se lee sale de #hl,
-     abajo: si la selección es opaca tapa el texto y no queda nada visible */
+  /* el textarea va arriba y transparente: una selección opaca taparía #hl */
   #src::selection { background: color-mix(in oklab, var(--parte, var(--texto)) 18%, transparent); }
   ::selection { background: color-mix(in oklab, var(--texto) 18%, transparent); }
-  /* Lo que hace algo no se selecciona, y el espejo tampoco: ver REGLAS.md. La
-     hoja vacía va con los controles — es lo que se lee mientras no hay tema. */
+  /* lo que hace algo no se selecciona, el espejo tampoco: ver REGLAS.md */
   #hl, #vacio, button, .panel, summary { user-select: none; }
   /* los canales del editor y qué dice cada uno, en REGLAS.md */
   .t-sujeto { color: var(--texto); }
@@ -234,19 +195,14 @@
   #hl [data-alto="3"] { color: color-mix(in oklab, var(--grave) 50%, var(--agudo)); }
   #hl [data-alto="4"] { color: color-mix(in oklab, var(--grave) 25%, var(--agudo)); }
   #hl [data-alto="5"] { color: var(--agudo); }
-  /* Se mezcla con el papel desde el color que la nota ya tiene, así que sigue a la
-     altura sin repetir la rampa. */
+  /* desde currentColor: sigue a la altura sin repetir la rampa */
   .t-cola { font-weight: 400; color: color-mix(in oklab, currentColor 62%, var(--fondo)); }
-  /* El tempo se escribe como el encabezado de una sección y por lo mismo: el número
-     es el valor y el «va a» que lo rodea es andamio. */
+  /* como el encabezado de sección: el número es el valor, el «va a» es andamio */
   #hl span[data-tipo="tempo"] { color: var(--texto); font-weight: 600; }
-  /* Tinta de página, como todo lo que dice cuándo y no quién —ver REGLAS.md—. Lo que
-     lo separa es el peso: el encabezado declara el nombre, la forma sólo lo repite. */
+  /* tinta de página, dice cuándo y no quién: ver REGLAS.md */
   #hl span[data-tipo="seccion"] { font-weight: 600; }
   .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
-  /* El subrayado quiere decir una sola cosa: «de esta palabra cuelga el ▾». Sale
-     con el mouse en el botón y no en la palabra, porque el botón flota al lado y
-     lo único que no se ve solo es de cuál de las dos es. */
+  /* «de esta palabra cuelga el ▾»: sale con el mouse en el botón, no en la palabra */
   .t-editable.t-manija {
     text-decoration: underline dotted currentColor;
     text-underline-offset: 4px;
@@ -267,34 +223,30 @@
   #menu.columnas .sec { background: var(--panel); padding: 6px 0; min-width: 118px; }
   #menu.columnas .sec.detalle { min-width: 208px; }
   #menu.columnas .sec.pie { grid-column: 1 / -1; }
-  /* Los tres que cuelgan de una palabra —ver REGLAS.md—. El borde se pide acá y
-     no en cada uno: los tres son el mismo objeto visto en tres momentos. */
+  /* los tres que cuelgan de una palabra: ver REGLAS.md */
   #deshacer, #seleccion, #manija {
     position: fixed; z-index: 11; display: none;
     align-items: center; justify-content: center;
     height: 22px; line-height: 1; border-radius: 5px;
   }
   #deshacer.vivo, #seleccion.vivo, #manija.vivo { display: flex; }
-  /* Dos que salen de la misma palabra se sueldan: ver acomodarColgantes. */
+  /* dos de la misma palabra se sueldan: ver acomodarColgantes */
   #deshacer.junta, #seleccion.junta, #manija.junta {
     border-top-right-radius: 0; border-bottom-right-radius: 0;
   }
   #deshacer.juntado, #seleccion.juntado, #manija.juntado {
     border-top-left-radius: 0; border-bottom-left-radius: 0;
   }
-  /* Va un punto más apagado a propósito: el ▾ es una puerta de la palabra y está
-     siempre; esto es el aviso de un cambio y se va solo. */
+  /* más apagado que el ▾: es un aviso y se va solo */
   #deshacer { padding: 0 5px; opacity: .7; }
   #seleccion {
     padding: 0 8px 0 5px; gap: 4px;
     border-color: var(--parte, var(--texto)); color: var(--parte, var(--texto));
   }
-  /* Se ubica a mano contra el último trozo del token: una palabra partida en dos
-     renglones tiene su final abajo, no en la caja de la unión. */
+  /* se ubica contra el último trozo del token: una palabra partida termina abajo */
   #manija {
     padding: 0 5px;
-    /* Lleva el color de su palabra —lo pone pintarDeQuien()—. Que es un control lo
-       dice la forma y no el color, así que el tono queda libre para decir de quién es. */
+    /* el color lo pone pintarDeQuien(): la forma dice que es un control, el tono de quién es */
     color: var(--parte, var(--texto)); opacity: .85;
   }
   #manija:hover, #manija.encendido { opacity: 1; border-color: var(--parte, var(--texto)); }
@@ -310,8 +262,7 @@
   }
   .panel .op:hover { background: var(--realce); }
   .panel .op .d { margin-left: auto; color: var(--tenue); font-size: var(--letra-chica); }
-  /* Lo puesto lo dice el color de la parte, y el peso va además: en monoespaciada
-     no corre nada, y deja que se encuentre cuando a la parte le tocó un tono pálido. */
+  /* el peso va además del color: en monoespaciada no corre nada, y se ve con un tono pálido */
   .panel .op.puesto { color: var(--parte, var(--texto)); font-weight: 600; }
   .t-activo {
     background: var(--vivo); border-radius: 3px;
@@ -337,30 +288,24 @@
   details[open] summary .i { transform: none; }
   #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
   #luz { margin-right: 44px; }
-  /* No recibe clicks salvo en los botones, así que se puede empezar a escribir
-     encima sin tener que cerrar nada. */
+  /* sin clicks salvo en los botones: se escribe encima sin cerrar nada */
   #vacio {
     position: absolute; z-index: 2; pointer-events: none;
     left: calc(var(--sangria) + var(--canal)); top: 56px; right: 44px;
   }
-  /* en --suave las pistas daban 1,5 de contraste: era lo que menos se leía de la
-     página, y es lo único que explica. El lema va en tinta de página. */
+  /* en --suave daban 1,5 de contraste */
   .pista { color: var(--tenue); margin: 26px 0 10px; }
   .lema { margin: 0 0 22px; }
   .ejemplos { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
   .ejemplos button { padding: 4px 11px; }
-  /* con la tinta de la página: estos botones abren otros temas, y pintarlos del
-     color del tema abierto decía justo lo que no es. */
+  /* tinta de página: abren otro tema, no éste */
   .ejemplos button:hover { border-color: var(--texto); color: var(--texto); }
-  /* los renglones de muestra se leen como renglones de la hoja: uno debajo del
-     otro, del tamaño del tema; la pista que los presenta va pegada al lema */
+  /* los renglones de muestra se leen como renglones de la hoja */
   .ejemplos.lineas { flex-direction: column; align-items: flex-start; gap: 6px; }
   .ejemplos.lineas button { font-size: var(--letra-tema); }
   .pista.primera { margin-top: 0; }
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
-  /* El punto es chico pero el botón no: la caja mide lo mismo que el ▾, así que
-     apuntarle no pide puntería. El color lo pone el js en currentColor, y de ahí
-     lo toma el círculo — lleno si suena, sólo el borde si está callada. */
+  /* el botón mide lo mismo que el ▾; el color lo pone el js en currentColor */
   .punto {
     position: absolute; left: 0; width: 22px; height: 22px; padding: 0;
     background: none; border: 0; cursor: pointer; pointer-events: auto;
@@ -378,11 +323,8 @@
     box-shadow: inset 0 0 0 1.5px currentColor,
                 0 0 0 4px color-mix(in oklab, currentColor 28%, transparent);
   }
-  /* La × sólo del lado de los propios y sólo al pasar por la fila: en reposo
-     esto es una lista de temas, no un panel de administración. Va escondida y no
-     sacada, para que la fecha no se corra al aparecer. */
-  /* El ancho es fijo para que los nombres sigan alineados aunque un tema tenga dos
-     partes y otro seis; lo que cambia es cuántas barras entran en el mismo alto. */
+  /* la × va escondida y no sacada para que la fecha no se corra al aparecer */
+  /* la tira es de ancho fijo: cambia cuántas barras entran en el mismo alto */
   #temas .op { align-items: center; }
   #temas .tira {
     flex: none; display: flex; flex-direction: column;

@@ -1,18 +1,12 @@
-// Un midi es una ejecución y chanchán es una maquinita de loops: no se puede
-// copiar uno adentro de la otra, hay que adaptarlo. Esto hace la parte que es
-// cuenta —qué nota cae en qué corchea, qué acorde arma cada compás, qué pistas
-// tocan lo mismo— y deja para la mano lo que es criterio: dónde empieza el
-// estribillo y qué sobra.
+// hace la cuenta de adaptar un midi —qué nota cae en qué corchea, qué acorde arma
+// cada compás— y deja para la mano el criterio
 //
 //   node .claude/midi.mjs "ejemplos/Pink Floyd.mid"                el mapa del tema
 //   node .claude/midi.mjs "ejemplos/Pink Floyd.mid" 3 0 60         una pista
 //   node .claude/midi.mjs "ejemplos/Pink Floyd.mid" 3 0 60 8 abajo forzando la grilla
 //
-// La segunda forma es la que se usa de verdad: saca una pista escrita en pasos
-// de chanchán, compás por compás, lista para pegar y corregir a oído. Los dos
-// últimos argumentos son para cuando la cuenta no acierta: cuántos pasos por
-// compás, y de qué punta agarrar un acompañamiento —por arriba sale la melodía,
-// por abajo el bajo del riff.
+// los dos últimos son para cuando la cuenta no acierta: pasos por compás, y de qué
+// punta agarrar un acompañamiento (arriba la melodía, abajo el bajo del riff)
 import { readFileSync } from 'node:fs';
 
 // ------------------------------------------------------------------ leer el midi
@@ -61,9 +55,7 @@ function abrir(ruta) {
   return { div, pistas };
 }
 
-// Un midi trae las notas apagándose aparte de encendiéndose, y lo que hace falta
-// acá es cuánto dura cada una: sin eso no se sabe si un paso lleva la nota o
-// lleva la anterior estirada.
+// junta cada on con su off: la duración dice si un paso lleva la nota o la ligadura
 function notasDe(ev) {
   const abiertas = new Map(), out = [];
   for (const e of ev) {
@@ -89,10 +81,7 @@ const BEMOLES = ['do', 're bemol', 're', 'mi bemol', 'mi', 'fa',
                  'sol bemol', 'sol', 'la bemol', 'la', 'si bemol', 'si'];
 const OCTAVA = { 2: ' muy grave', 3: ' grave', 4: '', 5: ' agudo', 6: ' muy agudo' };
 
-// La misma tecla negra se llama de dos maneras y sólo una de las dos se puede
-// leer: en Demoliendo Hoteles el acorde es si bemol, no la sostenido, y escrito
-// al revés hay que traducirlo mentalmente en cada compás. Se elige la tonalidad
-// que mejor explica las notas del tema y se escribe con sus alteraciones.
+// se escribe con las alteraciones de la tonalidad que mejor explica las notas
 let NOTA = SOSTENIDOS;
 const MAYOR = [0, 2, 4, 5, 7, 9, 11];
 const CON_BEMOLES = [5, 10, 3, 8, 1];    // fa, si bemol, mi bemol, la bemol, re bemol
@@ -108,9 +97,7 @@ function elegirAlteraciones(notas) {
   NOTA = CON_BEMOLES.includes(mejor) ? BEMOLES : SOSTENIDOS;
 }
 
-// Fuera del rango que chanchán sabe nombrar no hay palabra: se sube o se baja de
-// a octavas hasta que entre, que es lo que hace cualquiera al pasar una parte de
-// orquesta a un instrumento solo.
+// fuera del rango que chanchán sabe nombrar se corre de a octavas hasta que entre
 function palabraNota(midi) {
   let oct = Math.floor(midi / 12) - 1;
   const clase = ((midi % 12) + 12) % 12;
@@ -119,8 +106,7 @@ function palabraNota(midi) {
   return NOTA[clase] + OCTAVA[oct];
 }
 
-// Los golpes del General MIDI. Los que no están —los bongós, las claves— caen en
-// el que más se le parece: chanchán tiene nueve y el GM tiene cuarenta y siete.
+// los cuarenta y siete golpes del GM caen en los nueve de chanchán por parecido
 const GOLPE = {
   35:'pum', 36:'pum', 37:'toc', 38:'tas', 39:'chas', 40:'tas', 41:'tum', 42:'chis',
   43:'tum', 44:'chis', 45:'tum', 46:'tsss', 47:'tum', 48:'tum', 49:'chan', 50:'tum',
@@ -128,13 +114,10 @@ const GOLPE = {
   59:'tin', 60:'tum', 61:'tum', 62:'toc', 63:'tum', 64:'tum', 65:'tum', 66:'tum',
   67:'toc', 68:'toc', 69:'chis', 70:'chis', 75:'toc', 76:'toc', 77:'toc', 80:'tin', 81:'tin',
 };
-// De grave a agudo, igual que la tabla de SONIDOS: cuando dos caen en el mismo
-// paso gana el más grave, que es el que marca el pulso.
+// de grave a agudo como SONIDOS: en el mismo paso gana el más grave
 const PESO = ['pum', 'tum', 'tas', 'toc', 'chas', 'chan', 'tin', 'chis', 'tsss'];
 
-// Los 128 del General MIDI salen de la tabla del propio idioma y en su propio
-// orden, que es el del GM: así el nombre que sale de acá es siempre uno que
-// chanchán sabe leer, y si mañana se renombra un instrumento esto lo sigue.
+// los 128 del GM salen de FAMILIAS en vocabulario.js, que ya va en orden GM
 function instrumentos() {
   const fuente = readFileSync(new URL('../js/vocabulario.js', import.meta.url), 'utf8');
   const cuerpo = fuente.slice(fuente.indexOf('const FAMILIAS = ['));
@@ -144,9 +127,7 @@ function instrumentos() {
 const GM = instrumentos();
 
 // --------------------------------------------------------------- la cuadrícula
-// Lo humanizado se va acá. Se prueba de menos a más y gana la primera grilla que
-// explique casi todo lo que suena: una parte que va en negras no tiene por qué
-// escribirse en semicorcheas sólo porque el que la tocó llegó tarde a una.
+// gana la primera grilla, de menos a más, que explique el 90% de las notas
 function grillaDe(notas, compas) {
   for (const res of [2, 4, 8, 16]) {
     const paso = compas / res;
@@ -180,9 +161,7 @@ function tempos(ruta) {
 }
 
 // ----------------------------------------------------- una pista, compás por compás
-// El resultado es una línea de chanchán por compás. Un paso lleva la nota que
-// empieza ahí; si no empieza ninguna pero la anterior todavía suena, lleva el
-// «_», que es la ligadura; y si no hay nada, el silencio.
+// una línea por compás: la nota que empieza, «_» si la anterior sigue sonando, «-» si nada
 function enPasos(p, compas, desde, hasta, res, voz) {
   res = res || grillaDe(p.notas, compas);
   const paso = compas / res;
@@ -197,9 +176,7 @@ function enPasos(p, compas, desde, hasta, res, voz) {
           const golpes = [...new Set(entran.map(n => GOLPE[n.nota]).filter(Boolean))];
           fila.push(golpes.sort((x, y) => PESO.indexOf(x) - PESO.indexOf(y))[0] || '-');
         } else {
-          // De un acompañamiento salen dos líneas distintas según de qué punta se
-          // lo agarre: por arriba sale la melodía, que es la que se canta, y por
-          // abajo el bajo del riff, que en un boogie es lo que se reconoce.
+          // por arriba sale la melodía, por abajo el bajo del riff
           const alturas = entran.map(n => n.nota);
           fila.push(palabraNota(voz === 'abajo' ? Math.min(...alturas) : Math.max(...alturas)));
         }
@@ -212,9 +189,7 @@ function enPasos(p, compas, desde, hasta, res, voz) {
   return { res, filas };
 }
 
-// Qué acorde arma cada compás, para las partes que acompañan: mirar las notas de
-// a una da una línea ilegible de treinta pasos, y lo que esa parte está diciendo
-// es un acorde por compás.
+// un acompañamiento dice un acorde por compás, no treinta pasos
 const CALIDAD = [[[0, 4, 7], 'mayor'], [[0, 3, 7], 'menor'], [[0, 7], 'quinta'],
                  [[0, 4, 7, 10], 'séptima'], [[0, 3, 6], 'disminuido']];
 
@@ -241,8 +216,7 @@ function enAcordes(p, compas, desde, hasta) {
 }
 
 // ---------------------------------------------------------------------- el mapa
-// Lo que se mira antes de escribir nada: cuántos compases hay, qué toca cada
-// pista, y cuáles compases son el mismo. De ahí salen las secciones.
+// lo que se mira antes de escribir: de los compases iguales salen las secciones
 function mapa(ruta) {
   const ps = pistas(ruta).filter(p => p.notas.length);
   elegirAlteraciones(ps.filter(p => !p.bateria).flatMap(p => p.notas));
@@ -259,7 +233,7 @@ function mapa(ruta) {
       String(p.notas.length).padStart(4) + ' notas, ' + String(g).padStart(2) + ' pasos/compás, ' +
       palabraNota(Math.min(...alturas)) + '..' + palabraNota(Math.max(...alturas)));
   }
-  // los compases iguales, mirando la armonía: es lo que dice dónde vuelve el tema
+  // los compases iguales, por la armonía
   const armonica = ps.filter(p => !p.bateria).sort((a, b) => b.notas.length - a.notas.length)[0];
   const acordes = enAcordes(armonica, compas, 0, nb);
   const vistos = new Map();

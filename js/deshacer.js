@@ -1,7 +1,6 @@
 // --------------------------------------------------------------- deshacer
-// Instantáneas del texto entero: un tema son unos cientos de caracteres, no hace
-// falta nada más fino. El ctrl+Z nativo no sirve acá — asignar src.value le borra
-// el historial de una, y eso pasa en cada cambio del menú y en cada ejemplo.
+// instantáneas del texto entero, que un tema son unos cientos de caracteres; el
+// ctrl+Z nativo no sirve porque asignar src.value le borra el historial
 const historial = [];
 let puntero = -1, grupoTecla = 0, aplicando = false;
 
@@ -21,8 +20,7 @@ function irA(i, cual) {
   aplicando = true;
   const txt = historial[i].txt;
   const ancla = historial[cual === 'deshacer' ? i + 1 : i].ancla;
-  // el cursor vuelve a donde estuvo el cambio: deshaciendo, al principio de lo
-  // que se va; rehaciendo, al final de lo que vuelve
+  // deshaciendo, el cursor va al principio de lo que se va; rehaciendo, al final de lo que vuelve
   const donde = ancla && baseDe(txt.split('\n'), ancla.l) + ancla.i + (cual === 'deshacer' ? 0 : ancla.len);
   escribir(txt, ancla ? donde : undefined);
   actualizar(true);
@@ -37,8 +35,7 @@ document.body.appendChild(botonDeshacer);
 let relojDeshacer;
 const VIDA_DESHACER = 9000;
 
-// el reloj se reinicia al entrar y salir: si el mouse está encima, el botón no se
-// va — irse justo cuando estabas yendo a apretarlo era la mitad del problema
+// el reloj se reinicia al entrar y salir: con el mouse encima, el botón no se va
 function contarParaIrse() {
   clearTimeout(relojDeshacer);
   relojDeshacer = setTimeout(() => {
@@ -49,7 +46,7 @@ function contarParaIrse() {
 
 function mostrarDeshacer(ancla, esRehacer) {
   clearTimeout(relojDeshacer);
-  // chico como el ▾: se sueldan de costado, así que la caja tiene que ser la misma
+  // chico como el ▾: se sueldan de costado, la caja tiene que ser la misma
   botonDeshacer.innerHTML = icono(esRehacer ? 'rehacer' : 'deshacer', 'chica');
   botonDeshacer.title = esRehacer ? 'rehacer' : 'deshacer';
   botonDeshacer.dataset.que = esRehacer ? 'rehacer' : 'deshacer';
@@ -66,8 +63,7 @@ botonDeshacer.addEventListener('mousedown', e => {
   botonDeshacer.dataset.que === 'rehacer' ? rehacer() : deshacer();
 });
 
-// una ráfaga de tecleo es un solo paso para atrás: el grupo sigue abierto
-// mientras no pasen 600 ms sin teclear
+// una ráfaga de tecleo es un solo paso para atrás: 600 ms sin teclear cierran el grupo
 let relojTecla;
 function registrarTecla() {
   registrar(src.value, null, 'tecla' + grupoTecla);

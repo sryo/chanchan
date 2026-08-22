@@ -1,14 +1,11 @@
 // --------------------------------------------------------------- el sugeridor
-// Autocompletar y «sugerir siguiente» son la misma cosa con el prefijo vacío: cada
-// ranura de la plantilla tiene vocabulario cerrado, así que lo que se ofrece no es
-// una adivinanza sino toda la gramática legal en ese punto.
+// autocompletar y «sugerir siguiente» son lo mismo con el prefijo vacío: cada
+// ranura tiene vocabulario cerrado
 
-// dónde está el cursor, en {l, c}, para que pintar() deje ahí el ancla de la que
-// cuelga el panel; lo pone abrirSugeridor() y lo saca cerrarSugeridor()
+// {l, c} del cursor; pintar() deja ahí el ancla de la que cuelga el panel
 let anclaCaret = null;
 
-// Ordena por qué tan bien pega lo tipeado. La pasada por palabra suelta es la que
-// hace que «corche» encuentre «en corcheas», que por prefijo de frase no pegaría.
+// la pasada por palabra suelta es la que hace que «corche» encuentre «en corcheas»
 function candidatos(prefijo, lista, clave = x => x, soloPega) {
   const p = norm(prefijo || '');
   if (!p) return lista.slice();
@@ -23,20 +20,15 @@ function candidatos(prefijo, lista, clave = x => x, soloPega) {
       if (d <= Math.max(2, Math.floor(p.length / 3))) parecidas.push([c, d, n.length]);
     }
   }
-  // el Levenshtein es la red de última hora: si algo empieza como lo tipeado, los
-  // errores de dedo sólo agregan ruido («sinc» traía «si», «tin» y «siku»)
+  // el Levenshtein sólo si nada empieza como lo tipeado: si no «sinc» trae «siku»
   const cual = pega.length ? pega : (soloPega ? [] : parecidas);
   return cual.sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
 }
 
-// En qué ranura de la plantilla cae el cursor, y qué pedazo de texto reemplazaría
-// una sugerencia. No lo puede contestar el parser: traducirLinea compila líneas
-// enteras, y hacerlo consciente del cursor obligaría a manejar entrada a medio
-// escribir en cada una de sus ramas. Con ubicar el verbo y cortar por comas alcanza.
+// no lo contesta el parser: traducirLinea no sabe de líneas a medio escribir
 function ranuraEn(linea, col) {
   const ws = palabras(linea, 0);
   const trozo = (a, z) => ({ desde: a, hasta: z, prefijo: linea.slice(a, z).trim() });
-  // la palabra suelta bajo el cursor, para las ranuras que van palabra por palabra
   const palabraEn = () => trozo(
     col - linea.slice(0, col).match(/[^\s,]*$/)[0].length,
     col + linea.slice(col).match(/^[^\s,]*/)[0].length);
@@ -46,9 +38,7 @@ function ranuraEn(linea, col) {
     return { ranura: 'tempo', ...(m ? trozo(m.index, m.index + m[1].length) : palabraEn()) };
   }
 
-  // «va estrofa estribillo»: los nombres se eligen de a uno, como los pasos, y no
-  // de a línea entera. El tempo ya se fue arriba, así que acá «va» sólo puede ser
-  // la forma —incluso a medio escribir, que es cuando hace falta la lista.
+  // el tempo ya salió arriba, así que «va» acá sólo puede ser la forma
   if (/^\s*(?:(?:la banda|el tema|la cancion|la canción)\s+)?va(\s|$)/i.test(linea))
     return { ranura: 'forma', ...palabraEn() };
 
@@ -57,7 +47,7 @@ function ranuraEn(linea, col) {
 
   const finVerbo = ws[iVerbo].i + ws[iVerbo].w.length;
   if (col <= finVerbo) {
-    // el nombre de la parte es un solo blanco: del artículo (si hay) al verbo
+    // del artículo, si hay, al verbo
     const prim = ws[/^(el|la|los|las)$/i.test(ws[0].w) ? 1 : 0];
     const a = prim && prim.i < ws[iVerbo].i ? prim.i : ws[iVerbo].i;
     return { ranura: 'nombre', ...trozo(a, Math.max(a, ws[iVerbo].i - 1)) };
@@ -69,22 +59,19 @@ function ranuraEn(linea, col) {
   const cual = cl.findIndex(c => col >= c.i && col <= c.i + c.txt.length);
   const c = cl[cual < 0 ? cl.length - 1 : cual];
 
-  // el modo lo fija el primer paso reconocido, y decide qué es legal más adelante:
-  // «en <caja de ritmo>» sólo vale con golpes, «en <instrumento>» sólo con notas
+  // el modo lo fija el primer paso reconocido: «en <caja>» sólo vale con golpes,
+  // «en <instrumento>» sólo con notas
   const pw = palabras(cl[0].txt, cl[0].i);
   const modo = pw.some(x => SONIDOS[norm(x.w)]) ? 'sonido'
              : pw.some(x => NOTAS[norm(x.w)]) ? 'nota' : null;
 
   if (cual > 0) {
-    // «cada cuatro vueltas al doble» se elige en dos tiempos, como en el ▾: si el
-    // prefijo ya está escrito, lo que se está eligiendo es lo que va adentro. El
-    // tramo arranca en el final del prefijo y no después del espacio, así que la
-    // opción se puede pegar con su propio espacio adelante aunque no haya ninguno.
+    // con el prefijo ya escrito se elige lo de adentro. El tramo arranca en el fin
+    // del prefijo y no tras el espacio: la opción trae su propio espacio adelante
     const env = partirEnvoltura(c.txt, c.i);
     if (env && col > env.fin)
       return { ranura: 'clausula', modo, envuelve: true, ...trozo(env.fin, c.i + c.txt.length) };
-    // las cláusulas se matchean enteras («al doble», «en un piano»), así que el
-    // prefijo es toda la cláusula y no la última palabra
+    // las cláusulas se matchean enteras: el prefijo es toda la cláusula
     const a = c.i + c.txt.length - c.txt.replace(/^\s+/, '').length;
     return { ranura: 'clausula', modo, ...trozo(a, c.i + c.txt.length) };
   }
@@ -102,16 +89,13 @@ document.body.appendChild(sugeridor);
 
 let sug = null;
 
-// al revés que ALIAS_MAQUINA: de banco a los apodos con que uno la escribe
 const APODOS_MAQUINA = {};
 for (const [apodo2, banco] of Object.entries(ALIAS_MAQUINA))
   (APODOS_MAQUINA[banco] = APODOS_MAQUINA[banco] || []).push(apodo2);
 
-// «bajo con púa» es masculino y «flauta dulce» femenina: manda el sustantivo, que
-// es la primera palabra, no la última.
+// manda el sustantivo, que es la primera palabra: «bajo con púa», «flauta dulce»
 const cabeza = n => n.split(' ')[0];
-// los plurales en -es no dicen el género, y el parser se come el artículo igual;
-// pero la lista de sugerencias es lo que enseña cómo se escribe el idioma
+// los plurales en -es no dicen el género
 const GENERO = Object.assign(Object.create(null),
   { voz: 'la', voces: 'las', bronces: 'los', duendes: 'los', tambores: 'los' });
 const articuloDe = n => {
@@ -122,12 +106,9 @@ const articuloDe = n => {
 const verboDe = n => ['los', 'las'].includes(articuloDe(n)) ? 'tocan' : 'toca';
 const unDe = n => articuloDe(n).startsWith('la') ? 'en una ' : 'en un ';
 
-// Mismas listas que el menú del ▾, pero para insertar en el cursor y no para
-// reemplazar un token ya parseado: acá la opción lleva «pone», no «nuevo».
+// como el menú del ▾, pero la opción lleva «pone», no «nuevo»
 function seccionesEnCaret(r) {
-  // dos pasadas: primero exigiendo que algo empiece de verdad como lo tipeado, y
-  // sólo si no hay nada se acepta el Levenshtein. Si no, cada sección dispara su
-  // propia red de errores de dedo y «do sost» termina ofreciendo «sol».
+  // el Levenshtein recién si ninguna sección pega: si no «do sost» ofrece «sol»
   const secs = armarSecciones(r, true);
   return secs.length ? secs : armarSecciones(r, false);
 }
@@ -136,25 +117,20 @@ function armarSecciones(r, soloPega) {
   const op = (txt, pone, desc, receta) => ({ txt, desc, receta, pone: pone == null ? txt : pone });
   const filtrar = (ops, pref, clave) =>
     candidatos(pref === undefined ? r.prefijo : pref, ops, clave || (o => o.txt), soloPega);
-  // el nombre de la parte es texto libre: «la bata» no está mal escrito, así que
-  // acá el Levenshtein no corrige nada, sólo ofrece pisar la línea con otra cosa
+  // el nombre de la parte es texto libre: «la bata» no está mal escrito
   const filtrarPega = (ops, pref, clave) => candidatos(pref, ops, clave, true);
   const sec = (titulo, ops) => ops.length ? [{ titulo, ops }] : [];
-  // «melodía», «bata» o «voz» no son instrumentos, pero son lo que uno escribe;
-  // el nombre libre cae en el piano por defecto
+  // no son instrumentos, son lo que uno escribe
   const DE_SIEMPRE = ['melodía', 'bata', 'bajo', 'piano', 'platillos', 'voz'];
 
-  // los alias van aparte: comparten objeto con el instrumento al que apuntan, así
-  // que por .nombre nunca aparecerían («guitarra» dice «viola»)
+  // los alias comparten objeto con su instrumento: por .nombre «guitarra» dice «viola»
   const instrumentos = () => [...new Set(Object.values(INSTRUMENTOS))]
     .map(i => op(i.nombre, i.nombre, i.fam, recetaDe('instrumento', i.nombre)))
     .concat(Object.keys(ALIAS).map(a => op(a, a, ALIAS[a], recetaDe('instrumento', a))));
 
   if (r.ranura === 'linea') {
-    // el prefijo es la línea entera, pero lo único que se elige acá es el nombre de
-    // la parte. Matchear la plantilla completa haría que «la» pegue con «la arpa
-    // toca» por el artículo, y que «la bata toc» pegue con «la gaita toca» por
-    // Levenshtein — y aceptarlo pisaría la línea entera.
+    // se matchea sólo el nombre de la parte: contra la plantilla entera «la» pega
+    // con «la arpa toca» por el artículo
     const ws = norm(r.prefijo).split(/\s+/).filter(Boolean);
     if (/^(el|la|los|las)$/.test(ws[0] || '')) ws.shift();
     if (ws.length > 1 && 'tocan'.startsWith(ws[ws.length - 1])) ws.pop();
@@ -199,17 +175,13 @@ function armarSecciones(r, soloPega) {
   }
 
   if (r.ranura === 'clausula') {
-    // adentro de un «cada cuatro vueltas» sólo entran las que son código: las otras
-    // dos de la tabla arman el patrón o sacan la línea del stack
+    // las no envolvibles arman el patrón o sacan la línea del stack: no son código
     if (r.envuelve)
       return sec('y ahí, qué', filtrar(MODIFICADORES.filter(envolvible)
         .map(m => op(m[0], ' ' + m[0], m[2]))));
     const mods = MODIFICADORES.map(m => op(m[0], null, m[2]));
-    // «en un viol» no empieza como «en una viola»: el artículo no coincide. Se
-    // matchea contra el nombre pelado y se le saca la preposición a lo tipeado.
-    // el artículo puede ser lo último tipeado («en un ») o venir pegado a una
-    // palabra que empieza igual («en laúd»), así que se exige espacio o fin; y va
-    // de más largo a más corto para que «una» no matchee como «un» + «a»
+    // «en un viol» no empieza como «en una viola»: se matchea contra el nombre
+    // pelado. El artículo exige espacio o fin («en laúd»), y «una» antes que «un»
     const m = norm(r.prefijo).match(/^en\s*(?:(?:una|un|los|las|el|la)(?:\s+|$))?\s*(.*)$/);
     const pelado = m ? m[1] : r.prefijo;
     const conEn = r.modo === 'sonido'
@@ -221,8 +193,7 @@ function armarSecciones(r, soloPega) {
     const arreglos = ARREGLOS.map(([n, q]) => op(fraseArreglo(n, q), null, (n + q) + ' vueltas'));
     const euclides = EUCLIDES.map(([n, m]) =>
       op(fraseEuclides(n, m), null, n + ' golpes en ' + m + ' pasos'));
-    // el prefijo solo, sin lo que va adentro: al aceptarlo la cláusula queda a
-    // medio escribir y el sugeridor vuelve a abrirse con la otra mitad
+    // sólo el prefijo: al aceptarlo el sugeridor vuelve a abrirse con la otra mitad
     const envolturas = ENVOLTURAS.map(p => op(p, p + ' ', 'y después, qué hace'));
     return [...sec('cómo', filtrar(mods)),
             ...sec('el reparto', filtrar(euclides)),
@@ -240,8 +211,7 @@ function reemplazarRango(desde, hasta, txt) {
   src.value = src.value.slice(0, desde) + txt + src.value.slice(hasta);
   src.selectionStart = src.selectionEnd = desde + txt.length;
   src.focus();
-  // sin grupo: aceptar una sugerencia es su propio paso de deshacer y no se funde
-  // con la ráfaga de tecleo de alrededor
+  // sin grupo: aceptar es su propio paso de deshacer
   registrar(src.value, { l, i, len: txt.length });
   actualizar(true);
   mostrarDeshacer({ l, i, len: txt.length }, false);
@@ -255,9 +225,7 @@ function aceptarSugerencia(o) {
   if (finLinea && !/\s$/.test(txt)) txt += ' ';
   cerrarSugeridor();
   reemplazarRango(desde, hasta, txt);
-  // Aceptar una opción escribe el valor a mano, así que no dispara el «input» que
-  // reabre esto. Y hay una que deja la cláusula a medio escribir a propósito:
-  // «cada cuatro vueltas» sin nada adentro; volver a mirar es lo que la termina.
+  // asignar .value no dispara «input»; y una envoltura sola pide la otra mitad
   abrirSugeridor(false);
 }
 
@@ -282,13 +250,11 @@ function abrirSugeridor(aPedido) {
   const base = src.value.lastIndexOf('\n', pos - 1) + 1;
   const linea = src.value.split('\n')[l];
   const r = ranuraEn(linea, pos - base);
-  if (r) r.l = l;                       // para que la vista previa suene con el instrumento de la línea
+  if (r) r.l = l;                       // la vista previa suena con el instrumento de la línea
   const secs = r ? seccionesEnCaret(r) : [];
   const ops = secs.flatMap(x => x.ops);
-  // No molestar: sólo aparece con una palabra ya empezada, y nunca si lo único
-  // que hay para ofrecer es lo que ya está escrito. La excepción es la coma:
-  // abrir una cláusula nueva es justo el momento en que no se sabe qué puede ir,
-  // y ahí no hay nada tipeado que pueda estorbar.
+  // sólo con una palabra empezada y algo nuevo que ofrecer; la coma es la
+  // excepción: recién abierta una cláusula es cuando no se sabe qué puede ir
   const reciénAbierta = r.ranura === 'clausula' && !r.prefijo;
   if (!ops.length ||
       (!aPedido && !reciénAbierta &&
@@ -318,8 +284,7 @@ src.addEventListener('keydown', e => {
     sug.elegido = (sug.elegido + (e.key === 'ArrowDown' ? 1 : -1) + sug.ops.length) % sug.ops.length;
     return marcarElegido();
   }
-  // Escape no corta la propagación a propósito: el listener de window también
-  // cierra el menú del ▾, y cerrar uno ya cerrado no hace nada
+  // Escape no corta la propagación: el listener de window cierra también el ▾
   if (['Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) cerrarSugeridor();
 });
 src.addEventListener('input', () => abrirSugeridor(false));

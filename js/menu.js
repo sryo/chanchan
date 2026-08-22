@@ -4,41 +4,30 @@ menu.id = 'menu';
 menu.className = 'panel';
 document.body.appendChild(menu);
 let pidiendoCuadro = false, relojFamilia, esperaOir;
-// qué palabra tiene el mouse encima, y si lo tiene en el ▾: lo escribe el rastro
-// del mouse, al final de este archivo, y lo lee pintar() para el subrayado
+// lo escribe el rastro del mouse, al final; lo lee pintar() para el subrayado
 let señalado = null;
 
-// Para saber sobre qué palabra está el mouse alcanza con probar contra los
-// rectángulos de los spans: #hl es un espejo exacto del textarea.
-// La franja a la derecha de un token cuenta como si fuera el token: es lo que
-// mantiene viva la palabra señalada mientras el mouse va hacia su botón.
-// Esa franja mide exactamente un espacio y ocupa el renglón entero de alto.
-// Así es siempre igual de grande: si midiera más se metería en la palabra de al
-// lado y sus primeros píxeles abrirían el menú de la anterior; si midiera menos
-// quedaría un hueco muerto. Lo que crece es el alto, que es donde sobra sitio.
+// la franja a la derecha de un token cuenta como el token: así la palabra sigue
+// señalada mientras el mouse va hacia su ▾. Un espacio de ancho, el renglón de alto
 
 
-// qué familia muestra la columna de detalle; es estado del menú, no del documento
+// estado del menú, no del documento
 let familiaElegida = null;
 
 function tokenEn(x, y, conManija) {
-  // la franja se guarda pero no corta la vuelta: el cuerpo de un token le gana a
+  // el cuerpo de un token le gana a la franja de otro
   let franja = null;
   for (const sp of hl.querySelectorAll('span[data-tipo]')) {
-    // getClientRects y no getBoundingClientRect: el de una palabra que se parte en
-    // dos renglones devuelve la unión, una caja ancha que cubre medio editor donde
-    // la palabra no está, y se roba los clicks de todo lo que tenga encima
+    // getClientRects y no getBoundingClientRect: la unión de una palabra partida
+    // en dos renglones cubre medio editor
     const trozos = sp.getClientRects();
     for (const r of trozos) {
-      // la caja de una palabra mide lo que mide la letra, no lo que mide el
-      // renglón: se la estira hasta el interlineado para que apuntar no pida
-      // puntería. Los renglones no se pisan, así que no hay ambigüedad.
+      // la caja mide la letra, no el renglón: se la estira hasta el interlineado
       const aire = Math.max(0, (altoRenglon() - r.height) / 2);
       if (y < r.top - aire || y > r.bottom + aire) continue;
       const d = { l: +sp.dataset.l, i: +sp.dataset.i, len: +sp.dataset.len, tipo: sp.dataset.tipo, r };
       if (x >= r.left && x <= r.right) return d;
-      // la franja va sólo en el último trozo, que es donde se posa el botón: en
-      // una palabra partida en dos renglones el ▾ cuelga del final, abajo
+      // sólo en el último trozo: el ▾ cuelga del final de la palabra
       if (conManija && !franja && r === trozos[trozos.length - 1] &&
           x > r.right && x <= r.right + anchoManija()) franja = { ...d, enManija: true };
     }
@@ -75,17 +64,10 @@ const arrastrable = t => t && (t.tipo === 'tempo' || (t.tipo === 'nota' && datos
 
 function seccionesDe(t) {
   const d = datosDe(t), hoy = textoDe(t), voz = vozDeLinea(t.l);
-  // Un paso tiene una de tres cosas: un sonido, un silencio o la anterior
-  // estirada. No son tres dimensiones distintas, son la misma: por eso «-» y «_»
-  // van juntos al pie, con la puesta marcada igual que en las otras columnas.
+  // «-» y «_» van al pie: sonar, callar o estirar es una sola dimensión
   const golpes = Object.entries(SONIDOS).map(([p, [, desc]]) =>
     ({ txt: p, desc, nuevo: p, puesto: norm(hoy) === p, receta: recetaDe('golpe', p) }));
-  // Sin rótulo, y es el único del panel que no lo lleva: los demás nombran la
-  // dimensión que se elige adentro —notas, altura, acorde— y ésta no es una
-  // dimensión, es la salida, que las dos filas ya dicen enteras a la derecha. Y en
-  // versalitas de once píxeles con tracking una palabra de una letra deja de ser
-  // una palabra: «o nada» se leía «0 nada», y alguien vino a preguntar qué era.
-  // La franja se separa sola: cruza el panel entero y tiene su raya arriba.
+  // sin rótulo: en versalitas chicas «o nada» se leía «0 nada»
   const alPie = { titulo: '', pie: true, ops: [
     { txt: '-', desc: 'este paso queda en silencio', nuevo: '-', puesto: hoy === '-' },
     { txt: '_', desc: 'sigue sonando la anterior',   nuevo: '_', puesto: hoy === '_' },
@@ -132,12 +114,11 @@ function seccionesDe(t) {
     const pre = d.conEn ? 'en ' : '';
     const op = i => ({ txt: i.nombre, nuevo: pre + i.nombre,
       puesto: puesta === i, receta: recetaDe('instrumento', i.nombre) });
-    // dos columnas dentro de la misma caja: las familias y la que esté elegida
+    // ver REGLAS.md, 133 instrumentos
     const secs = [];
     const pedido = norm(hoy.replace(/^en (un |una |el |la |los |las )?/, ''));
     const familias = [...FAMILIAS.map(f => f[0]), 'osciladores'];
     const deFamilia = fam => [...new Set(Object.values(INSTRUMENTOS))].filter(i => i.fam === fam);
-    // se abre en la familia del instrumento que ya tiene la línea: caés en contexto
     const puesta = instrumentoDe(pedido);   // «en un piano» y «en piano» son el mismo
     const suya = (puesta || {}).fam;
     const fam = familias.includes(familiaElegida) ? familiaElegida : (suya || familias[0]);
@@ -152,8 +133,7 @@ function seccionesDe(t) {
     return [{ titulo: 'cómo', ops: MODIFICADORES.map(m =>
       ({ txt: m[0], desc: m[2], nuevo: m[0], puesto: norm(hoy) === norm(m[0]) })) }];
 
-  // las dos mitades se leen del texto y no de un estado, así que elegir una
-  // respeta lo que ya decía la otra
+  // las dos mitades se leen del texto: elegir una respeta la otra
   if (t.tipo === 'euclides') {
     const puesto = leerEuclides(hoy);
     return [{ titulo: 'el reparto', ops: EUCLIDES.map(([n, m]) => ({
@@ -187,7 +167,6 @@ function seccionesDe(t) {
       puesto: !!puesta && puesta.n === n && puesta.q === q })) }];
   }
 
-  // sólo se ofrecen las secciones que ya están escritas
   if (t.tipo === 'forma') {
     const vistas = seccionesEscritas();
     if (!vistas.size) return null;
@@ -210,9 +189,8 @@ function seccionesDe(t) {
   return null;
 }
 
-// Barato a propósito: corre en cada cuadro del hover, y seccionesDe() arma el
-// menú entero (hasta 133 instrumentos, o un Levenshtein contra todo el
-// vocabulario si el token es un error). «mal» es el único que hay que preguntar.
+// corre en cada cuadro del hover (ver REGLAS.md, 133 instrumentos): sólo «mal»
+// obliga a armar el menú para saber
 const CON_MENU = ['tempo', 'paso', 'nota', 'instrumento', 'modificador', 'arreglo',
                   'euclides', 'veces', 'forma'];
 const tieneMenu = t => !!t &&
@@ -224,8 +202,7 @@ function editable(x, y) {
 }
 
 // ------------------------------------------------------------- de quién es esto
-// sin parte no hay color: devuelve null y el que lo use se queda con la tinta
-// de la página
+// sin parte, null: queda la tinta de la página
 const colorDelToken = t => t && vozDeLinea(t.l) ? tintaDe(vozDeLinea(t.l)) : null;
 
 function pintarDeQuien(el, t) {
@@ -247,10 +224,8 @@ function pintarPanel(panel, secs, t, dueño = t) {
       (o.familia ? '<span class="d">' + icono('chevron', 'chica derecha') + '</span>' : '') +
       '</div>').join('') + '</div>').join('');
 
-  // auto-fit crea tantas pistas de 118px como entren en la ventana y deja colapsar
-  // las vacías, pero la franja del pie las abarca todas con 1/-1 y eso se lo
-  // impide: el menú terminaba midiendo la pantalla entera con el contenido a un
-  // tercio. Se fija la cantidad real de columnas.
+  // con auto-fit el pie, que abarca 1/-1, impide colapsar las pistas vacías y el
+  // menú mide la pantalla entera: se fija la cantidad real de columnas
   const columnas = secs.filter(x => x.ops.length && !x.pie).length;
   panel.style.gridTemplateColumns = 'repeat(' + columnas + ', minmax(118px, max-content))';
 
@@ -260,7 +235,7 @@ function pintarPanel(panel, secs, t, dueño = t) {
       clearTimeout(esperaOir);
       clearTimeout(relojFamilia);
       if (o.receta) esperaOir = setTimeout(() => oir(o.receta), 120);
-      // el panel no se mueve, así que abrir familia al pasar es seguro, salvo
+      // el panel no se mueve: abrir familia al pasar es seguro, salvo yendo al detalle
       if (o.familia) relojFamilia = setTimeout(() => {
         if (vaHaciaElDetalle()) return;
         verFamilia(o.familia, t);
@@ -269,9 +244,8 @@ function pintarPanel(panel, secs, t, dueño = t) {
     el.addEventListener('mouseleave', () => { clearTimeout(esperaOir); clearTimeout(relojFamilia); });
     el.addEventListener('mousedown', e => {
       e.preventDefault();
-      // elegir vuelve a pintar el panel, y el listener de window que cierra «lo
-      // de afuera» llegaría con un blanco ya suelto del documento: adentro de
-      // nada. Una opción nunca es afuera.
+      // al repintar, el blanco del mousedown queda suelto del documento y window
+      // lo vería «afuera»
       e.stopPropagation();
       if (o.hacer) { o.hacer(); return cerrarMenu(); }
       if (o.familia) return verFamilia(o.familia, t);
@@ -290,16 +264,12 @@ function acomodar(el, r) {
 }
 
 // ------------------------------------------------- el triángulo de seguridad
-// Yendo en diagonal desde una familia hacia la columna de al lado se cruzan otras
-// familias, y cada una cambiaría el detalle abajo del mouse. Mientras el puntero
-// va dentro del triángulo que forman su posición anterior y el borde cercano de
-// la columna de detalle, se entiende que va hacia ahí y no se cambia de familia.
-// Hace falta un rastro y no una sola posición: dos mousemove seguidos están a
-// milisegundos, y con el vértice pegado al punto el triángulo se abre tanto que
-// bloquea todo, incluso bajar derecho por la columna.
+// en diagonal de una familia al detalle se cruzan otras familias: mientras el
+// puntero va dentro del triángulo entre donde estaba y el borde del detalle no se
+// cambia. Un rastro y no un punto: con el vértice pegado el triángulo tapa todo
 const rastro = [];
-const PLAZO_TRIANGULO = 300;   // sin esto, apoyar el mouse y esperar no haría nada
-const VENTANA_RASTRO = 200;    // cuánto para atrás se mira para sacar la dirección
+const PLAZO_TRIANGULO = 300;   // apoyar el mouse y esperar tiene que destrabar
+const VENTANA_RASTRO = 200;
 
 menu.addEventListener('mousemove', e => {
   const ahora = performance.now();
@@ -326,7 +296,6 @@ function vaHaciaElDetalle() {
   return dentroDelTriangulo(act, ant, { x: r.left, y: r.top }, { x: r.left, y: r.bottom });
 }
 
-// cambiar de familia repinta sólo la columna de detalle; el panel se queda quieto
 function verFamilia(fam, t) {
   if (fam === familiaElegida) return;
   familiaElegida = fam;
@@ -337,8 +306,7 @@ function abrirMenu(t) {
   const secs = seccionesDe(t);
   if (!secs) return;
   tokenDelMenu = t;
-  // las notas van en columnas: apiladas son 738 px y hay que scrollear para
-  // llegar a «acorde», que es justo lo que más se cambia
+  // apiladas las notas miden 738 px y «acorde» queda abajo del scroll
   menu.classList.toggle('columnas',
     t.tipo === 'instrumento' || t.tipo === 'nota' || t.tipo === 'paso');
   pintarPanel(menu, secs, t);
@@ -364,10 +332,8 @@ manija.title = 'qué otra cosa puede ir acá';
 document.body.appendChild(manija);
 let tokenDelMenu = null;
 
-// «señalado» guarda apenas dónde está el mouse, sin el tipo; el token entero se
-// vuelve a armar del span, que es el que sabe qué es cada cosa. El último trozo:
-// una palabra partida termina abajo, y la caja de la unión arranca en el margen
-// izquierdo, donde la palabra no está.
+// «señalado» no trae el tipo: se rearma del span. El último trozo, porque una
+// palabra partida termina abajo y la unión arranca en el margen
 function tokenDelSpan(t) {
   const sp = t && hl.querySelector('span[data-l="' + t.l + '"][data-i="' + t.i + '"]');
   const trozos = sp ? sp.getClientRects() : [];
@@ -377,7 +343,7 @@ function tokenDelSpan(t) {
 
 function ponerManija(t) {
   const quien = tokenDelSpan(tokenDelMenu || t);
-  // fuera de cuadro cuando el renglón se fue con el scroll
+  // el renglón se fue con el scroll
   if (!quien || !tieneMenu(quien) || quien.r.top < hl.getBoundingClientRect().top) {
     manija.classList.remove('vivo');
     manija.colgadoDe = null;
@@ -389,9 +355,8 @@ function ponerManija(t) {
   pegarA(manija, quien, 0);
 }
 
-// El subrayado de la palabra sale sólo cuando el mouse está en el ▾, o mientras
-// su menú está abierto: ahí dice a cuál de las palabras pertenece el botón, que
-// es lo único que no se ve solo. Sobre la palabra misma sería ruido.
+// el subrayado sale sólo con el mouse en el ▾ o con su menú abierto: dice de qué
+// palabra es el botón
 let sobreElBoton = false;
 const enElBoton = () => sobreElBoton || !!tokenDelMenu;
 const mirarBoton = quieto => { sobreElBoton = quieto; realzar(); };
@@ -406,8 +371,6 @@ manija.addEventListener('mousedown', e => {
 });
 
 // ------------------------------------------ el rastro del mouse, y el arrastre
-// Va acá y no en el sugeridor porque todo lo que toca es de este archivo: el ▾,
-// la palabra bajo el mouse, arrastrar el tempo y las notas, y cerrar el menú.
 src.addEventListener('mousemove', e => {
   if (pidiendoCuadro) return;
   pidiendoCuadro = true;
@@ -418,7 +381,6 @@ src.addEventListener('mousemove', e => {
     const t = tieneMenu(bajo) ? bajo : null;
     const antes = señalado && señalado.l + ':' + señalado.i + ':' + señalado.m;
     const ahora = t && t.l + ':' + t.i + ':' + !!t.enManija;
-    // el ns-resize de las notas pide Alt; el tempo se arrastra sin apretar nada
     src.style.cursor = !t ? ''
       : t.tipo === 'tempo' ? 'ew-resize'
       : e.altKey && arrastrable(t) ? 'ns-resize' : '';
@@ -429,25 +391,22 @@ src.addEventListener('mousemove', e => {
   });
 });
 src.addEventListener('mouseleave', e => {
-  // irse hacia el propio ▾, o hacia el menú que abrió, no es irse
+  // irse al ▾ o al menú no es irse
   if (tokenDelMenu || dentroDe(e.relatedTarget, manija, menu)) return;
   if (!señalado) return;
   señalado = null; realzar(); ponerManija(null);
 });
-// va en mousedown y no en click, para ganarle al textarea antes de que mueva el cursor
+// en mousedown y no en click: le gana al textarea antes de que mueva el cursor
 let arrastre = null;
 const UMBRAL = 3;
 
-// soltar Alt sin mover el mouse tiene que limpiar el cursor de resize
+// sin mover el mouse no hay mousemove que limpie el cursor
 addEventListener('keyup', e => { if (e.key === 'Alt') src.style.cursor = ''; });
 
 src.addEventListener('mousedown', e => {
   cerrarMenu();
-  // El click del ▾ lo recibe el propio botón, que está por encima del textarea.
-  // El tempo se arrastra sin apretar nada: es un número suelto y ahí no hay
-  // texto que uno quiera seleccionar arrastrando —para eso queda el doble
-  // click—. Las notas siguen pidiendo Alt, que es lo que las salva de pelearse
-  // con la selección en medio de una línea llena de palabras.
+  // el tempo se arrastra sin Alt: es un número suelto y no hay texto que
+  // seleccionar; las notas lo piden para no pelearse con la selección
   const t = editable(e.clientX, e.clientY);
   if (!t || !arrastrable(t) || (!e.altKey && t.tipo !== 'tempo')) return;
   e.preventDefault();
@@ -487,8 +446,7 @@ addEventListener('mousemove', e => {
 });
 
 addEventListener('mouseup', () => { arrastre = null; });
-// el botón de la selección abre el menú en su propio mousedown, y este listener
-// corre después por burbujeo: sin exceptuarlo cierra lo que aquél acaba de abrir
+// botonSel abre el menú en su mousedown y éste llega después: lo cerraría
 addEventListener('mousedown', e => {
   if (!dentroDe(e.target, menu, src, botonSel, manija)) cerrarMenu();
 });

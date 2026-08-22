@@ -1,6 +1,4 @@
-// Servidor estático mínimo para mirar la página mientras se la edita.
-// La app no lo necesita para andar: es un montón de archivos sueltos y alcanza
-// con abrir index.html. Esto es sólo para no depender de file://.
+// servidor estático para no depender de file://; la página anda abriendo index.html a mano
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';

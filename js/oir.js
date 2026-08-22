@@ -1,10 +1,7 @@
 // ---------------------------------------------------------------- oír de a uno
-// superdough es el mismo motor que usa el reloj, pero llamado a mano no le pisa
-// el patrón a nadie: se puede probar un sonido sin cortar el tema que está yendo.
+// superdough a mano no le pisa el patrón al reloj: se prueba sin cortar el tema
 
-// Una sola fuente de verdad para «a qué suena esto», compartida por el menú y el
-// sugeridor. Probar una nota suena con el instrumento de la línea donde está el
-// cursor y no con el piano; los graves abajo, si no no se les oye el cuerpo.
+// los bajos dos octavas abajo: si no no se les oye el cuerpo
 function vozPara(voz) {
   const ins = instrumentoDe(voz || '') || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO];
   return { s: ins.sonido, oct: ins.fam === 'bajos' ? OCTAVA_BASE - 2 : OCTAVA_BASE };
@@ -38,11 +35,8 @@ function recetaDe(que, clave, voz) {
 const precalentados = new Set();
 let vueltaOir = 0, relojDormir;
 
-// Parar no detiene el reloj de strudel: lo que de verdad calla el tema es
-// suspender el audio (ver silenciar()). Y la vista previa necesita el audio
-// despierto para sonar, así que al despertarlo revivía el tema entero. Se lo
-// devuelve a dormir en cuanto la muestra terminó, salvo que mientras tanto
-// hayas apretado tocar.
+// parar no detiene el reloj de strudel, sólo suspende el audio (silenciar()):
+// despertarlo para la muestra revive el tema, así que se lo vuelve a dormir
 function volverADormir(dura) {
   clearTimeout(relojDormir);
   relojDormir = setTimeout(() => {
@@ -51,10 +45,8 @@ function volverADormir(dura) {
   }, (dura + .6) * 1000);
 }
 
-// La muestra se baja recién cuando se usa, y superdough agenda la nota a 30 ms:
-// la primera vez el mp3 llega a los ~280 ms, con el momento ya pasado, y no suena
-// nada. Así que la primera vez se dispara muda y se espera su promesa, que resuelve
-// cuando el buffer está listo; recién ahí suena de verdad.
+// superdough agenda a 30 ms y la muestra se baja al usarla, así que la primera
+// vez llega tarde y no suena: se dispara muda y se espera a que el buffer esté
 async function oir(receta) {
   if (!motorListo || !receta) return;
   const mia = ++vueltaOir;
@@ -74,9 +66,7 @@ async function oir(receta) {
     }
     const ahora = ctx.currentTime;   // después del await ya avanzó
     for (const voz of receta.voces)
-      // el release corto es lo que corta la cola: sin él la muestra sigue sonando
-      // como un segundo y medio después de lo que dura la nota, y si vas
-      // recorriendo la lista se te encima con la siguiente
+      // el release corto corta la cola: sin él la muestra sigue un segundo y medio
       strudel.superdough({ gain: .8, release: .12, ...voz }, ahora + .03 + (voz.en || 0), receta.dura);
     if (dormido) volverADormir(receta.dura + Math.max(0, ...receta.voces.map(v => v.en || 0)));
   } catch (e) { /* si falla la muestra, mejor mudo que roto */ }

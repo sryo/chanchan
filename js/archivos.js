@@ -1,22 +1,18 @@
 // ------------------------------------------------------------ pasar archivos
-// Un tema es texto, así que un archivo de tema es ese texto pelado: no lleva
-// encabezado ni nada que parsear, y el nombre del tema es el nombre del archivo.
-// Lo mismo que viaja en el enlace, pero como algo que se manda y se guarda.
+// un archivo de tema es el texto pelado, sin encabezado; el nombre del tema es el del archivo
 const btnArchivo = document.getElementById('archivo');
 const EXT = '.txt';
 
 const nombreDeArchivo = f => f.name.replace(/\.[^.]*$/, '');
-// «/» y «:» no entran en un nombre de archivo en ningún sistema
+// lo que ningún sistema acepta en un nombre de archivo
 const comoArchivo = nombre => (nombre.trim() || 'sin título').replace(/[\/:\\?%*|"<>]/g, '-') + EXT;
 
-// sin una línea con «toca» no hay tema; lo mismo que pide temaPegado()
+// lo mismo que pide temaPegado()
 const pareceUnTema = txt => /\btocan?\b/i.test(txt);
 
 // ------------------------------------------------------------------ el handle
-// Guardar dos veces tiene que escribir el mismo archivo y no dejar una fila de
-// copias numeradas, así que el handle del archivo elegido queda acá, por nombre
-// de tema. No entra en localStorage —no es serializable—, así que dura lo que
-// dura la pestaña: al recargar, el primer guardado vuelve a preguntar dónde.
+// guardar dos veces tiene que escribir el mismo archivo, así que el handle queda por
+// nombre de tema; no es serializable, dura lo que dura la pestaña
 const handles = new Map();
 
 async function puedeEscribir(h) {
@@ -53,7 +49,7 @@ async function guardarArchivo() {
     if (tema) handles.set(tema, h);
     decirEnElEnlace('archivo guardado');
   } catch (e) {
-    // cancelar el diálogo no es un error: es no querer guardar
+    // cancelar el diálogo no es un error
     if (e && e.name === 'AbortError') return;
     avisar('no se pudo guardar el archivo: ' + String((e && e.message) || e));
   }
@@ -70,9 +66,7 @@ async function abrirArchivos(entradas) {
     if (!pareceUnTema(txt)) { sobran.push(archivo.name); continue; }
     leidos.push({ nombre, txt, handle });
   }
-  // El aviso va después de cargar y no en el momento de descartar: cargarTema()
-  // termina en actualizar(), que rehace el cajón de errores de cero y se lo
-  // llevaría puesto.
+  // después de cargar: cargarTema() termina en actualizar(), que rehace el cajón de errores
   const quejarse = () => {
     for (const n of sobran)
       avisar('«' + n + '» no parece un tema: no tiene ninguna línea con «toca».');
@@ -97,8 +91,7 @@ async function elegirArchivo() {
     } catch (e) { return; }                       // lo cancelaron
     return abrirArchivos(await Promise.all(hs.map(async h => deArchivo(await h.getFile(), h))));
   }
-  // el input escondido es el que anda en todos lados; se rehace en cada uso para
-  // que elegir dos veces el mismo archivo vuelva a disparar el change
+  // se rehace en cada uso: si no, elegir dos veces el mismo archivo no dispara el change
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = EXT + ',text/plain';
@@ -108,8 +101,7 @@ async function elegirArchivo() {
 }
 
 // ------------------------------------------------------------------- soltarlos
-// Vale la página entera, no hay zona a la que apuntar. Un cartel tapando el tema
-// para avisar que se puede soltar un tema es justamente lo que no hace falta.
+// vale la página entera: no hay zona a la que apuntar
 let arrastres = 0;
 
 const marcarSoltadero = si => document.body.classList.toggle('soltando', si);
@@ -119,9 +111,8 @@ addEventListener('dragenter', e => {
   arrastres++;
   marcarSoltadero(true);
 });
-// dragenter y dragleave llegan de a pares por cada hijo que se cruza, así que
-// contarlos es lo único que distingue «salí de la página» de «pasé de un span al
-// de al lado»
+// dragenter y dragleave llegan de a pares por cada hijo que se cruza: contarlos
+// es lo que distingue salir de la página de pasar de un span al de al lado
 addEventListener('dragleave', () => { if (--arrastres <= 0) { arrastres = 0; marcarSoltadero(false); } });
 addEventListener('dragover', e => {
   if (![...e.dataTransfer.types].includes('Files')) return;
@@ -135,10 +126,8 @@ addEventListener('drop', async e => {
   e.preventDefault();
   arrastres = 0;
   marcarSoltadero(false);
-  // getAsFileSystemHandle() devuelve el handle del archivo que se soltó, así que
-  // soltarlo, cambiarlo y guardarlo escribe encima del original: el ciclo
-  // entero sin pasar nunca por un diálogo. Donde no está, queda el File pelado y
-  // guardar pregunta dónde, que es lo de siempre.
+  // getAsFileSystemHandle() trae el handle de lo que se soltó: cambiarlo y guardarlo
+  // escribe encima del original sin diálogo
   const entradas = await Promise.all(items.map(async x => {
     const handle = x.getAsFileSystemHandle ? await x.getAsFileSystemHandle().catch(() => null) : null;
     const archivo = handle && handle.getFile ? await handle.getFile() : x.getAsFile();

@@ -23,10 +23,8 @@ function tokensEnSeleccion() {
   return out.sort((x, y) => x.abs - y.abs);
 }
 
-// ::selection es uno solo para todo el textarea y no puede ir renglón por
-// renglón: se tiñe mientras la selección no se salga de una parte y cae en tinta
-// de página en cuanto cruza. El cursor siempre tiene dueño salvo que la línea no
-// se entienda todavía, así que tomar color es el aviso gratis de que compiló.
+// ::selection es uno solo para todo el textarea: se tiñe mientras la selección
+// no cruce de parte. Que el cursor tome color es el aviso de que la línea compiló
 function tenirTextarea() {
   const a = src.selectionStart, b = src.selectionEnd;
   const tocadas = [];
@@ -53,7 +51,7 @@ function mirarSeleccion() {
   pegarA(botonSel, toks[toks.length - 1]);
 }
 
-// se reescribe de derecha a izquierda: si no, cada cambio corre los offsets que siguen
+// de derecha a izquierda: así ningún cambio corre los offsets que siguen
 function aplicarAVarios(fn) {
   let txt = src.value;
   for (const t of tokensSel.slice().sort((a, b) => b.abs - a.abs)) {
@@ -70,8 +68,7 @@ function transponer(delta) {
   const notas = tokensSel.filter(t => t.raiz);
   if (!notas.length) return;
   const semis = notas.map(semiDe);
-  // el recorte se calcula para el grupo entero: recortando nota por nota se
-  // romperían los intervalos y la melodía quedaría aplastada
+  // el recorte es del grupo entero: nota por nota rompería los intervalos
   const d = delta > 0 ? Math.min(delta, SEMI_MAX - Math.max(...semis))
                       : Math.max(delta, SEMI_MIN - Math.min(...semis));
   if (!d) return;

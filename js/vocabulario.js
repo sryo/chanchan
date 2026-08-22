@@ -1,7 +1,5 @@
 // ---------------------------------------------------------------- vocabulario
-// La tabla va de grave a agudo, y ese orden después se lee: de él salen la luz
-// con la que el editor pinta cada golpe y el lugar de la percusión en la rueda
-// de colores. Mover una fila mueve un color, así que no es un orden cualquiera.
+// de grave a agudo: del orden salen la altura y el color de cada golpe
 const SONIDOS = {
   pum:  ['bd',  'bombo'],
   tum:  ['mt',  'tom'],
@@ -19,19 +17,19 @@ const ACORDES = {
   mayor:      [0, 4, 7],
   menor:      [0, 3, 7],
   quinta:     [0, 7],        // la viola distorsionada toca dos notas, no tres
-  séptima:    [0, 4, 7, 10], // el acorde del boogie: do séptima = do mi sol si bemol
+  séptima:    [0, 4, 7, 10], // la de dominante, la del boogie
   disminuido: [0, 3, 6],
 };
 const CROMATICA = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
 const GRADOS = { c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
-// strudel no entiende «do mayor» como acorde: hay que darle las tres notas juntas
+// strudel no entiende «do mayor»: hay que darle las notas
 const nombreNota = (semi, oct) => CROMATICA[((semi % 12) + 12) % 12] + (oct + Math.floor(semi / 12));
 const OCTAVAS = { 'muy grave':2, grave:3, agudo:5, 'muy agudo':6 };
 const OCTAVA_BASE = 4;
 
 const armarNota = p => [p.raiz, p.altN, p.octN, p.acorde].filter(Boolean).join(' ');
 
-// altura como un número solo, para poder subirla y bajarla de a un semitono
+// la altura como un número, para subirla y bajarla de a un semitono
 const OCT_NOMBRE = Object.fromEntries(Object.entries(OCTAVAS).map(([k, v]) => [v, k]));
 const SEMI_MIN = 12 * 2, SEMI_MAX = 12 * 6 + 11;   // de do muy grave a si muy agudo
 const semiDe = d => GRADOS[NOTAS[d.raiz]] +
@@ -47,22 +45,17 @@ function notaDesdeSemi(semi, acorde) {
 }
 
 // ------------------------------------------------------------------- la altura
-// Cinco escalones, los mismos para un tambor que para un do, así que las dos
-// maneras de escribir un paso se pueden comparar. El editor los
-// pinta con la luz de la tinta —lo grave pesa, lo agudo es aire—, así que un
-// bajo se ve hundido y una melodía que sube se ve subir sin leer las palabras.
+// cinco escalones, los mismos para un golpe que para una nota, así se comparan
 const ALTURAS = 5;
 const ALTO_GOLPE = {};
 Object.keys(SONIDOS).forEach((w, i, t) =>
   ALTO_GOLPE[w] = 1 + Math.round(i / (t.length - 1) * (ALTURAS - 1)));
-// las octavas van de 2 a 6 y ya vienen ordenadas: alcanza con correrlas al uno
+// las octavas van de 2 a 6
 const altoDeOctava = oct => Math.min(ALTURAS, Math.max(1, oct - 1));
 
 const GM = 'https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/';
 
-// El nombre de la parte elige el instrumento: «la viola toca» ya suena a viola.
-// Son los 128 del General MIDI, agrupados como los agrupa el propio GM.
-// Muestras: soundfont FluidR3 (CC-BY 3.0) vía gleitz.github.io/midi-js-soundfonts.
+// los 128 del General MIDI, en sus familias; muestras del soundfont FluidR3 (CC-BY 3.0)
 const FAMILIAS = [
   ['pianos', {
     'piano de concierto':'acoustic_grand_piano', 'piano brillante':'bright_acoustic_piano',
@@ -137,9 +130,7 @@ const FAMILIAS = [
     'aplausos':'applause', 'disparo':'gunshot' }],
 ];
 
-// Los que no salen del soundfont. El piano de dough-samples tiene 29 muestras y
-// suena mejor que el del GM, así que «piano» es ése. Los osciladores no dependen
-// de la red: si el soundfont no carga, siempre queda algo con qué sonar.
+// «piano» es el de dough-samples, que suena mejor que el del GM; los osciladores suenan sin red
 const SIN_GM = {
   'piano':      { fam:'pianos',      sonido:'piano',    cola:'' },
   'zumbido':    { fam:'osciladores', sonido:'sine',     cola:'.attack(.05).release(.3)' },
@@ -157,8 +148,7 @@ const ALIAS = {
 const INSTRUMENTO_POR_DEFECTO = 'piano';
 const MAQUINA = 'linndrum';
 
-// Las cajas de ritmo salen del pack que ya se carga. Se leen del propio strudel
-// en vez de escribirlas a mano, así la lista siempre es la que de verdad hay.
+// las cajas de ritmo se le preguntan a strudel: son las del pack que ya carga
 const MARCAS = ['rolandcompurhythm', 'roland', 'akai', 'korg', 'yamaha', 'boss', 'casio',
   'alesis', 'linn', 'emu', 'oberheim', 'sequentialcircuits', 'simmons', 'mfb', 'doepfer',
   'sakata', 'univox', 'soundmaster'];
@@ -192,9 +182,7 @@ function maquinas() {
 }
 const maquinaDe = n => maquinas()[norm(n)];
 
-// La cuarta columna, cuando está, es cada cuántas vueltas el modificador vuelve
-// al principio. No es lo mismo que «.slow(2)», que estira la línea: «rodando»
-// dura lo mismo pero tarda cuatro vueltas en repetirse.
+// la cuarta columna es cada cuántas vueltas vuelve al principio; distinto de .slow(), que estira
 const MODIFICADORES = [
   ['al doble',            '.fast(2)',           'el doble de rápido'],
   ['a la mitad',          '.slow(2)',           'la mitad de rápido'],
@@ -202,14 +190,12 @@ const MODIFICADORES = [
   ['a un octavo',         '.slow(8)',           'ocho veces más lento'],
   ['cada golpe dos veces',  '.ply(2)',          'cada paso suena dos veces seguidas'],
   ['cada golpe tres veces', '.ply(3)',          'cada paso suena tres veces seguidas'],
-  // separan el qué del cuándo: la nota la pone la línea, el pulso lo ponen estos
   ['en negras',           '.struct("x*4")',     'cada nota, cuatro veces por vuelta'],
   ['en corcheas',         '.struct("x*8")',     'cada nota, ocho veces por vuelta'],
   ['sincopado',           '.struct("x ~ ~ x ~ ~ x ~")', 'en el uno, la y de dos y el cuatro'],
   ['callado',             'mute',               'no suena, pero queda escrito'],
   ['bajito',              '.gain(.45)',         'más callado'],
   ['fuerte',              '.gain(1.3)',         'más alto'],
-  // cuánto dura cada nota, que no es lo mismo que cada cuánto entra
   ['corto',               '.clip(.3)',          'cada nota dura un suspiro'],
   ['largo',               '.clip(2)',           'cada nota se estira sobre la siguiente'],
   ['entrando despacio',   '.attack(.3)',        'no arranca de golpe, aparece'],
@@ -230,16 +216,13 @@ const MODIFICADORES = [
   ['perdiendo golpes',    '.degradeBy(.3)',     'de a ratos falta uno'],
   ['de un lado al otro',  '.pan(sine)',         'se mueve entre los parlantes'],
   ['cruzado',             '.jux(rev)',          'a un parlante como está, al otro al revés'],
-  // el acorde ya lo arma la línea: esto elige si suena junto o de a una nota
   ['arpegiado',           '.arp("0 1 2 3")',    'el acorde se desarma en notas, subiendo'],
   ['arpegiado bajando',   '.arp("2 1 0")',      'el acorde se desarma en notas, bajando'],
   ['una por vuelta',      '<>',                 'en vez de sonar juntos, se turnan'],
 ];
 
 // ------------------------------------------------------------------ el arreglo
-// «cuatro vueltas sí y cuatro no» no puede ser una fila más de la tabla: los
-// números los pone el que escribe. Se arma y se lee acá, y de las mismas dos
-// funciones salen las que ofrecen el menú y el sugeridor, así nunca discrepan.
+// lleva números, así que no es una fila de la tabla; el menú y el sugeridor salen de estas mismas funciones
 const NUMEROS = ['cero', 'una', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete',
                  'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis'];
 const VUELTAS_MAX = 32;                    // más que esto es una máscara ilegible
@@ -261,15 +244,13 @@ function leerArreglo(texto) {
   return n >= 1 && q >= 1 && n + q <= VUELTAS_MAX ? { n, q } : null;
 }
 
-// Un elemento de <> dura una vuelta, así que <1 1 0 0> son dos sonando y dos
-// calladas, y la cuenta vuelve a empezar sola.
+// en <> cada elemento dura una vuelta: <1 1 0 0> son dos sí y dos no
 const mascaraDe = (n, q) => '.mask("<' + ('1 '.repeat(n) + '0 '.repeat(q)).trim() + '>")';
 
 const ARREGLOS = [[1, 1], [2, 2], [4, 4], [8, 8], [3, 1], [1, 3], [2, 6], [6, 2]];
 
 // -------------------------------------------------------- el reparto euclidiano
-// «tres en ocho» acomoda tres golpes en ocho pasos lo más parejo que se puede.
-// Con dos números salen el tresillo, la clave y la chacarera.
+// «tres en ocho»: tres golpes repartidos parejo en ocho pasos
 const PASOS_MAX = 32;
 const EUCLIDES = [[3, 8], [5, 8], [3, 4], [5, 16], [7, 16], [2, 3]];
 const fraseEuclides = (n, m) => enLetras(n) + ' en ' + enLetras(m);
@@ -282,8 +263,7 @@ function leerEuclides(texto) {
 }
 
 // ------------------------------------------------- las que envuelven a otra frase
-// Adentro llevan otra frase de la tabla y la aplican de a ratos. Sirven todas
-// menos las dos que no son código: «callado» y «una por vuelta».
+// llevan adentro otra frase de la tabla y la aplican de a ratos
 const VECES = [
   ['de vez en cuando', '.rarely',       'una de cada cuatro vueltas, más o menos'],
   ['a veces',          '.sometimes',    'la mitad de las veces'],
@@ -294,8 +274,7 @@ const VECES = [
 const ENVOLTURAS = [2, 3, 4, 8].map(k => 'cada ' + enLetras(k) + ' vueltas')
   .concat(VECES.map(v => v[0]));
 
-// Se mide por palabras y no cortando el string: «de vez en cuando» son cuatro y
-// «a veces» dos, y normalizar el texto entero movería los índices.
+// por palabras: normalizar el texto entero movería los índices
 function partirEnvoltura(texto, base = 0) {
   const ws = palabras(texto, base);
   for (let k = Math.min(4, ws.length); k >= 2; k--) {
@@ -314,8 +293,7 @@ const modificadorDe = t => MODIFICADORES.find(m => norm(m[0]) === norm(t));
 const envolvible = mod => !!mod && mod[1] !== 'mute' && mod[1] !== '<>';
 const comoFuncion = codigo => 'x => x' + codigo;
 
-// Las dos devuelven, además del código, cada cuántas vueltas vuelven al principio;
-// si lo de adentro tiene su propio período, la línea es el mcm de los dos.
+// «vueltas» y «adentro» son los dos períodos; el mcm lo saca el traductor
 function leerCada(texto) {
   const t = norm(texto).match(/^cada (\S+) vueltas?\s*(.*)$/);
   if (!t) return null;
@@ -344,14 +322,11 @@ const SUJETO_BANDA = /^(?:la banda |el tema |la cancion )?/;
 
 // ------------------------------------------------------------- la forma
 
-// cuántas vueltas puede durar un tema entero: es lo que la cinta dibuja de punta
-// a punta, y más que esto no se ve como una forma, se ve como una tira
+// más que esto la cinta no se lee como una forma
 const VUELTAS_FORMA = 256;
 
-// Devuelve el nombre dos veces: «nombre» normalizado, que es con el que se
-// compara, y «escrito» como se tecleó, que es el que se muestra —quien escribe
-// «la sección:» tiene que ver «sección» y no «seccion»—. Las dos listas de
-// palabras se corresponden una a una porque norm() no parte ni junta palabras.
+// «nombre» es el normalizado, para comparar; «escrito» como se tecleó, para mostrar.
+// crudas y cuerpo van palabra a palabra porque norm() no parte ni junta palabras
 function leerSeccion(texto) {
   if (/\b(toca|tocan)\b/i.test(texto)) return null;
   const m = texto.match(/^\s*(.*?)\s*:\s*$/);
@@ -362,8 +337,6 @@ function leerSeccion(texto) {
   const suyas = crudas.slice(-cuerpo.split(' ').length);
   const dura = cuerpo.match(/^(\S+)\s+dura\s+(\S+)\s+vueltas?$/);
   const nombre = dura ? dura[1] : cuerpo;
-  // el que no entra se muestra entero y como se escribió, y va bajo «escrito» para
-  // que «nombre» sea siempre el normalizado
   if (!/^[a-z0-9]+$/.test(nombre)) return { falla: 'nombre', escrito: suyas.join(' ') };
   const escrito = suyas[0];
   if (!dura) return { nombre, escrito, vueltas: null };
@@ -372,9 +345,7 @@ function leerSeccion(texto) {
   return { nombre, escrito, vueltas: v };
 }
 
-// «va estrofa estrofa estribillo». Lo que decide entre la forma y el tempo es lo
-// que sigue a «va»: se pide el número y no sólo el «a» porque una sección se
-// puede llamar «a», y entonces «va a b c» es una forma de tres.
+// «va a» es tempo sólo con número: una sección se puede llamar «a»
 function leerForma(texto) {
   if (/\b(toca|tocan)\b/i.test(texto)) return null;
   const m = norm(texto).replace(SUJETO_BANDA, '').match(/^va\s+(.+)$/);
@@ -382,25 +353,21 @@ function leerForma(texto) {
   return { nombres: m[1].split(' ').filter(Boolean) };
 }
 
-// lo que acepta el reloj, y lo mismo que el menú y el arrastre ofrecen:
-// una sola cuenta, así el ▾ nunca escribe un número que después es un error
+// el mismo rango que ofrecen el menú y el arrastre
 const TEMPO_MIN = 20, TEMPO_MAX = 400;
 
 function esTempo(texto) {
-  // una línea con «toca» es una parte, aunque se llame «la banda»: sin esto,
-  // «la banda toca pum - pum -» salía con un error sobre el tempo
+  // «la banda toca…» es una parte
   if (/\b(toca|tocan)\b/i.test(texto)) return false;
-  // «el tema va estrofa» es la forma y no un tempo mal escrito; sin este corte
-  // caía acá por el sujeto y pedía que le escribieran un número
+  // «el tema va estrofa» es la forma
   if (leerForma(texto)) return false;
   const dos = norm(texto).split(' ').slice(0, 2).join(' ');
   return dos === 'va a' || SUJETOS_BANDA.includes(dos);
 }
 
-// «séptima» se busca sin tilde, como sale escrito de cualquier teclado apurado
 const ACORDE = Object.fromEntries(Object.entries(ACORDES).map(([k, v]) => [norm(k), v]));
 
-// el nombre que strudel va a ver: sin tildes, sin espacios, una sola palabra
+// el nombre que strudel va a ver
 const apodo = s => norm(s).replace(/[^a-z0-9]/g, '');
 const INSTRUMENTOS = {};
 for (const [fam, tabla] of FAMILIAS)
@@ -410,14 +377,11 @@ for (const [nombre, o] of Object.entries(SIN_GM))
   INSTRUMENTOS[norm(nombre)] = { nombre, ...o };
 for (const [de, a] of Object.entries(ALIAS))
   INSTRUMENTOS[norm(de)] = INSTRUMENTOS[norm(a)];
-// Se consultan con la palabra tal como la escribió el usuario, y «constructor»
-// es una palabra: sin prototipo, lo que no está en la tabla no está.
+// «constructor» es una palabra: sin prototipo, lo que no está no está
 for (const t of [SONIDOS, NOTAS, ALTERACIONES, OCTAVAS, ACORDE, INSTRUMENTOS]) Object.setPrototypeOf(t, null);
 const instrumentoDe = n => INSTRUMENTOS[norm(n)];
 
-// Los alias van aparte: INSTRUMENTOS[«guitarra»] apunta al mismo objeto que
-// «viola», así que su .nombre es «viola» y la palabra que el usuario escribió no
-// aparecería nunca en esta lista.
+// los alias van aparte: su .nombre es el del instrumento al que apuntan
 const TODAS_LAS_PALABRAS = () => [
   ...Object.keys(SONIDOS), ...Object.keys(NOTAS), ...Object.keys(ALTERACIONES), ...Object.keys(ACORDES),
   ...Object.keys(OCTAVAS), ...new Set(Object.values(INSTRUMENTOS).map(i => i.nombre)), ...Object.keys(ALIAS),

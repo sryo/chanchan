@@ -1,10 +1,4 @@
-// Con un solo ámbito compartido, lo que sale mal entre archivos no se ve a simple
-// vista y el navegador no dice la otra mitad: dos declaraciones con el mismo
-// nombre tiran la página entera («Identifier X has already been declared»), una
-// variable escrita desde un archivo que no es el suyo anda hasta que alguien
-// mueve algo, una local que se llama como un global esconde al global, y una
-// línea de primer nivel que nombra algo de un archivo que carga después revienta
-// recién al abrir la página. Esto lo dice. Las reglas, en REGLAS.md.
+// los choques del ámbito compartido que el navegador no dice; las reglas, en REGLAS.md
 //   node .claude/revisar.mjs
 import { readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -12,26 +6,20 @@ import { spawnSync } from 'node:child_process';
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const ORDEN = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map(m => m[1]);
 
-// Lo que eval() necesita del global para poder tocar: un const/let de primer
-// nivel con uno de estos nombres no choca con ningún archivo nuestro, pero tapa
-// la propiedad de window y el síntoma es «no suena nada», que es peor de
-// rastrear que un choque. Van también los globales del navegador que se
-// declaran sin querer.
+// lo que eval() necesita del global —una declaración nuestra lo tapa sin chocar y
+// no suena nada— y los globales del navegador que se declaran sin querer
 const RESERVADOS = new Set([
   's', 'n', 'note', 'sound', 'stack', 'setcpm', 'setcps', 'sine', 'saw', 'square',
   'tri', 'rand', 'perlin', 'hush', 'evaluate', 'samples', 'initStrudel', 'getTime',
   'getAudioContext', 'strudel', 'chord', 'voicing',
-  // las que ahora aparecen adentro del código que se genera: si alguna quedara
-  // tapada por una declaración nuestra, el síntoma es una línea que no suena
+  // las que aparecen en el código generado
   'every', 'sometimes', 'rarely', 'arp', 'rev', 'iter', 'ply', 'palindrome',
   'clip', 'crush', 'vowel', 'distort', 'jux', 'orbit', 'range',
   'arrange', 'silence', 'timeCat', 'cat', 'slowcat', 'seq',
   'name', 'status', 'origin', 'length', 'top', 'event', 'self', 'parent', 'closed',
 ]);
 
-// Se lee el código sin comentarios ni cadenas ni expresiones regulares, que es
-// donde «let» o «=» aparecen sin ser nada; los renglones se conservan para poder
-// decir en cuál.
+// saca comentarios, cadenas y regex, conservando los renglones
 function pelar(fuente) {
   let out = '', i = 0;
   const n = fuente.length;
@@ -69,9 +57,7 @@ function pelar(fuente) {
 
 const ID = /[A-Za-zÀ-ÿ_$][\w$À-ÿ]*/g;
 
-// Un declarador puede traer varios nombres: «const a = 1, b = 2». Hay que
-// separar por las comas de afuera de todo paréntesis, si no «const f = (x, y) =>»
-// aportaría una «y» fantasma.
+// separa por las comas de afuera de todo paréntesis: «const f = (x, y) =>» no trae una «y»
 function nombresDe(linea) {
   const m = linea.match(/^(?:const|let|var)\s+/);
   if (!m) {
@@ -130,8 +116,7 @@ for (const { archivo, lineas } of archivos) {
   let profundidad = 0;
   lineas.forEach((linea, i) => {
     const nro = i + 1, arriba = profundidad === 0;
-    // adentro de algo: por las llaves de los renglones de arriba, o por una
-    // abierta más a la izquierda en este mismo renglón («const f = () => { let x»)
+    // cuenta también las llaves abiertas más a la izquierda en este mismo renglón
     const adentro = hasta => profundidad + [...linea.slice(0, hasta)].reduce((n, c) => n + ('({['.includes(c) ? 1 : ')}]'.includes(c) ? -1 : 0), 0) > 0;
     for (const d of linea.matchAll(/\b(?:const|let|var)\s+([A-Za-zÀ-ÿ_$][\w$À-ÿ]*)/g))
       if (adentro(d.index) && donde.has(d[1])) avisar('sombra: %s:%d declara «%s», que es global en %s', archivo, nro, d[1], donde.get(d[1]));
@@ -139,8 +124,7 @@ for (const { archivo, lineas } of archivos) {
       for (const m of linea.matchAll(/(?:^|[^.\w$])([A-Za-zÀ-ÿ_$][\w$À-ÿ]*)\s*(?:=(?!=)|\+=|-=)/g))
         if (variables.has(m[1]) && variables.get(m[1]) !== archivo)
           avisar('ajeno: %s:%d escribe «%s», que es de %s', archivo, nro, m[1], variables.get(m[1]));
-    // una función o una flecha de primer nivel recién corre cuando la llaman; lo
-    // demás corre al cargar, y ahí lo que carga después todavía no existe
+    // una función de primer nivel recién corre cuando la llaman; lo demás, al cargar
     if (arriba && linea.trim() && !/^(function|class)\b/.test(linea) && !/=>|\bfunction\b/.test(linea))
       for (const id of linea.match(ID) || [])
         if (donde.has(id) && turno.get(donde.get(id)) > turno.get(archivo))
@@ -149,10 +133,7 @@ for (const { archivo, lineas } of archivos) {
   });
 }
 
-// Los temas viven en temas/*.txt y js/ejemplos.js sale de ahí. Si el js quedó
-// viejo no hay ningún síntoma —la página abre y anda, con los temas de antes—,
-// que es exactamente la clase de problema que este script existe para decir. Le
-// pregunta al generador en vez de rehacer la cuenta: el que sabe es él.
+// ejemplos.js sale de temas/*.txt y un js viejo no da ningún síntoma: se le pregunta al generador
 const temas = spawnSync(process.execPath, [new URL('temas.mjs', import.meta.url).pathname, '--ver'],
   { encoding: 'utf8' });
 if (temas.status) {
@@ -160,8 +141,7 @@ if (temas.status) {
   choques++;
 }
 
-// Y lo que el traductor da por cada tema, contra la última vez que alguien dijo
-// «esto está bien»: probar.mjs lo explica.
+// y lo que da el traductor contra esperado.json: probar.mjs
 const fotos = spawnSync(process.execPath, [new URL('probar.mjs', import.meta.url).pathname], { encoding: 'utf8' });
 if (fotos.status) { console.error((fotos.stderr || '').trim() || 'no se pudo probar el traductor'); choques++; }
 

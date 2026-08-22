@@ -1,13 +1,9 @@
-// Los temas son archivos: uno por tema, en temas/, con el nombre puesto en el
-// nombre del archivo. Pero la página tiene que andar abriendo index.html a mano
-// —eso lo promete servidor.mjs— y fetch no llega a un archivo local, así que los
-// que vienen hechos se hornean acá adentro de js/ejemplos.js.
+// hornea temas/*.txt en js/ejemplos.js: desde file:// fetch no llega a un archivo local
 //
 //     node .claude/temas.mjs          los hornea
 //     node .claude/temas.mjs --ver    dice si el js quedó viejo, sin tocar nada
 //
-// El js que sale va versionado igual que el resto: es lo que hace que un clon
-// recién bajado tenga los temas sin correr nada.
+// el js va versionado: un clon recién bajado tiene los temas sin correr nada
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 
 const raiz = new URL('../', import.meta.url);
@@ -15,9 +11,7 @@ const carpeta = new URL('temas/', raiz);
 const destino = new URL('js/ejemplos.js', raiz);
 const INDICE = 'orden.txt';
 
-// El índice da el orden y las notas de cada tema. Una nota es el bloque de
-// renglones con # que viene justo arriba de un nombre; los de más arriba de todo,
-// separados por un renglón en blanco, son del archivo y no de ningún tema.
+// una nota es el bloque de # justo arriba de un nombre; separado por un blanco, es del archivo
 function leerIndice() {
   let crudo;
   try { crudo = readFileSync(new URL(INDICE, carpeta), 'utf8'); }
@@ -54,9 +48,7 @@ function leerTemas() {
     })) };
 }
 
-// Ninguno de los temas de hoy tiene una comilla invertida ni un «${», pero el
-// que salga de un editor cualquiera podría, y un literal roto no se ve hasta que
-// la página no abre.
+// un literal roto no se ve hasta que la página no abre
 const enLiteral = txt => txt.replace(/[\\`]/g, c => '\\' + c).replace(/\$\{/g, '\\${');
 
 const CABEZA = `// ------------------------------------------------------------------ los temas

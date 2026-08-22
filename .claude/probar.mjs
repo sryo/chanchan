@@ -1,9 +1,4 @@
-// El traductor es el producto, y hasta acá no tenía ninguna prueba: un cambio en
-// una tabla o en una rama del parser podía cambiar lo que sale de cualquier tema
-// sin que nada lo dijera. Esto compila los temas que vienen hechos y una lista
-// de renglones que alguna vez salieron mal, y compara con lo que salió la última
-// vez que alguien dijo «esto está bien». No prueba contra strudel —eso es del
-// navegador—: prueba que el castellano siga dando el mismo código.
+// fotos del traductor: que el castellano siga dando el mismo código, sin strudel
 //   node .claude/probar.mjs            compara con esperado.json
 //   node .claude/probar.mjs --rehacer  acepta lo de ahora como lo esperado
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -12,8 +7,7 @@ import { runInContext, createContext } from 'node:vm';
 const raiz = new URL('../', import.meta.url);
 const leer = f => readFileSync(new URL(f, raiz), 'utf8');
 
-// Los scripts son scripts comunes que esperan un documento: lo justo para que
-// carguen. Ninguno de estos cuatro toca el DOM para traducir.
+// lo justo de documento para que carguen; ninguno toca el DOM para traducir
 const ctx = createContext({
   console,
   document: { documentElement: { dataset: { luz: 'claro' } } },
@@ -26,8 +20,7 @@ for (const f of ['texto', 'ejemplos', 'vocabulario', 'color', 'traductor'])
 const traducir = runInContext('traducir', ctx);
 const EJEMPLOS = runInContext('EJEMPLOS', ctx);
 
-// Renglones que alguna vez salieron mal, con el caso junto: si uno de éstos
-// cambia, alguien tocó justo lo que ya se había arreglado.
+// renglones que alguna vez salieron mal
 const CASOS = [
   ['al revés es una llamada',           'la viola toca do re, al revés'],
   ['que se abre no estira la vuelta',   'el bajo toca do - - -, que se abre'],
@@ -77,8 +70,7 @@ for (const clave of new Set([...Object.keys(esperado), ...Object.keys(ahora)])) 
     if (JSON.stringify(esperado[clave][campo]) !== JSON.stringify(ahora[clave][campo]))
       console.error('  %s\n    era:   %s\n    ahora: %s', campo, JSON.stringify(esperado[clave][campo]), JSON.stringify(ahora[clave][campo]));
 }
-// Los errores que el idioma ya reporta solo se cuentan aparte, porque un tema
-// que viene hecho no puede tener ninguno.
+// un tema que viene hecho no puede traer errores
 for (const e of EJEMPLOS)
   if (ahora['tema: ' + e.nombre].errores.length) { distintas++; console.error('«%s» trae errores: %s', e.nombre, ahora['tema: ' + e.nombre].errores.join(' | ')); }
 

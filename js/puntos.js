@@ -4,14 +4,11 @@ const puntos = document.createElement('div');
 puntos.id = 'puntos';
 document.querySelector('.wrap').appendChild(puntos);
 
-// el parser acepta «callado» en cualquier cláusula, así que preguntarle a él y
-// no a una regex que lo exige al final: si no, «pum, callado, fuerte» sale
-// silenciado por el compilador y el puntito lo muestra sonando
+// el parser acepta «callado» en cualquier cláusula, así que no se busca al final
 const sacarCallado = ln => ln.replace(/\s*,\s*callado\b/i, '');
 const ponerCallado = ln => sacarCallado(ln) + ', callado';
 
-// tempo, sección, forma y lo que no se entiende tienen menú pero no son partes:
-// un puntito al lado decía que había algo para callar
+// tienen menú pero no son partes: nada que callar
 const NO_SUENA = ['tempo', 'mal', 'seccion', 'forma'];
 
 function lineasQueSuenan(marcas) {
@@ -36,11 +33,10 @@ function armarPuntos(marcas, calladas, renglones = actual.renglones) {
     if (color.has(l)) b.style.color = color.get(l);
     b.dataset.l = l;
     b.title = 'silenciar · may+click deja sólo ésta';
-    // los puntitos se rehacen en cada tecleo: sin esto, escribir con el mouse
-    // apoyado en una franja apagaba el punto que esa franja tenía encendido
+    // se rehacen en cada tecleo, y el que la franja tiene señalado no se puede perder
     if (l === franjaSeñalada) b.classList.add('senalado');
     puntos.appendChild(b);
-    // centrado contra el alto real del renglón: si cambia la fuente sigue andando
+    // centrado contra el alto real del renglón
     b.style.top = (y + (sr.height - b.offsetHeight) / 2) + 'px';
   }
 }
