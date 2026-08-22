@@ -5,7 +5,7 @@ tema. Esto es todo lo que se puede escribir.
 
 ## una parte
 
-    la bata toca pum tas pum tas
+    la bata toca pum pa pum pa
     el bajo toca do - sol -, bajito
     las cuerdas tocan do mayor | fa mayor, en corcheas, con eco
 
@@ -25,9 +25,10 @@ Golpes, para la batería:
 - `pum` bombo
 - `dum` tom grave
 - `tum` tom
-- `tas` redoblante
+- `tim` tom agudo
+- `pa` redoblante
 - `toc` aro
-- `chas` palmas
+- `plas` palmas
 - `clon` cencerro
 - `chan` platillo
 - `tin` ride
@@ -51,7 +52,7 @@ Acordes, con el nombre después de la nota:
 
 Y cuatro signos: `-` es un silencio, `_` estira el paso anterior, `|` separa
 compases — cada compás dura una vuelta, y cada uno reparte sus pasos por su cuenta—,
-y un `!` pegado al paso lo acentúa: `pum! tas pum tas`.
+y un `!` pegado al paso lo acentúa: `pum! pa pum pa`.
 
     el piano toca do mayor _ _ _ | fa mayor - fa mayor -
 
@@ -108,12 +109,12 @@ Entra y sale: `una vuelta sí y una no`, `dos vueltas sí y dos no`, `cuatro vue
 
 Varias cosas después de la coma van separadas por comas:
 
-    la bata toca pum tas pum tas, en una 808, cada cuatro vueltas al doble, bajito
+    la bata toca pum pa pum pa, en una 808, cada cuatro vueltas al doble, bajito
 
 ## una sección
 
     la estrofa:
-    la bata toca pum tas pum tas
+    la bata toca pum pa pum pa
     el bajo toca do - sol -
 
     el estribillo dura 8 vueltas:

@@ -106,16 +106,16 @@ function palabraNota(midi) {
   return NOTA[clase] + OCTAVA[oct];
 }
 
-// los cuarenta y siete golpes del GM caen en los nueve de chanchán por parecido
+// los cuarenta y siete golpes del GM caen en los trece de chanchán por parecido
 const GOLPE = {
-  35:'pum', 36:'pum', 37:'toc', 38:'tas', 39:'chas', 40:'tas', 41:'tum', 42:'chis',
-  43:'tum', 44:'chis', 45:'tum', 46:'tsss', 47:'tum', 48:'tum', 49:'chan', 50:'tum',
-  51:'tin', 52:'chan', 53:'tin', 54:'chis', 55:'chan', 56:'toc', 57:'chan', 58:'tum',
+  35:'pum', 36:'pum', 37:'toc', 38:'pa', 39:'plas', 40:'pa', 41:'dum', 42:'chis',
+  43:'dum', 44:'chis', 45:'tum', 46:'tsss', 47:'tum', 48:'tim', 49:'chan', 50:'tim',
+  51:'tin', 52:'chan', 53:'tin', 54:'chis', 55:'chan', 56:'clon', 57:'chan', 58:'tum',
   59:'tin', 60:'tum', 61:'tum', 62:'toc', 63:'tum', 64:'tum', 65:'tum', 66:'tum',
-  67:'toc', 68:'toc', 69:'chis', 70:'chis', 75:'toc', 76:'toc', 77:'toc', 80:'tin', 81:'tin',
+  67:'toc', 68:'toc', 69:'shh', 70:'shh', 75:'toc', 76:'toc', 77:'toc', 80:'tin', 81:'tin', 82:'shh',
 };
 // de grave a agudo como SONIDOS: en el mismo paso gana el más grave
-const PESO = ['pum', 'tum', 'tas', 'toc', 'chas', 'chan', 'tin', 'chis', 'tsss'];
+const PESO = ['pum', 'dum', 'tum', 'tim', 'pa', 'toc', 'plas', 'clon', 'chan', 'tin', 'chis', 'shh', 'tsss'];
 
 // los 128 del GM salen de FAMILIAS en vocabulario.js, que ya va en orden GM
 function instrumentos() {

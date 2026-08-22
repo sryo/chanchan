@@ -1,12 +1,15 @@
 // ---------------------------------------------------------------- vocabulario
 // de grave a agudo: del orden salen la altura y el color de cada golpe
+// la vocal dice la altura —u grave, a medio, i agudo— y la consonante el material: p parche
+// al centro, t/d parche al borde y madera, ch/ts/sh metal y aire, pl/cl lo que se choca
 const SONIDOS = {
   pum:  ['bd',  'bombo'],
   dum:  ['lt',  'tom grave'],
   tum:  ['mt',  'tom'],
-  tas:  ['sd',  'redoblante'],
+  tim:  ['ht',  'tom agudo'],
+  pa:   ['sd',  'redoblante'],
   toc:  ['rim', 'aro'],
-  chas: ['cp',  'palmas'],
+  plas: ['cp',  'palmas'],
   clon: ['cb',  'cencerro'],
   chan: ['cr',  'platillo'],
   tin:  ['rd',  'ride'],
@@ -14,6 +17,8 @@ const SONIDOS = {
   shh:  ['sh',  'shaker'],
   tsss: ['oh',  'hi-hat abierto'],
 };
+// los nombres de antes: el aviso dice cómo se escriben ahora
+const GOLPES_VIEJOS = { tas: 'pa', chas: 'plas' };
 const NOTAS = { do:'c', re:'d', mi:'e', fa:'f', sol:'g', la:'a', si:'b' };
 const ALTERACIONES = { sostenido:'#', bemol:'b' };
 const ACORDES = {
@@ -402,7 +407,7 @@ for (const [nombre, o] of Object.entries(SIN_GM))
 for (const [de, a] of Object.entries(ALIAS))
   INSTRUMENTOS[norm(de)] = INSTRUMENTOS[norm(a)];
 // «constructor» es una palabra: sin prototipo, lo que no está no está
-for (const t of [SONIDOS, NOTAS, ALTERACIONES, OCTAVAS, ACORDE, INSTRUMENTOS, FIGURAS, RETIRADOS]) Object.setPrototypeOf(t, null);
+for (const t of [SONIDOS, NOTAS, ALTERACIONES, OCTAVAS, ACORDE, INSTRUMENTOS, FIGURAS, RETIRADOS, GOLPES_VIEJOS]) Object.setPrototypeOf(t, null);
 const instrumentoDe = n => INSTRUMENTOS[norm(n)];
 
 // los alias van aparte: su .nombre es el del instrumento al que apuntan

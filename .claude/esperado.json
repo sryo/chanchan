@@ -301,10 +301,21 @@
   "tempos": []
  },
  "golpes nuevos": {
-  "codigo": "setcpm(90/4)\ns(\"bd lt cb sh\").bank(\"linndrum\").orbit(0)",
+  "codigo": "setcpm(90/4)\ns(\"bd lt mt ht cb sh\").bank(\"linndrum\").orbit(0)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [],
+  "tramos": [],
+  "tempos": []
+ },
+ "los golpes viejos avisan": {
+  "codigo": "setcpm(90/4)\ns(\"bd\").bank(\"linndrum\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: «tas» ahora se escribe «pa».",
+   "1: «chas» ahora se escribe «plas»."
+  ],
   "tramos": [],
   "tempos": []
  },

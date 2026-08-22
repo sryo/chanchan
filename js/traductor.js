@@ -93,7 +93,7 @@ function traducirLinea(texto, nro) {
   // ---- la <parte> toca <pasos>[, <modificador>]*
   const iVerbo = ws.findIndex(x => /^(toca|tocan)$/i.test(x.w));
   if (iVerbo < 0) {
-    error(0, texto.length, 'no entiendo la línea. Va «la bata toca pum - tas -» o «va a 92».');
+    error(0, texto.length, 'no entiendo la línea. Va «la bata toca pum - pa -» o «va a 92».');
     return { tipo: 'mala', tk, errs };
   }
   // el nombre entero es un solo token, para que el menú lo cambie de una; el artículo va aparte y pesa menos
@@ -178,6 +178,8 @@ function traducirLinea(texto, nro) {
       k = k2 - 1;
     } else if (w === '.') {
       error(pw[k].i, pw[k].w.length, 'el silencio es «-».');
+    } else if (GOLPES_VIEJOS[w]) {
+      error(pw[k].i, pw[k].w.length, '«' + w + '» ahora se escribe «' + GOLPES_VIEJOS[w] + '».');
     } else {
       const s = parecida(pw[k].w);
       error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
@@ -190,7 +192,7 @@ function traducirLinea(texto, nro) {
     // el token no toma el espacio de después del verbo; si no el ▾ pega «tocapum»
     const sobra = clausulas[0].txt.length - clausulas[0].txt.trimStart().length;
     const desde = clausulas[0].i + sobra;
-    error(desde, Math.max(1, clausulas[0].txt.trim().length), 'falta qué tocar: «' + nombre + ' toca pum - tas -».');
+    error(desde, Math.max(1, clausulas[0].txt.trim().length), 'falta qué tocar: «' + nombre + ' toca pum - pa -».');
     return { tipo: 'mala', tk, errs };
   }
 

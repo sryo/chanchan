@@ -34,7 +34,7 @@ tema. Esto es todo lo que se puede escribir.
 
 ## una parte
 
-    la bata toca pum tas pum tas
+    la bata toca pum pa pum pa
     el bajo toca do - sol -, bajito
     las cuerdas tocan do mayor | fa mayor, en corcheas, con eco
 
@@ -61,7 +61,7 @@ ${lista(Object.keys(ACORDES).map(a => codigo('do ' + a) + ' ' + (ACORDES_GLOSA[a
 
 Y cuatro signos: ${codigo('-')} es un silencio, ${codigo('_')} estira el paso anterior, ${codigo('|')} separa
 compases — cada compás dura una vuelta, y cada uno reparte sus pasos por su cuenta—,
-y un ${codigo('!')} pegado al paso lo acentúa: ${codigo('pum! tas pum tas')}.
+y un ${codigo('!')} pegado al paso lo acentúa: ${codigo('pum! pa pum pa')}.
 
     el piano toca do mayor _ _ _ | fa mayor - fa mayor -
 
@@ -88,12 +88,12 @@ Entra y sale: ${ARREGLOS.map(([n, q]) => codigo(fraseArreglo(n, q))).join(', ')}
 
 Varias cosas después de la coma van separadas por comas:
 
-    la bata toca pum tas pum tas, en una 808, cada cuatro vueltas al doble, bajito
+    la bata toca pum pa pum pa, en una 808, cada cuatro vueltas al doble, bajito
 
 ## una sección
 
     la estrofa:
-    la bata toca pum tas pum tas
+    la bata toca pum pa pum pa
     el bajo toca do - sol -
 
     el estribillo dura 8 vueltas:

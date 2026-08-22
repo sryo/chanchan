@@ -20,18 +20,18 @@ la bata toca pum pum pum pum pum pum pum pum
 el bajo toca re muy grave re muy grave re muy grave re muy grave re muy grave - - -
 
 la estrofa:
-la bata toca pum tas pum tas pum tas pum tas
+la bata toca pum pa pum pa pum pa pum pa
 el bajo toca re muy grave _ - la muy grave re muy grave _ - la muy grave | mi muy grave _ - la muy grave mi muy grave _ - la muy grave | do sostenido muy grave _ - la muy grave do sostenido muy grave _ - la muy grave | re muy grave _ - la muy grave re muy grave _ - la muy grave
 la viola eléctrica toca la la la sol mi re _ re | re do sostenido re mi _ - sol fa | sol sol fa sol sol fa sol mi | do sostenido mi fa re re la grave mi sol
 la viola distorsionada toca re menor | mi menor | do sostenido disminuido | re menor, bajito
 
 el estribillo:
-la bata toca pum tas pum tas pum tas pum tas
+la bata toca pum pa pum pa pum pa pum pa
 el bajo toca fa muy grave | do muy grave | si bemol muy grave | re muy grave, en corcheas
 la viola distorsionada toca fa quinta | do quinta | si bemol quinta | re quinta, en corcheas
 
 el final:
-la bata toca pum tas pum tas pum tas pum tas
+la bata toca pum pa pum pa pum pa pum pa
 el bajo toca si bemol muy grave | fa muy grave | sol muy grave | la muy grave, en corcheas
 la viola distorsionada toca si bemol quinta | fa quinta | sol quinta | la quinta, en corcheas
 
@@ -62,7 +62,7 @@ el tema va entrada estrofa estrofa entrada estrofa entrada` },
   { nombre: "babasónico", txt:
 `va a 110
 
-la bata toca pum - chis chis tas chis pum - - - tas - chis chis chis -
+la bata toca pum - chis chis pa chis pum - - - pa - chis chis chis -
 
 la entrada:
 el bajo toca fa muy grave _ - fa muy grave _ _ _ fa muy grave | re muy grave _ _ _ _ _ - re muy grave | do muy grave _ _ _ _ _ - do muy grave | do muy grave _ _ _ - - do muy grave _

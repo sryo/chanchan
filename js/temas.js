@@ -37,7 +37,7 @@ function desdeCuando(t) {
 }
 
 // apretar uno escribe y suena; queda como hoja tuya, sin nombre
-const RENGLONES_DE_MUESTRA = ['la bata toca pum tas pum tas', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
+const RENGLONES_DE_MUESTRA = ['la bata toca pum pa pum pa', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
 
 function armarVacio() {
   const mios = misTemas();
