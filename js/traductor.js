@@ -120,11 +120,14 @@ function traducirLinea(texto, nro) {
 
   // ---- los pasos
   // la barra no es un paso: corta, y cada tramo reparte los suyos
-  const pasos = [], lugares = [], pasoTk = [], cortes = [];
+  const pasos = [], lugares = [], pasoTk = [], cortes = [], acentos = [];
   let modo = null, primerGolpe = null;
   const pw = palabras(clausulas[0].txt, clausulas[0].i);
   for (let k = 0; k < pw.length; k++) {
-    const w = norm(pw[k].w);
+    // «pum!»: el paso va acentuado; el signo es parte de la palabra
+    const acento = /!$/.test(pw[k].w);
+    const w = norm(pw[k].w).replace(/!$/, '');
+    if (acento && !(SONIDOS[w] || NOTAS[w])) { error(pw[k].i, pw[k].w.length, 'el «!» va pegado a un golpe o a una nota: «pum!».'); continue; }
     if (w === '|') {
       marcar(pw[k].i, pw[k].w.length, 'estructura');
       cortes.push(pasos.length);
@@ -139,7 +142,7 @@ function traducirLinea(texto, nro) {
       pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'sonido', { tipo: 'paso', alto: ALTO_GOLPE[w] }));
       if (!primerGolpe) primerGolpe = w;
       if (modo === 'nota') { roto = true; error(pw[k].i, pw[k].w.length, 'no mezclés golpes con notas en la misma línea: hacé dos líneas.'); }
-      pasos.push(SONIDOS[w][0]); lugares.push({ i: pw[k].i, len: pw[k].w.length });
+      pasos.push(SONIDOS[w][0]); lugares.push({ i: pw[k].i, len: pw[k].w.length }); acentos[pasos.length - 1] = acento;
       modo = 'sonido';
     } else if (NOTAS[w]) {
       let oct = OCTAVA_BASE, alt = '', acorde = '', fin = pw[k].i + pw[k].w.length;
@@ -170,6 +173,7 @@ function traducirLinea(texto, nro) {
         pasos.push(NOTAS[w] + alt + oct);
       }
       if (modo === 'sonido') { roto = true; error(pw[k].i, fin - pw[k].i, 'no mezclés golpes con notas en la misma línea: hacé dos líneas.'); }
+      acentos[pasos.length - 1] = acento;
       modo = 'nota';
       k = k2 - 1;
     } else if (w === '.') {
@@ -316,6 +320,9 @@ function traducirLinea(texto, nro) {
   };
   const juntar = lista => cortes.length ? porCompases(lista) : lista.join(' ');
   const patron = juntar(pasos);
+  // velocity y no gain: multiplica, así «bajito» y el acento conviven
+  if (acentos.some(Boolean))
+    cola = '.velocity("' + juntar(pasos.map((x, k) => (x === '-' || x === '_') ? x : acentos[k] ? '1.4' : '1')) + '")' + cola;
   let codigo;
   if (modo === 'nota') {
     const ins = instrumento || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO];

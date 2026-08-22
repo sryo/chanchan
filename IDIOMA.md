@@ -49,8 +49,9 @@ Acordes, con el nombre después de la nota:
 - `do suspendido` ni mayor ni menor, en el aire
 - `do aumentado` el mayor estirado, el raro
 
-Y tres signos: `-` es un silencio, `_` estira el paso anterior, `|` separa
-compases — cada compás dura una vuelta, y cada uno reparte sus pasos por su cuenta.
+Y cuatro signos: `-` es un silencio, `_` estira el paso anterior, `|` separa
+compases — cada compás dura una vuelta, y cada uno reparte sus pasos por su cuenta—,
+y un `!` pegado al paso lo acentúa: `pum! tas pum tas`.
 
     el piano toca do mayor _ _ _ | fa mayor - fa mayor -
 

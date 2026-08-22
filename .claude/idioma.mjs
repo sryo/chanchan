@@ -59,8 +59,9 @@ Acordes, con el nombre después de la nota:
 
 ${lista(Object.keys(ACORDES).map(a => codigo('do ' + a) + ' ' + (ACORDES_GLOSA[a] || '')))}
 
-Y tres signos: ${codigo('-')} es un silencio, ${codigo('_')} estira el paso anterior, ${codigo('|')} separa
-compases — cada compás dura una vuelta, y cada uno reparte sus pasos por su cuenta.
+Y cuatro signos: ${codigo('-')} es un silencio, ${codigo('_')} estira el paso anterior, ${codigo('|')} separa
+compases — cada compás dura una vuelta, y cada uno reparte sus pasos por su cuenta—,
+y un ${codigo('!')} pegado al paso lo acentúa: ${codigo('pum! tas pum tas')}.
 
     el piano toca do mayor _ _ _ | fa mayor - fa mayor -
 
