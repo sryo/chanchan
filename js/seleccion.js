@@ -104,8 +104,10 @@ botonSel.addEventListener('mousedown', e => {
   const r = botonSel.getBoundingClientRect();
   menu.classList.add('columnas');
   pintarPanel(menu, secs, null, tokensSel);
-  menu.classList.add('abierto');
+  mostrarPanel(menu, true);
   acomodar(menu, r);
 });
+botonSel.popoverTargetElement = menu;
+botonSel.addEventListener('click', e => e.preventDefault());
 
 document.addEventListener('selectionchange', () => { if (document.activeElement === src) mirarSeleccion(); });

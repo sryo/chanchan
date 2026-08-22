@@ -14,6 +14,8 @@ const icono = (n, clase) =>
   '<svg class="i' + (clase ? ' ' + clase : '') + '"><use href="#i-' + n + '"/></svg>';
 
 const dentroDe = (nodo, ...donde) => donde.some(el => el && el.contains(nodo));
+// abrir lo que ya está abierto tira
+const mostrarPanel = (el, si) => { if (el.matches(':popover-open') !== si) el.togglePopover(si); };
 
 let relojDicho;
 // el botón es un signo: la palabra aparece sólo cuando tiene algo que decir

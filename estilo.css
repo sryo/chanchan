@@ -216,20 +216,19 @@
     text-decoration: underline dotted currentColor;
     text-underline-offset: 4px;
   }
-  /* encima de lo que cuelga de una palabra */
+  /* popover: el navegador lo pone en la capa de arriba y lo cierra; el lugar lo pone acomodar() */
   .panel {
-    position: fixed; z-index: 12; display: none;
+    position: fixed; inset: auto; margin: 0; width: auto; height: auto; color: inherit;
     background: var(--panel); border: 1px solid var(--linea);
     border-radius: 6px; padding: 6px 0; min-width: 190px;
     max-height: 80vh; max-width: calc(100vw - 16px);
     overflow: auto; box-shadow: 0 8px 24px var(--sombra);
   }
-  .panel.abierto { display: block; }
   .panel .op.conSub { padding-right: 8px; }
   #sugerencias { max-height: 300px; }
   #sugerencias .op.elegido { background: var(--realce); color: var(--parte, var(--texto)); }
   /* las columnas las fija pintarPanel() con la cantidad real */
-  #menu.columnas.abierto { display: grid; gap: 1px; padding: 0; background: var(--linea); }
+  #menu.columnas:popover-open { display: grid; gap: 1px; padding: 0; background: var(--linea); }
   #menu.columnas .sec { background: var(--panel); padding: 6px 0; min-width: 118px; }
   #menu.columnas .sec.detalle { min-width: 208px; }
   #menu.columnas .sec.pie { grid-column: 1 / -1; }

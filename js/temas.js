@@ -48,17 +48,19 @@ const PRIMERA_HOJA = [
 const panelTemas = document.createElement('div');
 panelTemas.id = 'temas';
 panelTemas.className = 'panel';
+panelTemas.popover = 'auto';
 document.body.appendChild(panelTemas);
 const btnAbrir = document.getElementById('abrir');
 
-// para quien no ve la lista
-const mostrarTemas = si => {
-  panelTemas.classList.toggle('abierto', si);
-  btnAbrir.setAttribute('aria-expanded', si);
-  if (!si) panelTemas.style.minWidth = '';
-};
+// el botón lo abre y lo cierra solo: acá se arma la lista
+panelTemas.addEventListener('beforetoggle', e => {
+  if (e.newState !== 'open') { panelTemas.style.minWidth = ''; return; }
+  armarTemas();
+  // recién abierto se puede medir
+  queueMicrotask(() => acomodar(panelTemas, btnAbrir.getBoundingClientRect()));
+});
 
-function abrirTemas() {
+function armarTemas() {
   const mios = misTemas();
   const abierto = campoNombre.value.trim();
   // una sola marca y es la del tuyo, ver REGLAS.md
@@ -90,13 +92,11 @@ function abrirTemas() {
         acomodarNombre();
         guardarYa();
       }
-      // sin esto el de afuera lo cerraría: abrirTemas() rehizo el panel y la fila apretada ya no está en él
-      ev.stopPropagation();
       // abierto no se angosta: el puntero seguiría sobre otra fila
       panelTemas.style.minWidth = panelTemas.offsetWidth + 'px';
-      return abrirTemas();
+      return armarTemas();
     }
-    mostrarTemas(false);
+    mostrarPanel(panelTemas, false);
     // elegirArchivo() carga el tema solo
     if (el.dataset.archivo) return elegirArchivo();
     cargarTema(el.dataset.nueva ? { nombre: '', txt: PRIMERA_HOJA }
@@ -104,14 +104,4 @@ function abrirTemas() {
       : EJEMPLOS[+el.dataset.i]);
     src.focus();
   }));
-  mostrarTemas(true);
-  acomodar(panelTemas, btnAbrir.getBoundingClientRect());
 }
-
-btnAbrir.addEventListener('click', () => {
-  panelTemas.classList.contains('abierto') ? mostrarTemas(false) : abrirTemas();
-});
-addEventListener('mousedown', e => {
-  if (!dentroDe(e.target, panelTemas, btnAbrir)) mostrarTemas(false);
-});
-addEventListener('keydown', e => { if (e.key === 'Escape') mostrarTemas(false); });

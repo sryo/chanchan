@@ -95,6 +95,7 @@ function ranuraEn(linea, col) {
 const sugeridor = document.createElement('div');
 sugeridor.id = 'sugerencias';
 sugeridor.className = 'panel';
+sugeridor.popover = 'auto';
 document.body.appendChild(sugeridor);
 
 let sug = null;
@@ -245,9 +246,10 @@ function cerrarSugeridor() {
   if (!sug) return;
   sug = null;
   anclaCaret = null;
-  sugeridor.classList.remove('abierto');
+  mostrarPanel(sugeridor, false);
   pintar(marcasActuales);
 }
+sugeridor.addEventListener('toggle', e => { if (e.newState === 'closed') cerrarSugeridor(); });
 
 function abrirSugeridor(aPedido) {
   if (src.selectionStart !== src.selectionEnd) return cerrarSugeridor();
@@ -270,7 +272,7 @@ function abrirSugeridor(aPedido) {
   ops.forEach(o => { o.hacer = () => aceptarSugerencia(o); });
   sug = { desde: base + r.desde, hasta: base + r.hasta, ops, elegido: 0 };
   pintarPanel(sugeridor, secs, null, [{ l }]);
-  sugeridor.classList.add('abierto');
+  mostrarPanel(sugeridor, true);
   anclaCaret = { l, c: r.desde };
   pintar(marcasActuales);
   const sp = hl.querySelector('#ancla');
@@ -291,9 +293,7 @@ src.addEventListener('keydown', e => {
     sug.elegido = (sug.elegido + (e.key === 'ArrowDown' ? 1 : -1) + sug.ops.length) % sug.ops.length;
     return marcarElegido();
   }
-  // Escape no corta la propagación: el listener de window cierra también el ▾
   if (['Escape', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) cerrarSugeridor();
 });
 src.addEventListener('input', () => abrirSugeridor(false));
 src.addEventListener('blur', cerrarSugeridor);
-addEventListener('mousedown', e => { if (!dentroDe(e.target, sugeridor)) cerrarSugeridor(); });

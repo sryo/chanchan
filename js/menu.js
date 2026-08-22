@@ -2,6 +2,7 @@
 const menu = document.createElement('div');
 menu.id = 'menu';
 menu.className = 'panel';
+menu.popover = 'auto';
 document.body.appendChild(menu);
 let pidiendoCuadro = false, relojFamilia, esperaOir;
 // lo escribe el rastro del mouse, al final; lo lee pintar() para el subrayado
@@ -239,9 +240,6 @@ function pintarPanel(panel, secs, t, dueño = t) {
     el.addEventListener('mouseleave', () => { clearTimeout(esperaOir); clearTimeout(relojFamilia); });
     el.addEventListener('mousedown', e => {
       e.preventDefault();
-      // al repintar, el blanco del mousedown queda suelto del documento y window
-      // lo vería «afuera»
-      e.stopPropagation();
       if (o.hacer) { o.hacer(); return cerrarMenu(); }
       if (o.familia) return verFamilia(o.familia, t);
       if (o.clausula) { ponerClausula(t.l, o.clausula); return cerrarMenu(); }
@@ -253,7 +251,8 @@ function pintarPanel(panel, secs, t, dueño = t) {
 
 // el lado con más aire, y nunca más alto que el aire: taparía la palabra
 function acomodar(el, r) {
-  el.style.maxHeight = '';
+  // se mide suelto: con el lugar de la vez anterior el ancho sale recortado
+  el.style.left = el.style.top = el.style.maxHeight = '';
   const debajo = innerHeight - r.bottom - 12, encima = r.top - 12;
   const abajo = el.offsetHeight <= debajo || debajo >= encima;
   const aire = abajo ? debajo : encima;
@@ -308,7 +307,7 @@ function abrirMenu(t) {
   menu.classList.toggle('columnas',
     t.tipo === 'instrumento' || t.tipo === 'nota' || t.tipo === 'paso');
   pintarPanel(menu, secs, t);
-  menu.classList.add('abierto');
+  mostrarPanel(menu, true);
   acomodar(menu, t.r);
   ponerManija(t);
 }
@@ -317,9 +316,11 @@ function cerrarMenu() {
   clearTimeout(relojFamilia);
   familiaElegida = null;
   tokenDelMenu = null;
-  menu.classList.remove('abierto');
+  mostrarPanel(menu, false);
   ponerManija(señalado);
 }
+// también lo cierran Esc, un click afuera y otro panel
+menu.addEventListener('toggle', e => { if (e.newState === 'closed') cerrarMenu(); });
 
 // ---------------------------------------------------------------- la manija
 const manija = document.createElement('button');
@@ -367,6 +368,9 @@ manija.addEventListener('mousedown', e => {
   const t = tokenDelSpan(señalado);
   if (t) abrirMenu(t);
 });
+// como invocador, soltar el click sobre él no cuenta como «afuera»; abrir y cerrar ya lo hace el mousedown
+manija.popoverTargetElement = menu;
+manija.addEventListener('click', e => e.preventDefault());
 
 // ------------------------------------------ el rastro del mouse, y el arrastre
 src.addEventListener('mousemove', e => {
@@ -459,10 +463,5 @@ addEventListener('mouseup', e => {
   const a = enlaceApretado; enlaceApretado = null;
   if (a && Math.hypot(e.clientX - a.x, e.clientY - a.y) <= UMBRAL) irAlTema(a.nombre);
 });
-// botonSel abre el menú en su mousedown y éste llega después: lo cerraría
-addEventListener('mousedown', e => {
-  if (!dentroDe(e.target, menu, src, botonSel, manija)) cerrarMenu();
-});
-addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMenu(); });
 src.addEventListener('input', cerrarMenu);
 
