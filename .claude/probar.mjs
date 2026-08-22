@@ -42,6 +42,7 @@ const CASOS = [
   ['cada dos vueltas, al doble',         'la bata toca pum pa, cada dos vueltas al doble'],
   ['un enlace a otro tema',            '@la base\nla bata toca pum pa'],
   ['un enlace sin nombre',             '@\nla bata toca pum pa'],
+  ['un tema que nombra a otros',       '@la base\n@o fortuna\nla bata toca pum'],
   ['compás de tres',                     'va a 150 en tres\nel bajo toca do - -'],
   ['volumen y lugar',                    'el bajo toca do, muy bajito, a la izquierda\nla viola toca re, muy fuerte, a la derecha'],
   ['golpes nuevos',                      'la bata toca pum dum tum tim clon shh'],
@@ -54,7 +55,7 @@ const foto = txt => {
   const r = traducir(txt);
   return { codigo: r.codigo, vueltas: r.vueltas, bpm: r.bpm,
            errores: r.errores.map(e => e.nro + ': ' + e.msg),
-           tramos: r.tramos.map(t => t.nom + '×' + t.largo), tempos: r.tempos };
+           tramos: r.tramos.map(t => t.nom + '×' + t.largo), tempos: r.tempos, enlaces: r.enlaces };
 };
 const ahora = {};
 for (const e of EJEMPLOS) ahora['tema: ' + e.nombre] = foto(e.txt);

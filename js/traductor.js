@@ -360,7 +360,7 @@ function traducirLinea(texto, nro) {
 
 function traducir(fuente) {
   const lineas = fuente.split('\n');
-  const partes = [], renglones = [], errores = [], marcas = [], calladas = new Set();
+  const partes = [], renglones = [], errores = [], marcas = [], calladas = new Set(), enlaces = [];
   const secciones = new Map();
   let bpm = 90, tiempos = 4, abierta = null, forma = null, nroForma = 0;
   lineas.forEach((l, n) => {
@@ -379,6 +379,7 @@ function traducir(fuente) {
       secciones.set(r.nombre, abierta);
     }
     if (r.tipo === 'forma') { forma = r.nombres; nroForma = r.nro; }
+    if (r.tipo === 'enlace') enlaces.push(r.nombre);
     if (r.tipo === 'parte') {
       // las líneas de antes de la primera sección suenan en todas
       r.seccion = abierta && abierta.nombre;
@@ -438,7 +439,7 @@ function traducir(fuente) {
   const vueltas = tramos.length ? Math.max(1, total)
     : acotarVueltas(renglones.reduce((a, r) => mcm(a, r.vueltas), 1));
   const arranca = tempos.length ? tempos[0] : { bpm, tiempos };
-  return { codigo: armarCodigo(partes, tramos, arranca.bpm, arranca.tiempos), errores, marcas, partes, renglones, calladas,
+  return { codigo: armarCodigo(partes, tramos, arranca.bpm, arranca.tiempos), errores, marcas, partes, renglones, calladas, enlaces,
            bpm: arranca.bpm, tiempos: arranca.tiempos, vueltas, tramos, tempos: tempos.length > 1 ? tempos : [] };
 }
 

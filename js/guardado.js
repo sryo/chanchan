@@ -145,7 +145,31 @@ async function hashDe(nombre, txt) {
   } catch (e) { return plano; }
 }
 
-const armarHash = () => hashDe(campoNombre.value.trim(), src.value);
+// los temas que éste nombra con «@», y los que ésos nombran, una vez cada uno
+function nombrados(nombre, txt) {
+  const vistos = new Set([norm(nombre)]), lista = [], cola = [txt];
+  while (cola.length)
+    for (const n of traducir(cola.shift()).enlaces) {
+      const t = !vistos.has(norm(n)) && temaLlamado(n);
+      if (!t) continue;
+      vistos.add(norm(n)); lista.push(t); cola.push(t.txt);
+    }
+  return lista;
+}
+
+// el enlace lleva el tema abierto y, separados por «;», los que nombra: del otro lado resuelven
+async function armarHash() {
+  const nombre = campoNombre.value.trim();
+  const piezas = [[nombre, src.value], ...nombrados(nombre, src.value).map(t => [t.nombre, t.txt])];
+  return (await Promise.all(piezas.map(([n, x]) => hashDe(n, x)))).join(';');
+}
+
+// los que vienen con el enlace se guardan si no hay uno con ese nombre: el tuyo no se pisa
+function guardarTraidos(traidos) {
+  const mios = misTemas();
+  for (const t of traidos || [])
+    if (!mios.some(m => norm(m.nombre) === norm(t.nombre))) anotarTema(t.nombre, t.txt, null);
+}
 
 // la barra vertical es de los enlaces viejos, y la barra de direcciones la reescribe «%7C»; vale
 // sólo sin dos puntos: un nombre de ahora puede traer un «%7C» adentro
@@ -159,7 +183,13 @@ function cortarNombre(carga) {
   return null;
 }
 
+// «;» sólo puede ser nuestro: encodeURIComponent lo escapa y base64url no lo trae
 async function abrirCarga(crudo) {
+  const [primero, ...resto] = await Promise.all(crudo.split(';').map(abrirPieza));
+  return primero && { ...primero, traidos: resto.filter(Boolean) };
+}
+
+async function abrirPieza(crudo) {
   try {
     // escapado de más, por un chat o un correo: trae «%25» y ningún separador literal, que le
     // quedó «%3A»; es lo que lo distingue de un nombre con «%» adentro
@@ -194,8 +224,9 @@ src.addEventListener('paste', e => {
   if (!pareceEnlace(crudo)) return;                  // pegado común y corriente
   e.preventDefault();
   abrirCarga(crudo.slice(crudo.indexOf('#') + 1)).then(tema => {
-    if (tema && /\btocan?\b/i.test(tema.txt)) cargarTema(tema);
-    else avisar(noSePudo());
+    if (!tema || !/\btocan?\b/i.test(tema.txt)) return avisar(noSePudo());
+    guardarTraidos(tema.traidos);
+    cargarTema(tema);
   });
 });
 
@@ -209,6 +240,7 @@ async function temaInicial() {
   if (delEnlace) {
     // el enlace se consume: si quedara en la barra, recargar abriría esa versión vieja encima de lo escrito
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
+    guardarTraidos(delEnlace.traidos);
     return delEnlace;
   }
   try {
@@ -240,7 +272,9 @@ addEventListener('hashchange', async () => {
   if (location.hash.length < 2) return;
   const tema = await leerHash();
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
-  if (tema) cargarTema(tema); else avisar(noSePudo());
+  if (!tema) return avisar(noSePudo());
+  guardarTraidos(tema.traidos);
+  cargarTema(tema);
 });
 
 btnEnlace.addEventListener('click', async () => {
