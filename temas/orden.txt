@@ -15,13 +15,6 @@
 # la partitura; los otros llevan el nombre del artista y nada más, que es lo que
 # el nombre del archivo sí garantiza.
 
-# ejemplos/Charly Garcia.mid — Los Dinosaurios, 1983. Dos pistas, piano y
-# cuerdas: no hay batería en el midi y acá tampoco, que es como está el archivo.
-# La forma sale de mirar los acordes compás por compás — do séptima, re menor, si
-# bemol, do séptima— y en el medio la bajada si bemol · la · la bemol · sol, que
-# es lo que hace el tema.
-los dinosaurios
-
 # ejemplos/Patricio Rey.mid. La estrofa es re · mi · do sostenido · re con el la
 # de pedal abajo, y el estribillo se va a fa · do · si bemol · re en corcheas
 # parejas, que es de donde sale el envión. El riff de la viola de arriba está nota

@@ -8,31 +8,6 @@
 // servidor, y desde file:// no se puede ir a buscar un archivo. El orden y las
 // notas de cada tema salen de temas/orden.txt.
 const EJEMPLOS = [
-  // ejemplos/Charly Garcia.mid — Los Dinosaurios, 1983. Dos pistas, piano y
-  // cuerdas: no hay batería en el midi y acá tampoco, que es como está el archivo.
-  // La forma sale de mirar los acordes compás por compás — do séptima, re menor, si
-  // bemol, do séptima— y en el medio la bajada si bemol · la · la bemol · sol, que
-  // es lo que hace el tema.
-  { nombre: "los dinosaurios", txt:
-`va a 90
-
-la estrofa:
-el piano toca mi grave re sol grave re sol grave do grave mi grave do grave | fa grave re si bemol grave re si bemol grave re grave fa grave re grave | fa grave do do si bemol muy grave fa grave do do si bemol muy grave | mi grave re sol grave re sol grave do grave mi grave do grave
-el bajo toca do muy grave | re muy grave | si bemol muy grave si bemol muy grave | do muy grave
-las cuerdas tocan do séptima | re menor | si bemol mayor | do séptima, bajito, con eco
-
-el puente:
-el piano toca fa grave do do si bemol muy grave fa grave do do si bemol muy grave | mi grave do la grave mi do la grave mi do | sol grave mi bemol do mi bemol sol grave mi bemol do mi bemol | re grave do fa grave do re grave si grave fa grave si grave
-el bajo toca si bemol muy grave | la muy grave | la bemol muy grave la bemol muy grave | sol muy grave sol muy grave
-las cuerdas tocan si bemol mayor | la menor | la bemol séptima | sol séptima, bajito, con eco
-
-el final:
-el piano toca sol mi bemol sol grave re si bemol grave fa grave re _ | si bemol grave fa grave si bemol grave si bemol muy grave fa grave si bemol grave re si bemol grave | fa grave re si bemol grave fa re la grave sol _ | si bemol grave re sol re si bemol grave sol muy grave si bemol grave re | sol re si bemol grave - - - - -
-el bajo toca fa muy grave si bemol muy grave | si bemol muy grave | - - re muy grave sol muy grave | sol muy grave | sol muy grave
-las cuerdas tocan si bemol séptima | si bemol mayor | sol séptima | sol menor | si bemol mayor, bajito, con eco
-
-el tema va estrofa estrofa puente estrofa final` },
-
   // ejemplos/Patricio Rey.mid. La estrofa es re · mi · do sostenido · re con el la
   // de pedal abajo, y el estribillo se va a fa · do · si bemol · re en corcheas
   // parejas, que es de donde sale el envión. El riff de la viola de arriba está nota
