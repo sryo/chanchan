@@ -75,8 +75,8 @@ function traducirLinea(texto, nro) {
     // el menú y el arrastre ya acotan; escrito a mano entraba cualquier cosa, y
     // un cero deja el reloj de strudel detenido sin decir por qué
     const bpm = parseFloat(m[1].replace(',', '.'));
-    if (!(bpm >= 20 && bpm <= 400)) {
-      error(m.index, m[1].length, 'el tempo va entre 20 y 400 tiempos por minuto.');
+    if (!(bpm >= TEMPO_MIN && bpm <= TEMPO_MAX)) {
+      error(m.index, m[1].length, 'el tempo va entre ' + TEMPO_MIN + ' y ' + TEMPO_MAX + ' tiempos por minuto.');
       return { tipo: 'mala', tk, errs };
     }
     return { tipo: 'tempo', bpm, tk, errs };
@@ -265,7 +265,9 @@ function traducirLinea(texto, nro) {
       if (mod[1] === '<>') alterna = true;
       else if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
       else cola += mod[1];
-      const frena = /\.slow\((\d+)\)/.exec(mod[1]);
+      // sólo si el modificador entero es un .slow(): «que se abre» lleva uno
+      // adentro del filtro y no estira nada
+      const frena = /^\.slow\((\d+)\)$/.exec(mod[1]);
       if (frena) lento *= +frena[1];
       if (mod[3]) vueltasMod = mcm(vueltasMod, mod[3]);
       marcar(rango[0], rango[1], 'mod', { tipo: 'modificador' });
@@ -323,7 +325,7 @@ function traducirLinea(texto, nro) {
   return { tipo: 'parte', nro, nombre, voz, codigo, cotejo, lugares, callado, vueltas, tk, errs };
 }
 
-function traducir(fuente) {
+function traducir(fuente, probar = true) {
   const lineas = fuente.split('\n');
   const partes = [], renglones = [], errores = [], marcas = [], calladas = new Set();
   // las secciones en el orden en que están escritas, y las líneas de cada una
@@ -356,8 +358,10 @@ function traducir(fuente) {
       else partes.push(r);
     }
   });
-  // cada parte se prueba sola: si una falla, se cae ella y no el tema entero
-  if (motorListo) {
+  // Cada parte se prueba sola: si una falla, se cae ella y no el tema entero.
+  // Es lo único de acá que le cuesta a strudel, y el espejo no lo necesita —los
+  // renglones y las marcas salen iguales—, así que en cada tecla se saltea.
+  if (motorListo && probar) {
     for (let i = partes.length - 1; i >= 0; i--) {
       try { eval(partes[i].codigo).queryArc(0, 1); }
       catch (e) {
@@ -437,9 +441,11 @@ function traducir(fuente) {
     const conBus = partes.map(p =>
       enLaForma(p.codigo, p.seccion) + '.orbit(' + buses.indexOf(p.nombre) + ')');
     codigo = 'setcpm(' + (tempos.length ? tempos[0].bpm : bpm) + '/4)\n';
+    // el nombre va en un comentario del código y lo escribió el usuario: estos
+    // tres cortan un comentario de línea igual que un enter, y lo que sigue corre
     codigo += partes.length === 1
       ? conBus[0]
-      : 'stack(\n' + conBus.map((c, i) => '  ' + c + ', // ' + partes[i].nombre +
+      : 'stack(\n' + conBus.map((c, i) => '  ' + c + ', // ' + partes[i].nombre.replace(/[\r\u2028\u2029]/g, ' ') +
           (partes[i].seccion ? ' · ' + partes[i].seccion : '')).join('\n') + '\n)';
   }
   // Con forma, la vuelta larga es la forma entera y no se puede acotar: acotar

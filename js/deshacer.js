@@ -19,10 +19,15 @@ function irA(i, cual) {
   if (i < 0 || i >= historial.length) return;
   puntero = i;
   aplicando = true;
-  src.value = historial[i].txt;
+  const txt = historial[i].txt;
+  const ancla = historial[cual === 'deshacer' ? i + 1 : i].ancla;
+  // el cursor vuelve a donde estuvo el cambio: deshaciendo, al principio de lo
+  // que se va; rehaciendo, al final de lo que vuelve
+  const donde = ancla && baseDe(txt.split('\n'), ancla.l) + ancla.i + (cual === 'deshacer' ? 0 : ancla.len);
+  escribir(txt, ancla ? donde : undefined);
   actualizar(true);
   aplicando = false;
-  mostrarDeshacer(historial[cual === 'deshacer' ? i + 1 : i].ancla, cual === 'deshacer');
+  mostrarDeshacer(ancla, cual === 'deshacer');
 }
 
 const botonDeshacer = document.createElement('button');

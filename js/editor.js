@@ -131,7 +131,7 @@ function asegurarRenglonFinal() {
 // —la cinta, los errores— espera los 400 ms de deshacer.js. Si los puntitos se
 // van con la espera, su data-l queda viejo y un click calla la línea de al lado.
 function repintarTexto() {
-  const r = traducir(src.value);
+  const r = traducir(src.value, false);
   calladasActuales = r.calladas;
   repartirLaLuz(r.marcas);
   pintar(r.marcas);
@@ -178,7 +178,9 @@ function actualizar(reproducir) {
     // sin nada que tocar hay que apagar: si no, strudel sigue con el último
     // stack que evaluó y el parlante suena mientras la pantalla dice que no hay nada
     if (!r.codigo) { sonando = false; silenciar(); refrescarTransporte(); }
-    else if (soloElTempo) ponerTempo(r.bpm);
+    // con secciones el número que vale es el de la tabla nueva, y quién lo mira
+    // es el reloj, en el cuadro que sigue: acá sólo se le hace olvidar el de antes
+    else if (soloElTempo) { bpmPuesto = null; ponerTempo(r.bpm); }
     else correr(r.codigo);
   }
   return r;

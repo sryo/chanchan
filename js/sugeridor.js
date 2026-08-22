@@ -108,7 +108,8 @@ for (const [apodo2, banco] of Object.entries(ALIAS_MAQUINA))
 const cabeza = n => n.split(' ')[0];
 // los plurales en -es no dicen el género, y el parser se come el artículo igual;
 // pero la lista de sugerencias es lo que enseña cómo se escribe el idioma
-const GENERO = { voz: 'la', voces: 'las', bronces: 'los', duendes: 'los', tambores: 'los' };
+const GENERO = Object.assign(Object.create(null),
+  { voz: 'la', voces: 'las', bronces: 'los', duendes: 'los', tambores: 'los' });
 const articuloDe = n => {
   const c = cabeza(n);
   return GENERO[norm(c)] || (/(cion|sion|dad|tad)$/.test(norm(c)) ? 'la'
@@ -376,7 +377,7 @@ function moverArrastre(dx, dy) {
   const a = arrastre;
   let texto;
   if (a.t.tipo === 'tempo') {
-    texto = String(Math.min(400, Math.max(20, Math.round(a.base + dx / 4))));
+    texto = String(Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, Math.round(a.base + dx / 4))));
   } else {
     const semi = Math.min(SEMI_MAX, Math.max(SEMI_MIN, a.base + Math.round(-dy / 10)));
     texto = notaDesdeSemi(semi, a.acorde);

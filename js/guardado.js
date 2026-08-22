@@ -66,6 +66,8 @@ function guardar() {
   clearTimeout(relojGuardar);
   relojGuardar = setTimeout(guardarYa, 400);
 }
+// los 400 ms no pueden sobrevivir a cerrar la pestaña
+addEventListener('pagehide', guardarYa);
 
 // El nombre va adelante del texto, separado por dos puntos: son legales dentro de
 // un fragmento —ningún navegador los toca— y encodeURIComponent sí los escapa,
@@ -118,7 +120,7 @@ function temaPegado(crudo) {
   // pegar la palabra «toca» para que se llevara puesto el tema entero.
   if (!limpio || /\s/.test(limpio) || !/%[0-9A-Fa-f]{2}/.test(limpio)) return null;
   const tema = abrirCarga(limpio.slice(limpio.indexOf('#') + 1));
-  return tema && /\btocan?\b/.test(tema.txt) ? tema : null;
+  return tema && /\btocan?\b/i.test(tema.txt) ? tema : null;
 }
 
 src.addEventListener('paste', e => {
@@ -163,6 +165,10 @@ btnEnlace.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(location.href);
     decirEnElEnlace('enlace copiado');
+    // Ya está en el portapapeles. En la barra sería una foto de ahora, y una
+    // recarga de acá a una hora la pisaría sobre lo escrito mientras tanto:
+    // sólo se queda cuando es la única copia que hay.
+    history.replaceState(null, '', location.pathname + location.search);
   } catch (e) { decirEnElEnlace('quedó en la barra'); }
 });
 

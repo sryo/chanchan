@@ -223,9 +223,10 @@ function seccionesDe(t) {
 
   if (t.tipo === 'tempo') {
     const n = parseFloat(hoy.replace(',', '.')) || 90;
+    const acotado = paso => Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, n + paso));
     return [{ titulo: 'tiempos por minuto', ops: [-10, -5, -1, 1, 5, 10].map(paso =>
-      ({ txt: (paso > 0 ? '+' : '') + paso, desc: Math.max(20, n + paso) + '',
-         nuevo: String(Math.max(20, n + paso)) })) }];
+      ({ txt: (paso > 0 ? '+' : '') + paso, desc: acotado(paso) + '',
+         nuevo: String(acotado(paso)) })) }];
   }
 
   if (t.tipo === 'mal') {
@@ -294,6 +295,10 @@ function pintarPanel(panel, secs, t, dueño = t) {
     el.addEventListener('mouseleave', () => { clearTimeout(esperaOir); clearTimeout(relojFamilia); });
     el.addEventListener('mousedown', e => {
       e.preventDefault();
+      // elegir vuelve a pintar el panel, y el listener de window que cierra «lo
+      // de afuera» llegaría con un blanco ya suelto del documento: adentro de
+      // nada. Una opción nunca es afuera.
+      e.stopPropagation();
       if (o.hacer) { o.hacer(); return cerrarMenu(); }
       if (o.familia) return verFamilia(o.familia, t);
       if (o.clausula) { ponerClausula(t.l, o.clausula); return cerrarMenu(); }

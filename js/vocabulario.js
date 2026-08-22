@@ -161,7 +161,7 @@ function maquinas() {
   } catch (e) { return {}; }
   const listas = Object.entries(tiene).filter(([, v]) => v.size === 3).map(([k]) => k);
   if (!listas.length) return {};
-  _maquinas = {};
+  _maquinas = Object.create(null);
   for (const n of listas.sort()) {
     const marca = MARCAS.find(x => n.startsWith(x)) || 'otras';
     const modelo = marca === 'otras' ? n : (n.slice(marca.length) || marca);
@@ -206,7 +206,7 @@ const MODIFICADORES = [
   ['temblando',           '.vib(5).vibmod(.3)', 'la afinación tiembla'],
   ['con eco',             '.room(.6)',          'suena en una sala grande'],
   ['repicando',           '.delay(.5).delaytime(.125).delayfeedback(.4)', 'se repite y se va apagando'],
-  ['al revés',            '.rev',               'de atrás para adelante'],
+  ['al revés',            '.rev()',             'de atrás para adelante'],
   ['de ida y vuelta',     '.palindrome()',      'una vuelta como está y la que sigue al revés', 2],
   ['rodando',             '.iter(4)',           'cada vuelta arranca un paso más adelante', 4],
   ['con swing',           '.swingBy(1/3, 4)',   'desparejo, arrastrado'],
@@ -295,7 +295,6 @@ function partirEnvoltura(texto, base = 0) {
 
 const modificadorDe = t => MODIFICADORES.find(m => norm(m[0]) === norm(t));
 const envolvible = mod => !!mod && mod[1] !== 'mute' && mod[1] !== '<>';
-// anda igual con «.rev», que es un getter y no una llamada: a la flecha no le cambia nada
 const comoFuncion = codigo => 'x => x' + codigo;
 
 // Las dos devuelven, además del código, cada cuántas vueltas vuelven al principio;
@@ -366,6 +365,10 @@ function leerForma(texto) {
   return { nombres: m[1].split(' ').filter(Boolean) };
 }
 
+// lo que acepta el reloj, y lo mismo que el menú y el arrastre ofrecen:
+// una sola cuenta, así el ▾ nunca escribe un número que después es un error
+const TEMPO_MIN = 20, TEMPO_MAX = 400;
+
 function esTempo(texto) {
   // una línea con «toca» es una parte, aunque se llame «la banda»: sin esto,
   // «la banda toca pum - pum -» salía con un error sobre el tempo
@@ -390,6 +393,9 @@ for (const [nombre, o] of Object.entries(SIN_GM))
   INSTRUMENTOS[norm(nombre)] = { nombre, ...o };
 for (const [de, a] of Object.entries(ALIAS))
   INSTRUMENTOS[norm(de)] = INSTRUMENTOS[norm(a)];
+// Se consultan con la palabra tal como la escribió el usuario, y «constructor»
+// es una palabra: sin prototipo, lo que no está en la tabla no está.
+for (const t of [SONIDOS, NOTAS, ALTERACIONES, OCTAVAS, ACORDE, INSTRUMENTOS]) Object.setPrototypeOf(t, null);
 const instrumentoDe = n => INSTRUMENTOS[norm(n)];
 
 // Los alias van aparte: INSTRUMENTOS[«guitarra»] apunta al mismo objeto que

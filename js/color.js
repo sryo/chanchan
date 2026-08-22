@@ -9,7 +9,7 @@ const RUEDA = [
 const TONO = {};
 RUEDA.forEach((f, i) => TONO[f] = i * (360 / RUEDA.length));
 
-const MATIZ = {};
+const MATIZ = Object.create(null);
 {
   const porFamilia = {};
   const anotar = (fam, nombre) => (porFamilia[fam] = porFamilia[fam] || []).push(nombre);
@@ -66,7 +66,7 @@ const deNoche = () => document.documentElement.dataset.luz === 'oscuro';
 // la casa, en cuatro el par más parecido era de una misma familia —el peor, un
 // pizzicato y un timbal a ΔE 0,027, abajo del umbral de «el mismo color a simple
 // vista»— y en uno solo era de familias vecinas.
-let pasoDelTema = {};
+let pasoDelTema = Object.create(null);
 
 // El tono hace de nombre de familia: es lo único que MATIZ le da igual a todos sus
 // instrumentos, y no hace falta cargar el nombre hasta acá para agruparlos.
@@ -78,7 +78,7 @@ function repartirLaLuz(marcas) {
     if (!porFamilia.has(m.tono)) porFamilia.set(m.tono, new Set());
     porFamilia.get(m.tono).add(norm(t.voz));
   }
-  pasoDelTema = {};
+  pasoDelTema = Object.create(null);
   for (const suyos of porFamilia.values()) {
     // el orden del catálogo decide quién queda más claro, así que agregar una
     // viola no le da vuelta el color a la que ya estaba

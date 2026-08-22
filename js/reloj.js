@@ -44,9 +44,9 @@ function seguir() {
 // audio, «parar» deja sonando la cola de los acordes largos y del eco.
 function silenciar() {
   hush();
-  // hush() limpia los patrones registrados, pero el reloj sigue con el último
-  // stack que se evaluó: sin dejarle un silencio cargado, cualquier cosa que
-  // despierte el audio —una vista previa del menú, por ejemplo— revive el tema.
+  // hush() para el reloj, pero el último stack que se evaluó queda cargado: lo
+  // que vuelva a arrancarlo —una vista previa del menú, por ejemplo— reviviría
+  // el tema. Con un silencio cargado, lo que revive es el silencio.
   Promise.resolve(evaluate('silence')).catch(() => { /* strudel a medio cargar */ });
   const ctx = getAudioContext();
   if (ctx && ctx.state === 'running') ctx.suspend();

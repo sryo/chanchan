@@ -10,7 +10,7 @@ const nombreDeArchivo = f => f.name.replace(/\.[^.]*$/, '');
 const comoArchivo = nombre => (nombre.trim() || 'sin título').replace(/[\/:\\?%*|"<>]/g, '-') + EXT;
 
 // sin una línea con «toca» no hay tema; lo mismo que pide temaPegado()
-const pareceUnTema = txt => /\btocan?\b/.test(txt);
+const pareceUnTema = txt => /\btocan?\b/i.test(txt);
 
 // ------------------------------------------------------------------ el handle
 // Guardar dos veces tiene que escribir el mismo archivo y no dejar una fila de
