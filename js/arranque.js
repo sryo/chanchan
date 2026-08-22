@@ -38,7 +38,7 @@ initStrudel({
     samples(MUESTRAS + 'piano.json'),
     samples(MUESTRAS_GM, GM),
   ]).then(() => {
-    motorListo = true;
+    motorLevantado();
     document.body.classList.remove('cargando');
     // Las cajas de ritmo se leen del propio strudel, así que hasta acá no
     // existían: un tema con «en una 808» abría con un error falso y sonando con

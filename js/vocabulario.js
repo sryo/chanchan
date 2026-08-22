@@ -312,9 +312,9 @@ function leerCada(texto) {
 function leerVeces(texto) {
   const n = norm(texto);
   for (const [frase, fn] of VECES) {
-    const cabeza = norm(frase);
-    if (n !== cabeza && !n.startsWith(cabeza + ' ')) continue;
-    const resto = n.slice(cabeza.length).trim();
+    const frente = norm(frase);
+    if (n !== frente && !n.startsWith(frente + ' ')) continue;
+    const resto = n.slice(frente.length).trim();
     const mod = modificadorDe(resto);
     if (!envolvible(mod)) return { falla: mod ? 'centinela' : 'dentro', dentro: resto };
     return { codigo: fn + '(' + comoFuncion(mod[1]) + ')', vueltas: 1, adentro: mod[3] || 1 };

@@ -2,10 +2,6 @@
 // El grosor total no cambia nunca —las partes se reparten los mismos píxeles—,
 // así que sumar una línea no mueve nada de lo que hay abajo.
 const cinta = document.getElementById('cinta');
-let renglonesActuales = [];
-let vueltasActuales = 1;
-// las secciones en el orden de la forma, con cuánto dura cada una
-let tramosActuales = [];
 // dónde cae el secuenciador en la pantalla: lo necesita la aguja de la vuelta
 let tramo = { desde: 0, hasta: 0, vueltas: 1 };
 
@@ -61,7 +57,7 @@ function dibujarCinta(renglones) {
   // dónde vuelve, y unos píxeles más allá la aguja se apaga antes de llegar.
   const fin = w;
   const grueso = marco / Math.max(1, n);
-  const vueltas = Math.max(1, vueltasActuales);
+  const vueltas = Math.max(1, actual.vueltas);
   tramo = { desde: arranque, hasta: fin, vueltas };
   const enX = v => arranque + (fin - arranque) * (v / vueltas);
   const trazo = (d, color, ancho) =>
@@ -106,12 +102,12 @@ function dibujarCinta(renglones) {
   // entra —una forma de sesenta compases en mil píxeles es una trama gris, no una
   // cuenta—, y sin partes no hay nada que medir.
   const ancho = (fin - arranque) / vueltas;
-  if (n && (!tramosActuales.length || ancho >= 7))
+  if (n && (!actual.tramos.length || ancho >= 7))
     for (let k = 0; k < vueltas; k++)
       svg += '<line class="regla" x1="' + enX(k).toFixed(1) + '" x2="' + enX(k).toFixed(1) + '"' +
         ' y1="0" y2="' + (marco + 5) + '" />';
   let v = 0;
-  for (const t of (n ? tramosActuales : [])) {
+  for (const t of (n ? actual.tramos : [])) {
     const x = enX(v);
     svg += '<line class="corte" x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '"' +
       ' y1="0" y2="' + (marco + 16) + '" />';
@@ -185,7 +181,7 @@ function pintarMarca(renglones) {
 }
 
 function reacomodar() {
-  dibujarCinta(renglonesActuales);
+  dibujarCinta(actual.renglones);
   armarPuntos(marcasActuales, calladasActuales);
   acomodarColgantes();      // el texto se reacomodó abajo de ellos
 }

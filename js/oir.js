@@ -1,7 +1,6 @@
 // ---------------------------------------------------------------- oír de a uno
 // superdough es el mismo motor que usa el reloj, pero llamado a mano no le pisa
 // el patrón a nadie: se puede probar un sonido sin cortar el tema que está yendo.
-let esperaOir;
 
 // Una sola fuente de verdad para «a qué suena esto», compartida por el menú y el
 // sugeridor. Probar una nota suena con el instrumento de la línea donde está el
@@ -11,7 +10,7 @@ function vozPara(voz) {
   return { s: ins.sonido, oct: ins.fam === 'bajos' ? OCTAVA_BASE - 2 : OCTAVA_BASE };
 }
 
-const vozDeLinea = l => (renglonesActuales.find(r => r.nro - 1 === l) || {}).voz;
+const vozDeLinea = l => (actual.renglones.find(r => r.nro - 1 === l) || {}).voz;
 
 function recetaDe(que, clave, voz) {
   const { s, oct } = vozPara(voz);

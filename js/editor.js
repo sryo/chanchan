@@ -34,6 +34,10 @@ function decirEnElEnlace(txt) {
 const btnTocar = document.getElementById('tocar');
 
 let marcasActuales = [], calladasActuales = new Set();
+// Lo último que traducir() dijo de la hoja entera, en un solo lugar: la cinta, el
+// reloj, los puntitos y la vista previa lo leen de acá. Lo escribe actualizar() y
+// nadie más: entre vuelta y vuelta la hoja puede decir otra cosa, pero esto no.
+let actual = { renglones: [], vueltas: 1, tramos: [], tempos: [], espejos: [] };
 
 // Las secciones escritas en la hoja: del nombre normalizado al nombre tal como
 // se tecleó. Salen de los encabezados y no de la línea de forma, porque una
@@ -45,10 +49,7 @@ const seccionesEscritas = () => {
     if (x && x.tipo === 'seccion' && !vistas.has(x.nombre)) vistas.set(x.nombre, x.escrito);
   return vistas;
 };
-// dónde deja pintar() el ancla del sugeridor: {l, c} o null
-let anclaCaret = null;
 let activos = new Set();
-let señalado = null;
 
 // El span se rehace en cada pintada, así que lo que se ancle a un token tiene
 // que volver a buscarlo por posición en vez de guardarse el nodo.
@@ -67,7 +68,8 @@ const marcaEn = clave => {
   return (marcasActuales[l] || []).find(x => x.i === i);
 };
 
-function realzar() {
+function realzar(nuevos = activos) {
+  activos = nuevos;
   for (const clave of realzados) if (!activos.has(clave)) {
     const s = spanEn(clave);
     if (s) { s.classList.remove('t-activo'); s.style.removeProperty('--vivo'); }
@@ -109,7 +111,7 @@ function pintar(marcas) {
       out += plano(cur, t.i);
       if (!ancPuesto && anc >= t.i && anc <= t.i + t.len) { ancPuesto = true; out += '<span id="ancla"></span>'; }
       const vivo = activos.has(n + ':' + t.i) ? ' t-activo' : '';
-      const editable = t.tipo && t.tipo !== 'mal' ? ' t-editable' : '';
+      const esEditable = t.tipo && t.tipo !== 'mal' ? ' t-editable' : '';
       const bajoElMouse = !(señalado && señalado.l === n && señalado.i === t.i) ? ''
         : enElBoton() ? ' t-manija' : '';
       const datos = t.tipo ? ' data-tipo="' + t.tipo + '" data-l="' + n + '" data-i="' + t.i + '" data-len="' + t.len + '"' : '';
@@ -128,7 +130,7 @@ function pintar(marcas) {
       const cuerpo = t.raizLen && t.raizLen < t.len
         ? esc(crudo.slice(0, t.raizLen)) + '<span class="t-cola">' + esc(crudo.slice(t.raizLen)) + '</span>'
         : esc(crudo);
-      out += '<span class="t-' + t.cls + vivo + editable + bajoElMouse + '"' + datos + alto + tinte + '>' +
+      out += '<span class="t-' + t.cls + vivo + esEditable + bajoElMouse + '"' + datos + alto + tinte + '>' +
         cuerpo + '</span>';
       cur = t.i + t.len;
     }
@@ -142,10 +144,6 @@ function pintar(marcas) {
   realzados = new Set(activos);
   conManija = claveManija();
 }
-
-let ultimoCodigo = '';
-let sonando = false;
-let motorListo = false;
 
 // Asignar .value de un textarea le manda el cursor al final: todo lo que reescribe
 // el tema desde afuera pasa por acá para devolverlo a donde estaba.
@@ -180,10 +178,6 @@ function actualizar(reproducir) {
   guardar();
   const r = traducir(src.value);
   calladasActuales = r.calladas;
-  renglonesActuales = r.renglones;
-  vueltasActuales = r.vueltas;
-  tramosActuales = r.tramos;
-  temposActuales = r.tempos;
   // Strudel se consulta acá y en ningún otro lado, una vez por vuelta: los golpes
   // quedan colgados del renglón, así que un resize o un cambio de luz no le
   // preguntan nada, y el espejo de cada tecla tampoco. Y cada parte se prueba
@@ -205,7 +199,8 @@ function actualizar(reproducir) {
   }
   // las calladas y las que strudel rechazó están escritas, pero no suenan
   const suenan = new Set(r.partes.map(p => p.nro));
-  espejos = r.renglones.filter(x => x.pat && suenan.has(x.nro));
+  actual = { renglones: r.renglones, vueltas: r.vueltas, tramos: r.tramos, tempos: r.tempos,
+             espejos: r.renglones.filter(x => x.pat && suenan.has(x.nro)) };
   // la luz de cada parte sale de las que hay en la hoja, así que se reparte antes
   // de que algo pregunte por un color — la cinta y la marca también lo usan
   repartirLaLuz(r.marcas);
@@ -217,21 +212,6 @@ function actualizar(reproducir) {
     '<p><b>línea ' + e.nro + ':</b> ' + esc(e.msg) + '</p>').join('');
   cajaJs.textContent = r.codigo || '(todavía no hay nada que tocar)';
   cajaVacio.hidden = !!src.value.trim();
-  if (reproducir && sonando && r.codigo !== ultimoCodigo) {
-    // El tempo es la primera línea del código y nada más que eso: si el resto
-    // quedó igual, no hay patrón nuevo que armar, hay un número que decirle al
-    // reloj. Es la diferencia entre que el tempo se mueva mientras suena y que el
-    // tema se corte y arranque de nuevo en cada escalón del arrastre.
-    const soloElTempo = ultimoCodigo && r.codigo &&
-      ultimoCodigo.slice(ultimoCodigo.indexOf('\n')) === r.codigo.slice(r.codigo.indexOf('\n'));
-    ultimoCodigo = r.codigo;
-    // sin nada que tocar hay que apagar: si no, strudel sigue con el último
-    // stack que evaluó y el parlante suena mientras la pantalla dice que no hay nada
-    if (!r.codigo) { sonando = false; silenciar(); refrescarTransporte(); }
-    // con secciones el número que vale es el de la tabla nueva, y quién lo mira
-    // es el reloj, en el cuadro que sigue: acá sólo se le hace olvidar el de antes
-    else if (soloElTempo) { bpmPuesto = null; ponerTempo(r.bpm); }
-    else correr(r.codigo);
-  }
+  if (reproducir) seguirElTema(r);
   return r;
 }

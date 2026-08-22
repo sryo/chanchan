@@ -3,6 +3,10 @@
 // ranura de la plantilla tiene vocabulario cerrado, así que lo que se ofrece no es
 // una adivinanza sino toda la gramática legal en ese punto.
 
+// dónde está el cursor, en {l, c}, para que pintar() deje ahí el ancla de la que
+// cuelga el panel; lo pone abrirSugeridor() y lo saca cerrarSugeridor()
+let anclaCaret = null;
+
 // Ordena por qué tan bien pega lo tipeado. La pasada por palabra suelta es la que
 // hace que «corche» encuentre «en corcheas», que por prefijo de frase no pegaría.
 function candidatos(prefijo, lista, clave = x => x, soloPega) {
@@ -321,91 +325,3 @@ src.addEventListener('keydown', e => {
 src.addEventListener('input', () => abrirSugeridor(false));
 src.addEventListener('blur', cerrarSugeridor);
 addEventListener('mousedown', e => { if (!dentroDe(e.target, sugeridor)) cerrarSugeridor(); });
-
-src.addEventListener('mousemove', e => {
-  if (pidiendoCuadro) return;
-  pidiendoCuadro = true;
-  requestAnimationFrame(() => {
-    pidiendoCuadro = false;
-    if (arrastre) return;
-    const bajo = tokenEn(e.clientX, e.clientY, true);
-    const t = tieneMenu(bajo) ? bajo : null;
-    const antes = señalado && señalado.l + ':' + señalado.i + ':' + señalado.m;
-    const ahora = t && t.l + ':' + t.i + ':' + !!t.enManija;
-    // el ns-resize de las notas pide Alt; el tempo se arrastra sin apretar nada
-    src.style.cursor = !t ? ''
-      : t.tipo === 'tempo' ? 'ew-resize'
-      : e.altKey && arrastrable(t) ? 'ns-resize' : '';
-    if (antes === ahora) return;
-    señalado = t && { l: t.l, i: t.i, m: !!t.enManija };
-    realzar();
-    ponerManija(señalado);
-  });
-});
-src.addEventListener('mouseleave', e => {
-  // irse hacia el propio ▾, o hacia el menú que abrió, no es irse
-  if (tokenDelMenu || dentroDe(e.relatedTarget, manija, menu)) return;
-  if (!señalado) return;
-  señalado = null; realzar(); ponerManija(null);
-});
-// va en mousedown y no en click, para ganarle al textarea antes de que mueva el cursor
-let arrastre = null;
-const UMBRAL = 3;
-
-// soltar Alt sin mover el mouse tiene que limpiar el cursor de resize
-addEventListener('keyup', e => { if (e.key === 'Alt') src.style.cursor = ''; });
-
-src.addEventListener('mousedown', e => {
-  cerrarMenu();
-  // El click del ▾ lo recibe el propio botón, que está por encima del textarea.
-  // El tempo se arrastra sin apretar nada: es un número suelto y ahí no hay
-  // texto que uno quiera seleccionar arrastrando —para eso queda el doble
-  // click—. Las notas siguen pidiendo Alt, que es lo que las salva de pelearse
-  // con la selección en medio de una línea llena de palabras.
-  const t = editable(e.clientX, e.clientY);
-  if (!t || !arrastrable(t) || (!e.altKey && t.tipo !== 'tempo')) return;
-  e.preventDefault();
-  const d = datosDe(t);
-  arrastre = { t, x: e.clientX, y: e.clientY, movido: false, len: t.len,
-               grupo: 'tira' + Date.now(),
-               acorde: d.acorde || '',
-               base: t.tipo === 'tempo' ? (parseFloat(textoDe(t).replace(',', '.')) || 90)
-                 : semiDe(d) };
-});
-
-function moverArrastre(dx, dy) {
-  const a = arrastre;
-  let texto;
-  if (a.t.tipo === 'tempo') {
-    texto = String(Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, Math.round(a.base + dx / 4))));
-  } else {
-    const semi = Math.min(SEMI_MAX, Math.max(SEMI_MIN, a.base + Math.round(-dy / 10)));
-    texto = notaDesdeSemi(semi, a.acorde);
-    a.semi = semi;
-  }
-  if (texto === a.ultimo) return;
-  a.ultimo = texto;
-  reemplazar({ ...a.t, len: a.len }, texto, a.grupo);   // el token cambia de largo al ganar «sostenido»
-  a.len = texto.length;
-  if (!sonando && a.t.tipo !== 'tempo')
-    oir({ voces: [{ s: 'piano', note: nombreNota(a.semi, 0) }], dura: .3 });
-}
-
-addEventListener('mousemove', e => {
-  if (!arrastre) return;
-  const dx = e.clientX - arrastre.x, dy = e.clientY - arrastre.y;
-  if (!arrastre.movido && Math.hypot(dx, dy) < UMBRAL) return;
-  if (!arrastrable(arrastre.t)) return;
-  arrastre.movido = true;
-  moverArrastre(dx, dy);
-});
-
-addEventListener('mouseup', () => { arrastre = null; });
-// el botón de la selección abre el menú en su propio mousedown, y este listener
-// corre después por burbujeo: sin exceptuarlo cierra lo que aquél acaba de abrir
-addEventListener('mousedown', e => {
-  if (!dentroDe(e.target, menu, src, botonSel, manija)) cerrarMenu();
-});
-addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMenu(); });
-src.addEventListener('input', cerrarMenu);
-

@@ -1,16 +1,17 @@
 // ------------------------------------------------- qué se está tocando ahora
 // getTime() es el reloj de strudel, contado en vueltas
-let espejos = [];
-let claveActivos = '';
-let temposActuales = [], bpmPuesto = null;
+let claveActivos = '', bpmPuesto = null;
+// el transporte: si suena, con qué código, y si strudel ya tiene los sonidos
+let sonando = false, ultimoCodigo = '', motorListo = false;
+function motorLevantado() { motorListo = true; }
 
 // decírselo directo al reloj es lo que deja arrastrar el número mientras suena
 function seguirTempo(t) {
-  if (!temposActuales.length) return;
-  const v = Math.max(1, vueltasActuales);
+  if (!actual.tempos.length) return;
+  const v = Math.max(1, actual.vueltas);
   const donde = ((t % v) + v) % v;
-  let cual = temposActuales[0].bpm;
-  for (const x of temposActuales) if (donde >= x.desde) cual = x.bpm;
+  let cual = actual.tempos[0].bpm;
+  for (const x of actual.tempos) if (donde >= x.desde) cual = x.bpm;
   if (cual === bpmPuesto) return;
   bpmPuesto = cual;
   ponerTempo(cual);
@@ -24,7 +25,7 @@ function seguir() {
     let t;
     try { t = getTime(); } catch (e) { t = null; }
     if (t != null) seguirTempo(t);
-    if (t != null) for (const e of espejos) {
+    if (t != null) for (const e of actual.espejos) {
       let haps;
       try { haps = e.pat.queryArc(t, t + 0.0001); } catch (err) { continue; }
       for (const h of haps) {
@@ -36,8 +37,7 @@ function seguir() {
   const clave = [...nuevos].sort().join('|');
   if (clave === claveActivos) return;
   claveActivos = clave;
-  activos = nuevos;
-  realzar();
+  realzar(nuevos);
 }
 
 // strudel corta el reloj pero no las notas que ya salieron: sin apagar el
@@ -84,6 +84,26 @@ function correr(codigo) {
   } catch (e) {
     caido(e);
   }
+}
+
+// Lo que el editor le dice al reloj después de cada vuelta por la hoja: si está
+// sonando y el código cambió, lo nuevo reemplaza a lo viejo.
+function seguirElTema(r) {
+  if (!sonando || r.codigo === ultimoCodigo) return;
+  // El tempo es la primera línea del código y nada más que eso: si el resto
+  // quedó igual, no hay patrón nuevo que armar, hay un número que decirle al
+  // reloj. Es la diferencia entre que el tempo se mueva mientras suena y que el
+  // tema se corte y arranque de nuevo en cada escalón del arrastre.
+  const soloElTempo = ultimoCodigo && r.codigo &&
+    ultimoCodigo.slice(ultimoCodigo.indexOf('\n')) === r.codigo.slice(r.codigo.indexOf('\n'));
+  ultimoCodigo = r.codigo;
+  // sin nada que tocar hay que apagar: si no, strudel sigue con el último
+  // stack que evaluó y el parlante suena mientras la pantalla dice que no hay nada
+  if (!r.codigo) { sonando = false; silenciar(); refrescarTransporte(); }
+  // con secciones el número que vale es el de la tabla nueva, y quién lo mira es
+  // seguirTempo(), en el cuadro que sigue: acá sólo se le hace olvidar el de antes
+  else if (soloElTempo) { bpmPuesto = null; ponerTempo(r.bpm); }
+  else correr(r.codigo);
 }
 
 // ------------------------------------------------------------- tocar y parar
