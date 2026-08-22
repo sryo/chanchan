@@ -57,14 +57,20 @@ function repartirLaLuz(marcas) {
   }
 }
 
+function enLaBanda(banda, tono, paso) {
+  const b = BANDA[banda][deNoche() ? 'oscuro' : 'claro'];
+  return 'oklch(' + (b.de + (b.a - b.de) * paso).toFixed(3) + ' ' + b.croma + ' ' + tono + ')';
+}
+
 function enLaRueda(banda, voz) {
   const n = norm(voz || '');
   const m = MATIZ[n] || MATIZ[norm(INSTRUMENTO_POR_DEFECTO)];
-  const b = BANDA[banda][deNoche() ? 'oscuro' : 'claro'];
   // sin repartir —el menú, el sugeridor— vale el del catálogo
-  const paso = n in pasoDelTema ? pasoDelTema[n] : m.paso;
-  return 'oklch(' + (b.de + (b.a - b.de) * paso).toFixed(3) + ' ' + b.croma + ' ' + m.tono + ')';
+  return enLaBanda(banda, m.tono, n in pasoDelTema ? pasoDelTema[n] : m.paso);
 }
+
+// una familia es el tono entero, sin una luz propia: va al medio de la banda, que es lo más legible
+const tintaDeFamilia = fam => fam in TONO ? enLaBanda('tinta', TONO[fam], 0.5) : null;
 
 const tintaDe = voz => enLaRueda('tinta', voz);
 const tramaDe = voz => enLaRueda('trama', voz);

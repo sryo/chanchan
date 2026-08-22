@@ -121,7 +121,7 @@ function seccionesDe(t) {
     const fam = familias.includes(familiaElegida) ? familiaElegida : (suya || familias[0]);
 
     secs.push({ titulo: 'familias', ops: familias.map(f =>
-      ({ txt: f, familia: f, puesto: f === fam })) });
+      ({ txt: f, familia: f, puesto: f === fam, color: tintaDeFamilia(f) })) });
     secs.push({ titulo: fam, detalle: true, ops: deFamilia(fam).map(op) });
     return secs;
   }
@@ -231,7 +231,9 @@ function pintarPanel(panel, secs, t, dueño = t) {
     '<div class="sec' + (s.detalle ? ' detalle' : '') + (s.pie ? ' pie' : '') +
     '">' + (s.titulo ? '<h3>' + esc(s.titulo) + '</h3>' : '') + s.ops.map((o, j) =>
       '<div class="op' + (o.puesto ? ' puesto' : '') + (o.familia ? ' conSub' : '') +
-      '" data-op="' + j + '" data-sec="' + secs.indexOf(s) + '">' +
+      '" data-op="' + j + '" data-sec="' + secs.indexOf(s) + '"' +
+      // la fila señalada lleva su propio color, que .puesto lee de --parte
+      (o.color ? ' style="--parte:' + o.color + '"' : '') + '>' +
       '<span>' + esc(o.txt) + '</span>' +
       (o.desc ? '<span class="d">' + esc(o.desc) + '</span>' : '') +
       (o.familia ? '<span class="d">' + icono('chevron', 'chica derecha') + '</span>' : '') +
