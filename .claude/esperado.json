@@ -328,6 +328,15 @@
   "tempos": [],
   "enlaces": []
  },
+ "una nota no es sección ni tempo": {
+  "codigo": "setcpm(90/4)\ns(\"bd sd\").bank(\"linndrum\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
  "un tema que nombra a otros": {
   "codigo": "setcpm(90/4)\ns(\"bd\").bank(\"linndrum\").orbit(0)",
   "vueltas": 1,

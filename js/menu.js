@@ -415,10 +415,11 @@ src.addEventListener('mousedown', e => {
   // el tempo se arrastra sin Alt: es un número suelto y no hay texto que
   // seleccionar; las notas lo piden para no pelearse con la selección
   const t = editable(e.clientX, e.clientY);
-  // ⌘+click sigue el enlace, como en cualquier editor; sin él, el cursor va al nombre
-  if (t && t.tipo === 'enlace' && (e.metaKey || e.ctrlKey)) {
+  // un enlace se aprieta: soltar sin moverse va al tema; arrastrar selecciona
+  if (t && t.tipo === 'enlace' && e.button === 0) {
     e.preventDefault();
-    return irAlTema(datosDe(t).nombre);
+    enlaceApretado = { nombre: datosDe(t).nombre, x: e.clientX, y: e.clientY };
+    return;
   }
   if (!t || !arrastrable(t) || (!e.altKey && t.tipo !== 'tempo')) return;
   e.preventDefault();
@@ -457,7 +458,12 @@ addEventListener('mousemove', e => {
   moverArrastre(dx, dy);
 });
 
-addEventListener('mouseup', () => { arrastre = null; });
+let enlaceApretado = null;
+addEventListener('mouseup', e => {
+  arrastre = null;
+  const a = enlaceApretado; enlaceApretado = null;
+  if (a && Math.hypot(e.clientX - a.x, e.clientY - a.y) <= UMBRAL) irAlTema(a.nombre);
+});
 // botonSel abre el menú en su mousedown y éste llega después: lo cerraría
 addEventListener('mousedown', e => {
   if (!dentroDe(e.target, menu, src, botonSel, manija)) cerrarMenu();

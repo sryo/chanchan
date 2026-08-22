@@ -33,6 +33,7 @@ function ranuraEn(linea, col) {
     col - linea.slice(0, col).match(/[^\s,]*$/)[0].length,
     col + linea.slice(col).match(/^[^\s,]*/)[0].length);
 
+  if (linea.trimStart().startsWith('#')) return null;
   const arroba = linea.indexOf('@');
   if (arroba >= 0 && !linea.slice(0, arroba).trim())
     return { ranura: 'enlace', ...trozo(arroba + 1, linea.length) };
@@ -251,8 +252,9 @@ function abrirSugeridor(aPedido) {
   const base = src.value.lastIndexOf('\n', pos - 1) + 1;
   const linea = src.value.split('\n')[l];
   const r = ranuraEn(linea, pos - base);
-  if (r) r.l = l;                       // la vista previa suena con el instrumento de la línea
-  const secs = r ? seccionesEnCaret(r) : [];
+  if (!r) return cerrarSugeridor();     // una nota: nada que ofrecer
+  r.l = l;                              // la vista previa suena con el instrumento de la línea
+  const secs = seccionesEnCaret(r);
   const ops = secs.flatMap(x => x.ops);
   // sólo con una palabra empezada y algo nuevo que ofrecer; la coma y el «@» son
   // la excepción: recién abiertos es cuando no se sabe qué puede ir

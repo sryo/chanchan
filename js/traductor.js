@@ -21,6 +21,13 @@ function traducirLinea(texto, nro) {
   const ws = palabras(texto, 0);
   const sinArticulo = ws[0] && /^(el|la|los|las)$/i.test(ws[0].w) ? ws.slice(1) : ws;
 
+  // ---- # una nota
+  // no suena y no dice nada del tema; va primero, que «# la estrofa:» no es una sección
+  if (texto.trimStart().startsWith('#')) {
+    marcar(texto.indexOf('#'), texto.length - texto.indexOf('#'), 'comentario', { tipo: 'comentario' });
+    return { tipo: 'comentario', tk, errs };
+  }
+
   // ---- la estrofa:
   const sec = leerSeccion(texto);
   if (sec) {

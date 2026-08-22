@@ -103,6 +103,13 @@ Un nombre de una palabra y dos puntos; lo que sigue es de ella. Sin ${codigo('du
 sección dura lo que tardan sus líneas en volver a caer juntas. Las líneas de
 antes de la primera sección suenan en todas.
 
+## una nota
+
+    # esto no suena
+
+Un renglón que empieza con ${codigo('#')} es una nota para quien lee: no suena y no
+dice nada del tema.
+
 ## otro documento
 
     @la base

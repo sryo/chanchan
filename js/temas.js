@@ -35,85 +35,16 @@ function desdeCuando(t) {
   return 'hace ' + Math.round(dias / 30) + ' meses';
 }
 
-// se copian como cualquier párrafo, y apretar uno lo escribe y lo hace sonar
-const ESPERA_CLICK = 180;
-
-// Cada cosa de la hoja vacía es un enlace de verdad: se copia con el botón derecho,
-// se abre en otra pestaña, se alcanza con Tab. El hash se arma después, que es
-// asíncrono. Sin draggable, que arrastrar un enlace arrastra la dirección en vez de
-// seleccionar el texto.
-const afuera = e => e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0;
-
-function enlaceA(nombre, txt) {
-  const a = document.createElement('a');
-  a.textContent = nombre || txt.split('\n')[0];
-  a.draggable = false;
-  a.href = '#';
-  hashDe(nombre, txt).then(h => { a.href = '#' + h; });
-  return a;
-}
-const RENGLONES_DE_MUESTRA = ['la bata toca pum pa pum pa', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
-
-// el texto recibe el mouse para poder copiarlo, así que apretarlo ya no cae en la
-// hoja: se la devuelve, salvo que se esté seleccionando o sea un botón
-cajaVacio.addEventListener('click', e => {
-  if (getSelection().isCollapsed && !e.target.closest('button, a')) src.focus();
-});
-
-function armarVacio() {
-  const mios = misTemas();
-  cajaVacio.innerHTML =
-    '<p class="lema">acá la música se escribe con palabras.</p>' +
-    '<p class="pista primera">empezá con una de éstas, o escribí la tuya:</p>' +
-    '<div class="muestras"></div>' +
-    (mios.length ? '<p class="pista">o volvé a uno tuyo</p><div class="muestras mios"></div>' : '') +
-    '<p class="pista">o escuchá un tema hecho</p><div class="muestras temas"></div>';
-  const muestra = (txt, caja) => {
-    const p = enlaceA('', txt);
-    p.className = 'muestra';
-    p.textContent = txt;
-    let apreto = null, espera;
-    p.addEventListener('mousedown', e => { apreto = [e.clientX, e.clientY]; });
-    p.addEventListener('click', e => {
-      const a = apreto; apreto = null;
-      clearTimeout(espera);
-      if (afuera(e)) return;                    // otra pestaña: que lo abra el enlace
-      e.preventDefault();
-      // el segundo click de un doble o un triple es para seleccionar, y llega tarde
-      // para el primero: por eso escribir espera a que no venga ninguno
-      if (e.detail > 1) return;
-      // arrastrar para copiar termina en un click: un arrastre no escribe
-      if (a && Math.hypot(e.clientX - a[0], e.clientY - a[1]) > UMBRAL) return;
-      espera = setTimeout(() => {
-        escribir(txt + '\n', txt.length);
-        registrar(src.value, null);
-        // sin sonidos todavía, queda escrito: el botón ya dice que carga
-        if (motorListo && !sonando) alternarTocar(); else actualizar(true);
-        src.focus();
-      }, ESPERA_CLICK);
-    });
-    caja.appendChild(p);
-  };
-  for (const linea of RENGLONES_DE_MUESTRA) muestra(linea, cajaVacio.querySelector('.muestras'));
-  // los temas se muestran como el renglón que los nombra: lo mismo que se escribe en la hoja
-  const poner = (lista, caja) => {
-    for (const e of lista) {
-      const a = enlaceA(e.nombre, e.txt);
-      a.className = 'muestra';
-      a.textContent = '@' + e.nombre;
-      a.addEventListener('click', ev => {
-        if (afuera(ev)) return;                 // otra pestaña: que lo abra el enlace
-        ev.preventDefault();
-        cargarTema(e);
-        src.focus();
-      });
-      caja.appendChild(a);
-    }
-  };
-  if (mios.length) poner(mios, cajaVacio.querySelector('.muestras.mios'));
-  // mismo nombre, mismo tema, ver REGLAS.md: acá iría dos veces
-  poner(EJEMPLOS.filter(e => !mios.some(m => norm(m.nombre) === norm(e.nombre))), cajaVacio.querySelector('.muestras.temas'));
-}
+// lo que encuentra quien llega por primera vez: un documento, con sus notas
+const PRIMERA_HOJA = () => [
+  '# acá la música se escribe con palabras.',
+  '# empezá con una de éstas, o escribí la tuya:',
+  'la bata toca pum pa pum pa',
+  'el bajo toca do - sol -',
+  'el piano toca do mayor | fa mayor',
+  '# o escuchá un tema hecho:',
+  ...EJEMPLOS.map(e => '@' + e.nombre),
+].join('\n');
 
 // --------------------------------------------------------- abrir otro tema
 // con algo escrito la hoja vacía no está: los temas cuelgan del nombre

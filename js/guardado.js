@@ -30,7 +30,6 @@ function misTemas() {
 function escribirTemas(lista) {
   try { localStorage.setItem(GUARDADO_TEMAS, JSON.stringify(lista)); }
   catch (e) { /* modo privado, o lleno */ }
-  armarVacio();                         // temas.js, que carga después: sólo corre en caliente
 }
 
 // abrir un ejemplo sin tocarlo no lo hace tuyo
@@ -248,7 +247,7 @@ async function temaInicial() {
     // sin nada guardado, la hoja vacía y no un ejemplo: un tema ajeno con nombre dice «esto ya es de alguien»
     return guardado
       ? { txt: guardado, nombre: recordado(GUARDADO_NOMBRE) || '' }
-      : { txt: '', nombre: '' };
+      : { txt: PRIMERA_HOJA(), nombre: '' };
   } catch (e) { return { txt: '', nombre: '' }; }
 }
 

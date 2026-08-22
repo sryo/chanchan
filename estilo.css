@@ -209,6 +209,7 @@
   .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
   /* tinta de página: apunta a otro tema, no suena */
   .t-enlace { color: var(--texto); text-decoration: underline dotted currentColor; text-underline-offset: 4px; }
+  .t-comentario { color: var(--tenue); }
   /* «de esta palabra cuelga el ▾»: sale con el mouse en el botón, no en la palabra */
   .t-editable.t-manija {
     text-decoration: underline dotted currentColor;
@@ -294,24 +295,6 @@
   details[open] summary .i { transform: none; }
   #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
   #luz { margin-right: 44px; }
-  /* recibe el mouse como cualquier página, para poder copiar de punta a punta;
-     apretar sin seleccionar devuelve el cursor a la hoja, en temas.js */
-  #vacio {
-    position: absolute; z-index: 2; font-size: var(--letra-tema);
-    left: calc(var(--sangria) + var(--canal)); top: 56px; right: 44px;
-  }
-  /* en --suave el contraste es 1,5 */
-  .pista { color: var(--tenue); margin: 26px 0 10px; }
-  .lema { margin: 0 0 22px; }
-  /* renglones de la hoja, no botones: se copian arrastrando, ver REGLAS.md */
-  .muestras { margin: 0; }
-  .muestra {
-    display: block; color: inherit; text-decoration: none;
-    margin: 0 -6px; padding: 1px 6px; border-radius: 3px;
-    width: max-content; max-width: 100%; cursor: pointer;
-  }
-  .muestra:hover { background: var(--realce); }
-  .pista.primera { margin-top: 0; }
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
   /* el botón mide lo mismo que el ▾; el color lo pone el js en currentColor */
   .punto {

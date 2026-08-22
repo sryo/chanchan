@@ -5,7 +5,6 @@ const cajaErr = document.getElementById('errores');
 const cajaJs = document.getElementById('js');
 const btnEnlace = document.getElementById('enlace');
 const campoNombre = document.getElementById('nombre');
-const cajaVacio = document.getElementById('vacio');
 
 // al cajón de los errores del idioma, que es donde ya se está mirando
 function avisar(msg) {
@@ -240,7 +239,6 @@ function actualizar(reproducir) {
   cajaErr.innerHTML = r.errores.map(e =>
     '<p><b>línea ' + e.nro + ':</b> ' + esc(e.msg) + '</p>').join('');
   cajaJs.textContent = r.codigo || '(todavía no hay nada que tocar)';
-  cajaVacio.hidden = !!src.value.trim();
   if (reproducir) seguirElTema(r);
   return r;
 }

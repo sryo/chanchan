@@ -25,8 +25,9 @@ control nuevo tiene que hacer lo mismo o no entra.
 **Palabras para lo que suena, un signo para lo que no.** Todo renglón que hace
 sonar algo se escribe con palabras del idioma; los signos —`-`, `_`, `|`, `!`—
 viven adentro de una secuencia de pasos y los cuatro dicen algo musical. El `@`
-que apunta a otro documento es la excepción que confirma la regla: no suena, y
-por eso no es una palabra — se ve de un vistazo que ese renglón no es música.
+que apunta a otro documento y el `#` de una nota son las excepciones que confirman
+la regla: no suenan, y por eso no son palabras — se ve de un vistazo que ese
+renglón no es música.
 
 ## los cuatro colores
 
