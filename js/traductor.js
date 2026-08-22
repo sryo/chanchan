@@ -42,6 +42,20 @@ function traducirLinea(texto, nro) {
     return { tipo: 'seccion', nombre: sec.nombre, escrito: sec.escrito, vueltas: sec.vueltas, tk, errs };
   }
 
+  // ---- @la base
+  // no suena: apunta a otro tema. Un signo y no una palabra, ver REGLAS.md
+  const arroba = texto.indexOf('@');
+  if (arroba >= 0 && !texto.slice(0, arroba).trim()) {
+    marcar(arroba, 1, 'estructura');
+    const nombre = texto.slice(arroba + 1).trim();
+    if (!nombre) {
+      error(arroba, 1, 'después del «@» va el nombre de otro tema: «@la base».');
+      return { tipo: 'mala', tk, errs };
+    }
+    marcar(texto.indexOf(nombre, arroba + 1), nombre.length, 'enlace', { tipo: 'enlace', nombre });
+    return { tipo: 'enlace', nombre, tk, errs };
+  }
+
   // ---- va estrofa estrofa estribillo
   const forma = leerForma(texto);
   if (forma) {

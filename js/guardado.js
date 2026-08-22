@@ -96,6 +96,12 @@ function cargarTema(tema) {
   guardar();
 }
 
+// el que no está todavía se crea: una hoja nueva con ese nombre
+function irAlTema(nombre) {
+  cargarTema(misTemas().find(t => norm(t.nombre) === norm(nombre)) || { nombre, txt: '' });
+  src.focus();
+}
+
 // la tecla espera; irse a otro tema escribe ya
 function guardar() {
   clearTimeout(relojGuardar);

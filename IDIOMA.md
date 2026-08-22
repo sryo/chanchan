@@ -124,6 +124,15 @@ Un nombre de una palabra y dos puntos; lo que sigue es de ella. Sin `dura`, la
 sección dura lo que tardan sus líneas en volver a caer juntas. Las líneas de
 antes de la primera sección suenan en todas.
 
+## otro documento
+
+    @la base
+
+Un renglón que empieza con `@` no suena: apunta a otro tema tuyo. Tipeá el
+`@` y te ofrece los que tenés; para ir, ⌘+click en el nombre, o el ▾ y «abrir».
+Si ese tema no existe todavía, lo crea. Sirve para escribir las partes de un mismo
+tema en documentos distintos e ir de uno a otro.
+
 ## la forma
 
     el tema va estrofa estrofa estribillo estrofa

@@ -9,7 +9,7 @@ const sacarCallado = ln => ln.replace(/\s*,\s*callado\b/i, '');
 const ponerCallado = ln => sacarCallado(ln) + ', callado';
 
 // tienen menú pero no son partes: nada que callar
-const NO_SUENA = ['tempo', 'mal', 'seccion', 'forma'];
+const NO_SUENA = ['tempo', 'compas', 'mal', 'seccion', 'forma', 'enlace'];
 
 function lineasQueSuenan(marcas) {
   return marcas.map((tks, l) =>

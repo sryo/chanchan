@@ -33,6 +33,10 @@ function ranuraEn(linea, col) {
     col - linea.slice(0, col).match(/[^\s,]*$/)[0].length,
     col + linea.slice(col).match(/^[^\s,]*/)[0].length);
 
+  const arroba = linea.indexOf('@');
+  if (arroba >= 0 && !linea.slice(0, arroba).trim())
+    return { ranura: 'enlace', ...trozo(arroba + 1, linea.length) };
+
   if (esTempo(linea)) {
     const m = linea.match(/(\d+(?:[.,]\d+)?)/);
     return { ranura: 'tempo', ...(m ? trozo(m.index, m.index + m[1].length) : palabraEn()) };
@@ -150,6 +154,9 @@ function armarSecciones(r, soloPega) {
     return sec('empezar una línea',
                filtrarPega([...partes.map(plantilla), tempo, compas, seccion, forma], pelado, o => o.buscar));
   }
+
+  if (r.ranura === 'enlace')
+    return sec('tus temas', filtrar(misTemas().map(m2 => op(' ' + m2.nombre, ' ' + m2.nombre))));
 
   if (r.ranura === 'forma')
     return sec('secciones', filtrar([...seccionesEscritas().values()].map(n => op(n))));

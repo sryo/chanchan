@@ -147,6 +147,18 @@ function seccionesDe(t) {
       ({ ...o, nuevo: o.txt, puesto: !!puesta && puesta.n === o.n && puesta.q === o.q })) }];
   }
 
+  if (t.tipo === 'enlace') {
+    const mios = misTemas();
+    const hay = mios.some(x => norm(x.nombre) === norm(d.nombre));
+    return [
+      { titulo: 'el enlace', ops: [{ txt: (hay ? 'abrir ' : 'crear ') + d.nombre,
+        desc: hay ? 'o ⌘+click en el nombre' : 'una hoja nueva con ese nombre',
+        hacer: () => irAlTema(d.nombre) }] },
+      { titulo: 'apuntar a', detalle: true, ops: mios.map(x =>
+        ({ txt: x.nombre, nuevo: x.nombre, puesto: norm(x.nombre) === norm(d.nombre) })) },
+    ];
+  }
+
   if (t.tipo === 'forma') {
     const vistas = seccionesEscritas();
     if (!vistas.size) return null;
@@ -181,7 +193,7 @@ function seccionesDe(t) {
 
 // corre en cada cuadro del hover (ver REGLAS.md, 133 instrumentos): sólo «mal»
 // obliga a armar el menú para saber
-const CON_MENU = ['tempo', 'compas', 'paso', 'nota', 'instrumento', 'modificador', 'figura', 'arreglo',
+const CON_MENU = ['tempo', 'compas', 'enlace', 'paso', 'nota', 'instrumento', 'modificador', 'figura', 'arreglo',
                   'euclides', 'veces', 'forma'];
 const tieneMenu = t => !!t &&
   (CON_MENU.includes(t.tipo) || (t.tipo === 'mal' && !!seccionesDe(t)));
@@ -403,6 +415,11 @@ src.addEventListener('mousedown', e => {
   // el tempo se arrastra sin Alt: es un número suelto y no hay texto que
   // seleccionar; las notas lo piden para no pelearse con la selección
   const t = editable(e.clientX, e.clientY);
+  // ⌘+click sigue el enlace, como en cualquier editor; sin él, el cursor va al nombre
+  if (t && t.tipo === 'enlace' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    return irAlTema(datosDe(t).nombre);
+  }
   if (!t || !arrastrable(t) || (!e.altKey && t.tipo !== 'tempo')) return;
   e.preventDefault();
   const d = datosDe(t);

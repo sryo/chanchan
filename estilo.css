@@ -207,6 +207,8 @@
   /* tinta de página, dice cuándo y no quién: ver REGLAS.md */
   #hl span[data-tipo="seccion"] { font-weight: 600; }
   .t-mal { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
+  /* tinta de página: apunta a otro tema, no suena */
+  .t-enlace { color: var(--texto); text-decoration: underline dotted currentColor; text-underline-offset: 4px; }
   /* «de esta palabra cuelga el ▾»: sale con el mouse en el botón, no en la palabra */
   .t-editable.t-manija {
     text-decoration: underline dotted currentColor;

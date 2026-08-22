@@ -22,6 +22,12 @@ De ahí salen dos cosas que parecen caprichos y no lo son: los puntitos del
 margen y el ▾ **escriben en el texto** en vez de guardar algo aparte, y cualquier
 control nuevo tiene que hacer lo mismo o no entra.
 
+**Palabras para lo que suena, un signo para lo que no.** Todo renglón que hace
+sonar algo se escribe con palabras del idioma; los signos —`-`, `_`, `|`, `!`—
+viven adentro de una secuencia de pasos y los cuatro dicen algo musical. El `@`
+que apunta a otro documento es la excepción que confirma la regla: no suena, y
+por eso no es una palabra — se ve de un vistazo que ese renglón no es música.
+
 ## los cuatro colores
 
 El color no decora: cada canal dice una cosa y sólo una.

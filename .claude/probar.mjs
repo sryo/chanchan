@@ -40,6 +40,8 @@ const CASOS = [
   ['acordes de dos palabras',            'el piano toca do menor séptima | re mayor séptima agudo | mi suspendido | fa aumentado'],
   ['transponer, sólo con notas',         'el bajo toca do re, una octava abajo\nla bata toca pum, un tono arriba'],
   ['cada dos vueltas, al doble',         'la bata toca pum pa, cada dos vueltas al doble'],
+  ['un enlace a otro tema',            '@la base\nla bata toca pum pa'],
+  ['un enlace sin nombre',             '@\nla bata toca pum pa'],
   ['compás de tres',                     'va a 150 en tres\nel bajo toca do - -'],
   ['volumen y lugar',                    'el bajo toca do, muy bajito, a la izquierda\nla viola toca re, muy fuerte, a la derecha'],
   ['golpes nuevos',                      'la bata toca pum dum tum tim clon shh'],
