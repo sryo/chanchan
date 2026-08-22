@@ -1,19 +1,6 @@
 // ---------------------------------------------------------------- la hoja vacía
 // El vocabulario ya lo sirven el menú del ▾ y el sugeridor, que además saben en
 // qué palabra estás parado; lo único que no vivía en ningún lado era el molde.
-const cajaVacio = document.getElementById('vacio');
-
-// vaciar el guardado perezoso antes de pisar el texto: si no se pierde lo último
-function cargarTema(tema) {
-  cambiarDeTema(tema.nombre);
-  src.value = conRenglonFinal(tema.txt);
-  campoNombre.value = tema.nombre;
-  medirNombre();
-  registrar(src.value, null);
-  actualizar(true);
-  guardar();
-}
-
 // ------------------------------------------- el tema visto de lejísimos
 // Una barra por instrumento y no por renglón: la misma base tres veces son nueve
 // renglones y tres colores, y nueve barras en quince píxeles son barro. Hasta

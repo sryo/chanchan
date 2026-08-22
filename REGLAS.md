@@ -197,9 +197,22 @@ que se pregunta primero por el tipo del token y recién después se arma el men�
 ## un solo ámbito
 
 Los scripts de `js/` son scripts comunes, no módulos: comparten un ámbito y el
-orden de `index.html` es el orden de las dependencias. Dos declaraciones con el
-mismo nombre en archivos distintos tiran la página entera y el navegador no dice
-cuál es la otra — por eso `node .claude/revisar.mjs`, que sí lo dice.
+orden de `index.html` es el orden en que cargan. Lo que ese orden garantiza es lo
+que pasa **al cargar**: una línea de primer nivel sólo puede nombrar lo que ya
+cargó. Lo que pasa después —una función que llama a otra de un archivo que carga
+más tarde— anda igual, y `actualizar()` lo hace a propósito: es la que orquesta,
+y llama a la cinta, al reloj y a los puntitos, que vienen después.
+
+De ahí las reglas que revisa `node .claude/revisar.mjs`, porque ninguna se ve a
+simple vista y el navegador no dice cuál es la otra mitad del choque:
+
+- dos declaraciones con el mismo nombre en archivos distintos tiran la página
+  entera;
+- una variable (`let`) se escribe sólo desde el archivo que la declara: es su
+  dueño, y los demás la leen;
+- una local no se llama como un global: borrar la local caería en silencio sobre
+  el otro;
+- nada de primer nivel nombra lo que todavía no cargó.
 
 Un helper que usen dos archivos va en el que carga primero de los dos.
 

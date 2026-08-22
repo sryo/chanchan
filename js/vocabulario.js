@@ -29,6 +29,23 @@ const nombreNota = (semi, oct) => CROMATICA[((semi % 12) + 12) % 12] + (oct + Ma
 const OCTAVAS = { 'muy grave':2, grave:3, agudo:5, 'muy agudo':6 };
 const OCTAVA_BASE = 4;
 
+const armarNota = p => [p.raiz, p.altN, p.octN, p.acorde].filter(Boolean).join(' ');
+
+// altura como un número solo, para poder subirla y bajarla de a un semitono
+const OCT_NOMBRE = Object.fromEntries(Object.entries(OCTAVAS).map(([k, v]) => [v, k]));
+const SEMI_MIN = 12 * 2, SEMI_MAX = 12 * 6 + 11;   // de do muy grave a si muy agudo
+const semiDe = d => GRADOS[NOTAS[d.raiz]] +
+  (d.altN === 'sostenido' ? 1 : d.altN === 'bemol' ? -1 : 0) +
+  12 * (d.octN ? OCTAVAS[d.octN] : OCTAVA_BASE);
+
+function notaDesdeSemi(semi, acorde) {
+  const oct = Math.floor(semi / 12), clase = ((semi % 12) + 12) % 12;
+  const exacta = Object.entries(NOTAS).find(([, en]) => GRADOS[en] === clase);
+  const abajo = exacta || Object.entries(NOTAS).find(([, en]) => GRADOS[en] === clase - 1);
+  return [abajo[0], exacta ? '' : 'sostenido',
+          oct === OCTAVA_BASE ? '' : OCT_NOMBRE[oct], acorde].filter(Boolean).join(' ');
+}
+
 // ------------------------------------------------------------------- la altura
 // Cinco escalones, los mismos para un tambor que para un do, así que las dos
 // maneras de escribir un paso se pueden comparar. El editor los

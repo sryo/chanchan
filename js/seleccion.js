@@ -2,6 +2,7 @@
 const PLURAL = { nota: 'notas', paso: 'pasos', modificador: 'modificadores' };
 const botonSel = document.createElement('button');
 botonSel.id = 'seleccion';
+colgar(botonSel, 2);
 document.body.appendChild(botonSel);
 let tokensSel = [];
 

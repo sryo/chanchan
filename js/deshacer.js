@@ -32,6 +32,7 @@ function irA(i, cual) {
 
 const botonDeshacer = document.createElement('button');
 botonDeshacer.id = 'deshacer';
+colgar(botonDeshacer, 1);
 document.body.appendChild(botonDeshacer);
 let relojDeshacer;
 const VIDA_DESHACER = 9000;
@@ -65,6 +66,15 @@ botonDeshacer.addEventListener('mousedown', e => {
   botonDeshacer.dataset.que === 'rehacer' ? rehacer() : deshacer();
 });
 
+// una ráfaga de tecleo es un solo paso para atrás: el grupo sigue abierto
+// mientras no pasen 600 ms sin teclear
+let relojTecla;
+function registrarTecla() {
+  registrar(src.value, null, 'tecla' + grupoTecla);
+  clearTimeout(relojTecla);
+  relojTecla = setTimeout(() => grupoTecla++, 600);
+}
+
 const deshacer = () => irA(puntero - 1, 'deshacer');
 const rehacer  = () => irA(puntero + 1, 'rehacer');
 
@@ -74,26 +84,4 @@ addEventListener('keydown', e => {
   if (document.activeElement === campoNombre) return;
   e.preventDefault();
   e.shiftKey ? rehacer() : deshacer();
-});
-
-let reloj;
-src.addEventListener('input', () => {
-  asegurarRenglonFinal();
-  clearTimeout(reloj);
-  reloj = setTimeout(() => actualizar(true), 400);
-  registrar(src.value, null, 'tecla' + grupoTecla);
-  clearTimeout(relojTecla);
-  relojTecla = setTimeout(() => grupoTecla++, 600);
-  repintarTexto();
-});
-let relojTecla;
-// uno solo, y en orden: primero el espejo, si no los puntitos miden contra
-// geometría vieja porque se posicionan a partir de los spans de #hl
-src.addEventListener('scroll', () => {
-  hl.scrollTop = src.scrollTop;
-  hl.scrollLeft = src.scrollLeft;
-  armarPuntos(marcasActuales, calladasActuales);
-  cerrarMenu();
-  // al ▾ lo reacomoda cerrarMenu; al de deshacer hay que reacomodarlo acá
-  acomodarColgantes();
 });

@@ -16,18 +16,6 @@ let señalado = null;
 // Así es siempre igual de grande: si midiera más se metería en la palabra de al
 // lado y sus primeros píxeles abrirían el menú de la anterior; si midiera menos
 // quedaría un hueco muerto. Lo que crece es el alto, que es donde sobra sitio.
-let _letra = 0, _renglon = 0;
-function medirTipografia() {
-  const probeta = document.createElement('span');
-  probeta.textContent = '0'.repeat(10);
-  probeta.style.cssText = 'position:absolute;visibility:hidden;white-space:pre';
-  hl.appendChild(probeta);
-  _letra = probeta.getBoundingClientRect().width / 10;
-  probeta.remove();
-  _renglon = parseFloat(getComputedStyle(hl).lineHeight);
-}
-const anchoManija = () => { if (!_letra) medirTipografia(); return _letra; };
-const altoRenglon = () => { if (!_renglon) medirTipografia(); return _renglon; };
 
 
 // qué familia muestra la columna de detalle; es estado del menú, no del documento
@@ -81,23 +69,6 @@ function reemplazar(t, texto, grupo) {
   registrar(src.value, { l: t.l, i: t.i, len: texto.length }, grupo);
   actualizar(true);
   mostrarDeshacer({ l: t.l, i: t.i, len: texto.length }, false);
-}
-
-const armarNota = p => [p.raiz, p.altN, p.octN, p.acorde].filter(Boolean).join(' ');
-
-// altura como un número solo, para poder subirla y bajarla de a un semitono
-const OCT_NOMBRE = Object.fromEntries(Object.entries(OCTAVAS).map(([k, v]) => [v, k]));
-const SEMI_MIN = 12 * 2, SEMI_MAX = 12 * 6 + 11;   // de do muy grave a si muy agudo
-const semiDe = d => GRADOS[NOTAS[d.raiz]] +
-  (d.altN === 'sostenido' ? 1 : d.altN === 'bemol' ? -1 : 0) +
-  12 * (d.octN ? OCTAVAS[d.octN] : OCTAVA_BASE);
-
-function notaDesdeSemi(semi, acorde) {
-  const oct = Math.floor(semi / 12), clase = ((semi % 12) + 12) % 12;
-  const exacta = Object.entries(NOTAS).find(([, en]) => GRADOS[en] === clase);
-  const abajo = exacta || Object.entries(NOTAS).find(([, en]) => GRADOS[en] === clase - 1);
-  return [abajo[0], exacta ? '' : 'sostenido',
-          oct === OCTAVA_BASE ? '' : OCT_NOMBRE[oct], acorde].filter(Boolean).join(' ');
 }
 
 const arrastrable = t => t && (t.tipo === 'tempo' || (t.tipo === 'nota' && datosDe(t).raiz));
@@ -387,6 +358,7 @@ function cerrarMenu() {
 // ---------------------------------------------------------------- la manija
 const manija = document.createElement('button');
 manija.id = 'manija';
+colgar(manija, 0);
 manija.innerHTML = icono('chevron', 'chica');
 manija.title = 'qué otra cosa puede ir acá';
 document.body.appendChild(manija);

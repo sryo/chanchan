@@ -5,6 +5,7 @@ const cajaErr = document.getElementById('errores');
 const cajaJs = document.getElementById('js');
 const btnEnlace = document.getElementById('enlace');
 const campoNombre = document.getElementById('nombre');
+const cajaVacio = document.getElementById('vacio');
 
 // Los avisos no viven en la cabecera. El botón ya dice si suena o no; la copia
 // se contesta sola, en el enlace; y lo que sale mal baja al mismo cajón donde
@@ -54,6 +55,62 @@ let activos = new Set();
 // El span se rehace en cada pintada, así que lo que se ancle a un token tiene
 // que volver a buscarlo por posición en vez de guardarse el nodo.
 const spanDe = a => a && hl.querySelector('span[data-l="' + a.l + '"][data-i="' + a.i + '"]');
+
+// Lo que mide la letra —el ancho de una, que es lo que mide la franja del ▾— y el
+// alto del renglón. Se mide una vez, y otra cuando entra la tipografía.
+let _letra = 0, _renglon = 0;
+function medirTipografia() {
+  const probeta = document.createElement('span');
+  probeta.textContent = '0'.repeat(10);
+  probeta.style.cssText = 'position:absolute;visibility:hidden;white-space:pre';
+  hl.appendChild(probeta);
+  _letra = probeta.getBoundingClientRect().width / 10;
+  probeta.remove();
+  _renglon = parseFloat(getComputedStyle(hl).lineHeight);
+}
+const anchoManija = () => { if (!_letra) medirTipografia(); return _letra; };
+const altoRenglon = () => { if (!_renglon) medirTipografia(); return _renglon; };
+
+// ------------------------------------------- lo que cuelga de una palabra
+// La fila va en este orden: el ▾ primero, porque es de la palabra —está mientras
+// el mouse esté encima—; después el deshacer, que es del cambio y es pasajero; y
+// al final el de la selección. Cada botón se anota desde su archivo, con su lugar.
+const SANGRIA_COLGANTE = 6;
+const colgantes = [];
+const colgar = (el, lugar) => { colgantes[lugar] = el; };
+
+// El ▾ se cuelga sin sangría: arranca donde arranca la franja que tokenEn() le
+// suma al token, que es lo que mantiene señalada la palabra al ir hacia el botón.
+function pegarA(el, ancla, sangria = SANGRIA_COLGANTE) {
+  if (!spanDe(ancla)) { el.classList.remove('vivo'); el.colgadoDe = null; return false; }
+  el.colgadoDe = ancla;
+  el.sangria = sangria;
+  el.classList.add('vivo');
+  acomodarColgantes();
+  return true;
+}
+
+function acomodarColgantes() {
+  const fila = new Map();
+  for (const el of colgantes.filter(Boolean)) el.classList.remove('junta', 'juntado');
+  for (const el of colgantes.filter(Boolean)) {
+    if (!el.classList.contains('vivo')) continue;
+    const sp = spanDe(el.colgadoDe);
+    // la palabra se fue: la borraron, o el renglón dejó de entenderse
+    if (!sp) { el.classList.remove('vivo'); el.colgadoDe = null; continue; }
+    // el último trozo de una palabra partida — ver REGLAS.md
+    const cajas = sp.getClientRects();
+    const r = cajas[cajas.length - 1] || sp.getBoundingClientRect();
+    const clave = el.colgadoDe.l + ':' + el.colgadoDe.i;
+    const antes = fila.get(clave);
+    if (antes) { antes.el.classList.add('junta'); el.classList.add('juntado'); }
+    const x = antes ? antes.x : r.right + el.sangria;
+    el.style.left = Math.round(x) + 'px';
+    el.style.top = Math.round(r.top + (r.height - el.offsetHeight) / 2) + 'px';
+    // el que sigue pisa un píxel al anterior: el borde del medio es uno solo
+    fila.set(clave, { x: x + el.offsetWidth - 1, el });
+  }
+}
 
 // El realce —qué paso suena— y el subrayado del ▾ cambian en cada cuadro y con el
 // mouse, y no tocan la estructura: se prenden y se apagan en los spans que ya
@@ -163,7 +220,7 @@ function asegurarRenglonFinal() {
 }
 
 // El espejo y los puntitos van al ritmo del teclado; lo que necesita a strudel
-// —la cinta, los errores— espera los 400 ms de deshacer.js. Si los puntitos se
+// —la cinta, los errores— espera los 400 ms de la tecla, abajo. Si los puntitos se
 // van con la espera, su data-l queda viejo y un click calla la línea de al lado.
 function repintarTexto() {
   const r = traducir(src.value);
@@ -215,3 +272,24 @@ function actualizar(reproducir) {
   if (reproducir) seguirElTema(r);
   return r;
 }
+
+// La tecla: el espejo y los puntitos al momento, y lo que necesita a strudel a
+// los 400 ms. El historial lo anota deshacer.js, que es el que sabe de ráfagas.
+let relojActualizar;
+src.addEventListener('input', () => {
+  asegurarRenglonFinal();
+  clearTimeout(relojActualizar);
+  relojActualizar = setTimeout(() => actualizar(true), 400);
+  registrarTecla();
+  repintarTexto();
+});
+// uno solo, y en orden: primero el espejo, si no los puntitos miden contra
+// geometría vieja porque se posicionan a partir de los spans de #hl
+src.addEventListener('scroll', () => {
+  hl.scrollTop = src.scrollTop;
+  hl.scrollLeft = src.scrollLeft;
+  armarPuntos(marcasActuales, calladasActuales);
+  cerrarMenu();
+  // al ▾ lo reacomoda cerrarMenu; al de deshacer hay que reacomodarlo acá
+  acomodarColgantes();
+});

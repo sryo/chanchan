@@ -79,6 +79,17 @@ function cambiarDeTema(nombre) {
   nombreAbierto = nombre;
 }
 
+// vaciar el guardado perezoso antes de pisar el texto: si no se pierde lo último
+function cargarTema(tema) {
+  cambiarDeTema(tema.nombre);
+  src.value = conRenglonFinal(tema.txt);
+  campoNombre.value = tema.nombre;
+  medirNombre();
+  registrar(src.value, null);
+  actualizar(true);
+  guardar();
+}
+
 // Cada tecla no escribe en el disco, pero irse a otro tema sí: por eso las dos
 // puertas. Borrarle el nombre a un tema no lo saca de la lista —para eso está
 // la × del panel—, apenas deja de escribirle encima.
@@ -192,43 +203,3 @@ btnEnlace.addEventListener('click', async () => {
     history.replaceState(null, '', location.pathname + location.search);
   } catch (e) { decirEnElEnlace('quedó en la barra'); }
 });
-
-// ------------------------------------------- lo que cuelga de una palabra
-// El orden de la fila es el de esta lista: el ▾ va primero porque es de la
-// palabra —está mientras el mouse esté encima— y el deshacer es del cambio, que
-// es pasajero.
-const SANGRIA_COLGANTE = 6;
-const colgantes = () => [manija, botonDeshacer, botonSel];
-
-// El ▾ se cuelga sin sangría: arranca donde arranca la franja que tokenEn() le
-// suma al token, que es lo que mantiene señalada la palabra al ir hacia el botón.
-function pegarA(el, ancla, sangria = SANGRIA_COLGANTE) {
-  if (!spanDe(ancla)) { el.classList.remove('vivo'); el.colgadoDe = null; return false; }
-  el.colgadoDe = ancla;
-  el.sangria = sangria;
-  el.classList.add('vivo');
-  acomodarColgantes();
-  return true;
-}
-
-function acomodarColgantes() {
-  const fila = new Map();
-  for (const el of colgantes()) el.classList.remove('junta', 'juntado');
-  for (const el of colgantes()) {
-    if (!el.classList.contains('vivo')) continue;
-    const sp = spanDe(el.colgadoDe);
-    // la palabra se fue: la borraron, o el renglón dejó de entenderse
-    if (!sp) { el.classList.remove('vivo'); el.colgadoDe = null; continue; }
-    // el último trozo de una palabra partida — ver REGLAS.md
-    const cajas = sp.getClientRects();
-    const r = cajas[cajas.length - 1] || sp.getBoundingClientRect();
-    const clave = el.colgadoDe.l + ':' + el.colgadoDe.i;
-    const antes = fila.get(clave);
-    if (antes) { antes.el.classList.add('junta'); el.classList.add('juntado'); }
-    const x = antes ? antes.x : r.right + el.sangria;
-    el.style.left = Math.round(x) + 'px';
-    el.style.top = Math.round(r.top + (r.height - el.offsetHeight) / 2) + 'px';
-    // el que sigue pisa un píxel al anterior: el borde del medio es uno solo
-    fila.set(clave, { x: x + el.offsetWidth - 1, el });
-  }
-}
