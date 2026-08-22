@@ -72,7 +72,6 @@ async function abrirArchivos(entradas) {
       avisar('«' + n + '» no parece un tema: no tiene ninguna línea con «toca».');
   };
   if (!leidos.length) return quejarse();
-  // el primero que soltaron es el que queda abierto; los demás van a la lista
   for (const t of leidos.slice(1)) anotarTema(t.nombre, conRenglonFinal(t.txt), null);
   for (const t of leidos) if (t.handle && t.nombre) handles.set(t.nombre, t.handle);
   cargarTema(leidos[0]);

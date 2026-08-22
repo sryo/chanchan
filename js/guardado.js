@@ -30,7 +30,6 @@ function misTemas() {
 function escribirTemas(lista) {
   try { localStorage.setItem(GUARDADO_TEMAS, JSON.stringify(lista)); }
   catch (e) { /* modo privado, o lleno */ }
-  // la hoja vacía muestra esta lista
   armarVacio();                         // temas.js, que carga después: sólo corre en caliente
 }
 
@@ -157,7 +156,7 @@ function temaInicial() {
   } catch (e) { return { txt: '', nombre: '' }; }
 }
 
-// el input no se achica solo; y el nombre va a la pestaña, que es lo que se ve desde afuera
+// el input no se achica solo
 const TITULO = document.title;
 
 function acomodarNombre() {

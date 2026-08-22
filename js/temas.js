@@ -1,5 +1,4 @@
 // ---------------------------------------------------------------- la hoja vacía
-// el primer paso, que el ▾ y el sugeridor no dan: qué es esto y cómo se empieza
 // ------------------------------------------- el tema visto de lejísimos
 // una barra por instrumento y no por renglón, y hasta cinco: más dicen «muchos».
 // traducirLinea() y no traducir(): la forma y las secciones acá no dicen nada

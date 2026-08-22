@@ -35,7 +35,6 @@ document.body.appendChild(botonDeshacer);
 let relojDeshacer;
 const VIDA_DESHACER = 9000;
 
-// el reloj se reinicia al entrar y salir: con el mouse encima, el botón no se va
 function contarParaIrse() {
   clearTimeout(relojDeshacer);
   relojDeshacer = setTimeout(() => {
@@ -63,7 +62,7 @@ botonDeshacer.addEventListener('mousedown', e => {
   botonDeshacer.dataset.que === 'rehacer' ? rehacer() : deshacer();
 });
 
-// una ráfaga de tecleo es un solo paso para atrás: 600 ms sin teclear cierran el grupo
+// 600 ms sin teclear cierran el grupo
 let relojTecla;
 function registrarTecla() {
   registrar(src.value, null, 'tecla' + grupoTecla);

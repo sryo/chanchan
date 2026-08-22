@@ -1,12 +1,8 @@
 // ------------------------------------------------------------------ los temas
-// Generado. No se edita acá: cada tema es un archivo en temas/, y el nombre del
-// tema es el nombre del archivo. Después de tocar uno:
+// Generado: no se edita acá. Cada tema es un archivo en temas/ y el nombre del tema es
+// el del archivo; el orden y las notas salen de temas/orden.txt. Después de tocar uno:
 //
 //     node .claude/temas.mjs
-//
-// Existe porque la página tiene que andar abriendo index.html a mano, sin
-// servidor, y desde file:// no se puede ir a buscar un archivo. El orden y las
-// notas de cada tema salen de temas/orden.txt.
 const EJEMPLOS = [
   // ejemplos/Patricio Rey.mid. La estrofa es re · mi · do sostenido · re con el la
   // de pedal abajo, y el estribillo se va a fa · do · si bemol · re en corcheas

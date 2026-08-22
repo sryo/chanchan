@@ -54,7 +54,6 @@ function dibujarCinta(renglones) {
   const trazo = (d, color, ancho) =>
     '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="' + ancho.toFixed(2) + '" />';
   let svg = '';
-  // sin partes queda la raya del marco, esperando
   if (!n) svg += '<path d="M ' + medio + ' ' + h + ' L ' + medio + ' ' + cy +
     ' A ' + RADIO + ' ' + RADIO + ' 0 0 1 ' + cx + ' ' + medio + ' L ' + fin + ' ' + medio +
     '" fill="none" style="stroke: var(--linea); stroke-width: 2.5" />';

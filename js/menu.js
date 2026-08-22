@@ -6,14 +6,11 @@ document.body.appendChild(menu);
 let pidiendoCuadro = false, relojFamilia, esperaOir;
 // lo escribe el rastro del mouse, al final; lo lee pintar() para el subrayado
 let señalado = null;
-
-// la franja a la derecha de un token cuenta como el token: así la palabra sigue
-// señalada mientras el mouse va hacia su ▾. Un espacio de ancho, el renglón de alto
-
-
 // estado del menú, no del documento
 let familiaElegida = null;
 
+// la franja a la derecha de un token cuenta como el token: así la palabra sigue
+// señalada mientras el mouse va hacia su ▾
 function tokenEn(x, y, conManija) {
   // el cuerpo de un token le gana a la franja de otro
   let franja = null;
@@ -280,9 +277,8 @@ function acomodar(el, r) {
 }
 
 // ------------------------------------------------- el triángulo de seguridad
-// en diagonal de una familia al detalle se cruzan otras familias: mientras el
-// puntero va dentro del triángulo entre donde estaba y el borde del detalle no se
-// cambia. Un rastro y no un punto: con el vértice pegado el triángulo tapa todo
+// en diagonal hacia el detalle se cruzan otras familias: adentro del triángulo entre el
+// puntero de hace un rato y el borde del detalle no se cambia; pegado al vértice taparía todo
 const rastro = [];
 const PLAZO_TRIANGULO = 300;   // apoyar el mouse y esperar tiene que destrabar
 const VENTANA_RASTRO = 200;
@@ -412,13 +408,13 @@ src.addEventListener('mouseleave', e => {
   if (!señalado) return;
   señalado = null; realzar(); ponerManija(null);
 });
-// en mousedown y no en click: le gana al textarea antes de que mueva el cursor
 let arrastre = null;
 const UMBRAL = 3;
 
 // sin mover el mouse no hay mousemove que limpie el cursor
 addEventListener('keyup', e => { if (e.key === 'Alt') src.style.cursor = ''; });
 
+// en mousedown y no en click: le gana al textarea antes de que mueva el cursor
 src.addEventListener('mousedown', e => {
   cerrarMenu();
   // el tempo se arrastra sin Alt: es un número suelto y no hay texto que

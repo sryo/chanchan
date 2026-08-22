@@ -26,9 +26,8 @@ const MATIZ = Object.create(null);
 }
 
 // ------------------------------------------------------ el mismo tono, dos luces
-// la trama tiñe y la tinta se lee: ver REGLAS.md, cuatro bandas. la croma se pide
-// aunque en las puntas el navegador la recorte; de noche el techo deja la cinta de
-// fondo, y de día el piso no baja de la tinta de la página (0,309)
+// la trama tiñe y la tinta se lee: ver REGLAS.md, cuatro bandas; de día el piso es la
+// tinta de la página (0,309), y la croma se pide aunque el navegador recorte las puntas
 const BANDA = {
   trama: { claro: { de: 0.42, a: 0.60, croma: 0.135 }, oscuro: { de: 0.40, a: 0.56, croma: 0.15 } },
   tinta: { claro: { de: 0.40, a: 0.56, croma: 0.135 }, oscuro: { de: 0.62, a: 0.80, croma: 0.15 } },

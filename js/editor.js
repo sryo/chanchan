@@ -67,8 +67,6 @@ const SANGRIA_COLGANTE = 6;
 const colgantes = [];
 const colgar = (el, lugar) => { colgantes[lugar] = el; };
 
-// el ▾ va sin sangría, pegado a la franja que tokenEn() le suma al token: así la
-// palabra sigue señalada al ir hacia el botón
 function pegarA(el, ancla, sangria = SANGRIA_COLGANTE) {
   if (!spanDe(ancla)) { el.classList.remove('vivo'); el.colgadoDe = null; return false; }
   el.colgadoDe = ancla;
@@ -182,9 +180,9 @@ function pintar(marcas) {
   conManija = claveManija();
 }
 
-// asignar .value manda el cursor al final; esto lo devuelve
 const baseDe = (lineas, l) => lineas.slice(0, l).reduce((n, x) => n + x.length + 1, 0);
 
+// asignar .value manda el cursor al final; esto lo devuelve
 function escribir(txt, desde, hasta) {
   const a = desde ?? src.selectionStart, z = hasta ?? desde ?? src.selectionEnd;
   src.value = txt;

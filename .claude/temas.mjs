@@ -52,14 +52,10 @@ function leerTemas() {
 const enLiteral = txt => txt.replace(/[\\`]/g, c => '\\' + c).replace(/\$\{/g, '\\${');
 
 const CABEZA = `// ------------------------------------------------------------------ los temas
-// Generado. No se edita acá: cada tema es un archivo en temas/, y el nombre del
-// tema es el nombre del archivo. Después de tocar uno:
+// Generado: no se edita acá. Cada tema es un archivo en temas/ y el nombre del tema es
+// el del archivo; el orden y las notas salen de temas/orden.txt. Después de tocar uno:
 //
 //     node .claude/temas.mjs
-//
-// Existe porque la página tiene que andar abriendo index.html a mano, sin
-// servidor, y desde file:// no se puede ir a buscar un archivo. El orden y las
-// notas de cada tema salen de temas/orden.txt.
 `;
 
 function armar(temas) {

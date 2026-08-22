@@ -135,7 +135,6 @@ function traducirLinea(texto, nro) {
       pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'silencio', { tipo: 'paso' }));
       pasos.push('-'); lugares.push(null);
     } else if (w === '_') {
-      // «_» estira el paso anterior
       pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'silencio', { tipo: 'paso' }));
       pasos.push('_'); lugares.push(null);
     } else if (SONIDOS[w]) {

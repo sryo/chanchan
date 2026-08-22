@@ -32,7 +32,6 @@ const MUESTRAS_GM = Object.fromEntries(
   [...new Set(Object.values(INSTRUMENTOS))].filter(i => i.gm)
     .map(i => [i.sonido, muestrario(i.gm)]));
 
-// sin strudel la hoja anda igual, pero no suena: se dice en vez de quedar «cargando»
 if (typeof initStrudel !== 'function') {
   document.body.classList.remove('cargando');
   avisar('no cargó strudel: sin red no hay sonido, pero la hoja anda.');

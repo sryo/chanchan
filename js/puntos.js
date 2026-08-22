@@ -36,7 +36,7 @@ function armarPuntos(marcas, calladas, renglones = actual.renglones) {
     // se rehacen en cada tecleo, y el que la franja tiene señalado no se puede perder
     if (l === franjaSeñalada) b.classList.add('senalado');
     puntos.appendChild(b);
-    // centrado contra el alto real del renglón
+    // después de colgarlo: suelto, offsetHeight mide cero
     b.style.top = (y + (sr.height - b.offsetHeight) / 2) + 'px';
   }
 }
