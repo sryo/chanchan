@@ -84,7 +84,7 @@
     fill: var(--andamio); font-size: var(--letra-chica); letter-spacing: .04em;
     text-transform: lowercase; dominant-baseline: auto;
   }
-  header, main, .abajo { position: relative; z-index: 1; }
+  header, main, #errores { position: relative; z-index: 1; }
   /* el relleno de arriba mide lo mismo que la cinta y le taparía las franjas */
   header {
     display: flex; align-items: center; gap: 26px;
@@ -162,7 +162,7 @@
     color: var(--tenue);
   }
   #abrir:hover, #enlace:hover, #archivo:hover, #luz:hover { color: var(--texto); }
-  #archivo { margin-left: -12px; }
+  #archivo, #luz { margin-left: -12px; }
   /* al copiar deja de ser un signo y es una frase: ahí sí va el cuerpo del texto */
   #enlace.dicho {
     color: var(--marca-tinta); font-size: var(--letra-chica);
@@ -275,26 +275,12 @@
     background: var(--vivo); border-radius: 3px;
     box-shadow: 0 0 0 2px var(--vivo);
   }
-  .abajo {
+  #errores:not(:empty) {
+    padding: 10px 20px 10px calc(var(--sangria) + var(--canal));
     border-top: 1px solid var(--linea);
-    display: flex; flex-direction: column;
-    padding-left: var(--sangria);
   }
-  #errores:not(:empty) { padding: 10px 20px 10px var(--canal); border-bottom: 1px solid var(--linea); }
   #errores p { margin: 0 0 4px; color: var(--mal); }
   #errores b { color: var(--texto); font-weight: 600; }
-  /* acotado a .abajo porque el menú del ▾ tiene su propia franja al pie */
-  .abajo .pie { display: flex; align-items: center; }
-  details { flex: 1; min-width: 0; }
-  details summary {
-    padding: 8px 20px 8px var(--canal); cursor: pointer; color: var(--tenue);
-    list-style: none; display: flex; align-items: center; gap: 6px;
-  }
-  details summary::-webkit-details-marker { display: none; }
-  details summary .i { transform: rotate(-90deg); transition: transform .12s ease; }
-  details[open] summary .i { transform: none; }
-  #js { margin: 0; padding: 0 20px 14px var(--canal); color: var(--tenue); white-space: pre-wrap; }
-  #luz { margin-right: 44px; }
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
   /* el botón mide lo mismo que el ▾; el color lo pone el js en currentColor */
   .punto {

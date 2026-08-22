@@ -2,7 +2,6 @@
 const src = document.getElementById('src');
 const hl = document.getElementById('hl');
 const cajaErr = document.getElementById('errores');
-const cajaJs = document.getElementById('js');
 const btnEnlace = document.getElementById('enlace');
 const campoNombre = document.getElementById('nombre');
 
@@ -238,7 +237,6 @@ function actualizar(reproducir) {
   pintarMarca(r.renglones);
   cajaErr.innerHTML = r.errores.map(e =>
     '<p><b>línea ' + e.nro + ':</b> ' + esc(e.msg) + '</p>').join('');
-  cajaJs.textContent = r.codigo || '(todavía no hay nada que tocar)';
   if (reproducir) seguirElTema(r);
   return r;
 }
