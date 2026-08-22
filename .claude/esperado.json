@@ -61,19 +61,23 @@
   "tempos": [
    {
     "desde": 0,
-    "bpm": 130
+    "bpm": 130,
+    "tiempos": 4
    },
    {
     "desde": 12,
-    "bpm": 264
+    "bpm": 264,
+    "tiempos": 4
    },
    {
     "desde": 24,
-    "bpm": 280
+    "bpm": 280,
+    "tiempos": 4
    },
    {
     "desde": 36,
-    "bpm": 120
+    "bpm": 120,
+    "tiempos": 4
    }
   ]
  },
@@ -92,19 +96,23 @@
   "tempos": [
    {
     "desde": 0,
-    "bpm": 130
+    "bpm": 130,
+    "tiempos": 4
    },
    {
     "desde": 16,
-    "bpm": 165
+    "bpm": 165,
+    "tiempos": 4
    },
    {
     "desde": 24,
-    "bpm": 190
+    "bpm": 190,
+    "tiempos": 4
    },
    {
     "desde": 32,
-    "bpm": 220
+    "bpm": 220,
+    "tiempos": 4
    }
   ]
  },
@@ -219,15 +227,18 @@
   "tempos": [
    {
     "desde": 0,
-    "bpm": 90
+    "bpm": 90,
+    "tiempos": 4
    },
    {
     "desde": 1,
-    "bpm": 120
+    "bpm": 120,
+    "tiempos": 4
    },
    {
     "desde": 3,
-    "bpm": 90
+    "bpm": 90,
+    "tiempos": 4
    }
   ]
  },
@@ -272,5 +283,37 @@
   "errores": [],
   "tramos": [],
   "tempos": []
+ },
+ "compás de tres": {
+  "codigo": "setcpm(150/3)\nnote(\"c4 - -\").sound(\"bajo\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 150,
+  "errores": [],
+  "tramos": [],
+  "tempos": []
+ },
+ "compás por sección, y lo que no es compás": {
+  "codigo": "setcpm(120/3)\nstack(\n  arrange([1, s(\"bd - -\").bank(\"linndrum\")], [1, silence]).orbit(0), // bata · estrofa\n  arrange([1, silence], [1, s(\"bd sd\").bank(\"linndrum\")]).orbit(0), // bata · final\n)",
+  "vueltas": 2,
+  "bpm": 120,
+  "errores": [
+   "7: después del número va el compás, «va a 120 en tres», con un número de 2 a 12, o nada."
+  ],
+  "tramos": [
+   "estrofa×1",
+   "final×1"
+  ],
+  "tempos": [
+   {
+    "desde": 0,
+    "bpm": 120,
+    "tiempos": 3
+   },
+   {
+    "desde": 1,
+    "bpm": 120,
+    "tiempos": 4
+   }
+  ]
  }
 }

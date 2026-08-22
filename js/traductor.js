@@ -72,7 +72,22 @@ function traducirLinea(texto, nro) {
       error(m.index, m[1].length, 'el tempo va entre ' + TEMPO_MIN + ' y ' + TEMPO_MAX + ' tiempos por minuto.');
       return { tipo: 'mala', tk, errs };
     }
-    return { tipo: 'tempo', bpm, tk, errs };
+    // «en tres»: cuántos tiempos tiene una vuelta; sin nada, cuatro
+    let tiempos = 4;
+    const cola = texto.slice(finNum);
+    if (cola.trim()) {
+      const en = norm(cola).match(/^en (\S+)$/);
+      tiempos = en ? cuantasVueltas(en[1]) : 0;
+      if (!(tiempos >= 2 && tiempos <= TIEMPOS_MAX)) {
+        error(finNum, cola.length, 'después del número va el compás, «va a 120 en tres», con un número de 2 a ' + TIEMPOS_MAX + ', o nada.');
+        return { tipo: 'mala', tk, errs };
+      }
+      tk.pop();
+      const desde = finNum + (cola.length - cola.trimStart().length);
+      marcar(finNum, desde - finNum, 'estructura');
+      marcar(desde, cola.trim().length, 'estructura', { tipo: 'compas', tiempos });
+    }
+    return { tipo: 'tempo', bpm, tiempos, tk, errs };
   }
 
   // ---- la <parte> toca <pasos>[, <modificador>]*
@@ -315,16 +330,19 @@ function traducir(fuente) {
   const lineas = fuente.split('\n');
   const partes = [], renglones = [], errores = [], marcas = [], calladas = new Set();
   const secciones = new Map();
-  let bpm = 90, abierta = null, forma = null, nroForma = 0;
+  let bpm = 90, tiempos = 4, abierta = null, forma = null, nroForma = 0;
   lineas.forEach((l, n) => {
     const r = traducirLinea(l, n + 1);
     marcas.push(r.tk);
     errores.push(...r.errs);
-    if (r.tipo === 'tempo') { if (abierta) abierta.bpm = r.bpm; else bpm = r.bpm; }
+    if (r.tipo === 'tempo') {
+      if (abierta) { abierta.bpm = r.bpm; abierta.tiempos = r.tiempos; }
+      else { bpm = r.bpm; tiempos = r.tiempos; }
+    }
     if (r.tipo === 'seccion') {
       // reabrir una sección le suma líneas en vez de pisarla
       abierta = secciones.get(r.nombre) ||
-        { nombre: r.nombre, escrito: r.escrito, vueltas: null, bpm: null, suyas: [] };
+        { nombre: r.nombre, escrito: r.escrito, vueltas: null, bpm: null, tiempos: null, suyas: [] };
       if (r.vueltas) abierta.vueltas = r.vueltas;
       secciones.set(r.nombre, abierta);
     }
@@ -377,8 +395,9 @@ function traducir(fuente) {
   const tempos = [];
   let cae = 0;
   for (const t of tramos) {
-    const suyo = secciones.get(t.nom).bpm || bpm;
-    if (!tempos.length || tempos[tempos.length - 1].bpm !== suyo) tempos.push({ desde: cae, bpm: suyo });
+    const sec = secciones.get(t.nom), suyo = { desde: cae, bpm: sec.bpm || bpm, tiempos: sec.tiempos || tiempos };
+    const ultimo = tempos[tempos.length - 1];
+    if (!ultimo || ultimo.bpm !== suyo.bpm || ultimo.tiempos !== suyo.tiempos) tempos.push(suyo);
     cae += t.largo;
   }
 
@@ -386,9 +405,9 @@ function traducir(fuente) {
   // con forma no se acota: el divisor de una canción es media canción
   const vueltas = tramos.length ? Math.max(1, total)
     : acotarVueltas(renglones.reduce((a, r) => mcm(a, r.vueltas), 1));
-  const arranca = tempos.length ? tempos[0].bpm : bpm;
-  return { codigo: armarCodigo(partes, tramos, arranca), errores, marcas, partes, renglones, calladas,
-           bpm: arranca, vueltas, tramos, tempos: tempos.length > 1 ? tempos : [] };
+  const arranca = tempos.length ? tempos[0] : { bpm, tiempos };
+  return { codigo: armarCodigo(partes, tramos, arranca.bpm, arranca.tiempos), errores, marcas, partes, renglones, calladas,
+           bpm: arranca.bpm, tiempos: arranca.tiempos, vueltas, tramos, tempos: tempos.length > 1 ? tempos : [] };
 }
 
 // un arrange por línea y no uno con stacks adentro: la cinta dibuja una franja por línea
@@ -398,13 +417,13 @@ const enLaForma = (cod, seccion, tramos) => !tramos.length || !seccion ? cod
 
 // un bus de efectos por nombre y no por línea: la misma viola en dos secciones es
 // una sola. aparte de traducir() porque el editor lo rearma sin lo que strudel rechazó
-function armarCodigo(partes, tramos, bpm) {
+function armarCodigo(partes, tramos, bpm, tiempos = 4) {
   if (!partes.length) return '';
   const buses = [...new Set(partes.map(p => p.nombre))];
   const conBus = partes.map(p =>
     enLaForma(p.codigo, p.seccion, tramos) + '.orbit(' + buses.indexOf(p.nombre) + ')');
   // el nombre va en un comentario del código: estos tres lo cortan igual que un enter
-  return 'setcpm(' + bpm + '/4)\n' + (partes.length === 1
+  return 'setcpm(' + bpm + '/' + tiempos + ')\n' + (partes.length === 1
     ? conBus[0]
     : 'stack(\n' + conBus.map((c, i) => '  ' + c + ', // ' + partes[i].nombre.replace(/[\r\u2028\u2029]/g, ' ') +
         (partes[i].seccion ? ' · ' + partes[i].seccion : '')).join('\n') + '\n)');

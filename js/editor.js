@@ -227,7 +227,7 @@ function actualizar(reproducir) {
         return false;
       }
     });
-    if (vivas.length < r.partes.length) { r.partes = vivas; r.codigo = armarCodigo(vivas, r.tramos, r.bpm); }
+    if (vivas.length < r.partes.length) { r.partes = vivas; r.codigo = armarCodigo(vivas, r.tramos, r.bpm, r.tiempos); }
   }
   // las calladas y las que strudel rechazó están escritas, pero no suenan
   const suenan = new Set(r.partes.map(p => p.nro));

@@ -44,7 +44,8 @@ una coma, cómo. Si el nombre es un instrumento de la lista de abajo, suena con
 ese instrumento; si no, con piano.
 
 Los pasos se reparten parejo en la vuelta: cuatro pasos son negras, ocho son
-corcheas, tres son un vals. Una vuelta son cuatro tiempos al tempo del tema.
+corcheas. Una vuelta son cuatro tiempos al tempo del tema, salvo que el tempo diga
+otra cosa: ${codigo('va a 150 en tres')} es un vals.
 
 ### los pasos
 
@@ -112,8 +113,9 @@ cada una, en el orden en que están escritas.
 
     va a 120
 
-Tiempos por minuto, de ${TEMPO_MIN} a ${TEMPO_MAX}. Adentro de una sección vale para esa
-sección: un tema puede acelerar.
+Tiempos por minuto, de ${TEMPO_MIN} a ${TEMPO_MAX}. Con ${codigo('en tres')} (o en dos, en seis…), la vuelta
+tiene esos tiempos en vez de cuatro. Adentro de una sección vale para esa
+sección: un tema puede acelerar, o cambiar de compás.
 
 ## los instrumentos
 

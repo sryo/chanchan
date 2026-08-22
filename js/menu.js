@@ -178,13 +178,25 @@ function seccionesDe(t) {
       ({ txt: escrito, nuevo: escrito, puesto: norm(hoy) === clave })) }];
   }
 
+  const COMPASES = [['en dos', 2], ['en tres', 3], ['en cuatro', 4], ['en seis', 6]];
   if (t.tipo === 'tempo') {
     const n = parseFloat(hoy.replace(',', '.')) || 90;
     const acotado = paso => Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, n + paso));
-    return [{ titulo: 'tiempos por minuto', ops: [-10, -5, -1, 1, 5, 10].map(paso =>
+    const secs = [{ titulo: 'tiempos por minuto', ops: [-10, -5, -1, 1, 5, 10].map(paso =>
       ({ txt: (paso > 0 ? '+' : '') + paso, desc: acotado(paso) + '',
          nuevo: String(acotado(paso)) })) }];
+    // sin compás escrito se ofrece acá, pisando el número y lo que le sigue
+    if (!(marcasActuales[t.l] || []).some(x => x.tipo === 'compas')) {
+      const linea = src.value.split('\n')[t.l];
+      secs.push({ titulo: 'compás', detalle: true, ops: COMPASES.map(([c, k]) => ({ txt: c, desc: k + ' tiempos por vuelta', puesto: k === 4,
+        hacer: () => reemplazar({ ...t, len: linea.length - t.i }, hoy + (k === 4 ? '' : ' ' + c)) })) });
+    }
+    return secs;
   }
+
+  if (t.tipo === 'compas')
+    return [{ titulo: 'compás', ops: COMPASES.map(([c, k]) =>
+      ({ txt: c, desc: k + ' tiempos por vuelta', nuevo: c, puesto: norm(hoy) === c })) }];
 
   if (t.tipo === 'mal') {
     const s = parecida(hoy);
@@ -195,7 +207,7 @@ function seccionesDe(t) {
 
 // corre en cada cuadro del hover (ver REGLAS.md, 133 instrumentos): sólo «mal»
 // obliga a armar el menú para saber
-const CON_MENU = ['tempo', 'paso', 'nota', 'instrumento', 'modificador', 'figura', 'arreglo',
+const CON_MENU = ['tempo', 'compas', 'paso', 'nota', 'instrumento', 'modificador', 'figura', 'arreglo',
                   'euclides', 'veces', 'forma'];
 const tieneMenu = t => !!t &&
   (CON_MENU.includes(t.tipo) || (t.tipo === 'mal' && !!seccionesDe(t)));

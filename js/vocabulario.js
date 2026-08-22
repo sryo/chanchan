@@ -368,6 +368,8 @@ function leerForma(texto) {
 
 // el mismo rango que ofrecen el menú y el arrastre
 const TEMPO_MIN = 20, TEMPO_MAX = 400;
+// «va a 120 en tres»: cuántos tiempos tiene una vuelta
+const TIEMPOS_MAX = 12;
 
 function esTempo(texto) {
   // «la banda toca…» es una parte

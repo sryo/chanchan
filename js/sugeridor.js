@@ -142,12 +142,14 @@ function armarSecciones(r, soloPega) {
       ? [...DE_SIEMPRE, ...Object.values(INSTRUMENTOS).map(i => i.nombre)] : DE_SIEMPRE)];
     const tempo = { ...op('va a 92', null, 'el pulso del tema'),
                     buscar: 'va a 92 banda tema tiempos por minuto' };
+    const compas = { ...op('va a 120 en tres', null, 'el pulso, en compás de tres'),
+                     buscar: 'va a compas tres seis vals' };
     const seccion = { ...op('la estrofa:', null, 'abre una sección: lo que sigue es de ella'),
                       buscar: 'seccion estrofa estribillo intro puente final bloque parte' };
     const forma = { ...op('el tema va estrofa estribillo', null, 'el orden en que van las secciones'),
                     buscar: 'forma orden va secciones estructura' };
     return sec('empezar una línea',
-               filtrarPega([...partes.map(plantilla), tempo, seccion, forma], pelado, o => o.buscar));
+               filtrarPega([...partes.map(plantilla), tempo, compas, seccion, forma], pelado, o => o.buscar));
   }
 
   if (r.ranura === 'forma')

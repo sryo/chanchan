@@ -1,6 +1,6 @@
 // ------------------------------------------------- qué se está tocando ahora
 // getTime() es el reloj de strudel, contado en vueltas
-let claveActivos = '', bpmPuesto = null;
+let claveActivos = '', tempoPuesto = null;    // el tempo que el reloj tiene ahora, {bpm, tiempos}
 let sonando = false, ultimoCodigo = '', motorListo = false;
 function motorLevantado() { motorListo = true; }
 
@@ -8,11 +8,11 @@ function seguirTempo(t) {
   if (!actual.tempos.length) return;
   const v = Math.max(1, actual.vueltas);
   const donde = ((t % v) + v) % v;
-  let cual = actual.tempos[0].bpm;
-  for (const x of actual.tempos) if (donde >= x.desde) cual = x.bpm;
-  if (cual === bpmPuesto) return;
-  bpmPuesto = cual;
-  ponerTempo(cual);
+  let cual = actual.tempos[0];
+  for (const x of actual.tempos) if (donde >= x.desde) cual = x;
+  if (tempoPuesto && tempoPuesto.bpm === cual.bpm && tempoPuesto.tiempos === cual.tiempos) return;
+  tempoPuesto = cual;
+  ponerTempo(cual.bpm, cual.tiempos);
 }
 
 function seguir() {
@@ -42,8 +42,8 @@ setInterval(() => {
   if (!sonando) return;
   let t;
   try { t = getTime(); } catch (e) { return; }
-  const bpm = bpmPuesto || (actual.tempos[0] || {}).bpm || 90;
-  seguirTempo(t + 0.1 * bpm / 240);     // 0,1 s, contado en vueltas
+  const p = tempoPuesto || actual.tempos[0] || { bpm: 90, tiempos: 4 };
+  seguirTempo(t + 0.1 * p.bpm / (60 * p.tiempos));     // 0,1 s, contado en vueltas
 }, 40);
 
 // hush() corta el reloj pero no las notas que ya salieron: sin apagar el audio queda la cola
@@ -63,8 +63,8 @@ function despertar() {
 
 // el tempo es del reloj, ver REGLAS.md: decírselo directo deja arrastrar el número
 // mientras suena; re-evaluar cambia recién en el borde de la vuelta
-function ponerTempo(bpm) {
-  try { setcpm(bpm / 4); } catch (e) { /* strudel todavía no levantó */ }
+function ponerTempo(bpm, tiempos = 4) {
+  try { setcpm(bpm / tiempos); } catch (e) { /* strudel todavía no levantó */ }
 }
 
 function correr(codigo) {
@@ -74,8 +74,8 @@ function correr(codigo) {
     refrescarTransporte();
     cajaErr.innerHTML += '<p><b>strudel:</b> ' + esc(String((e && e.message) || e)) + '</p>';
   };
-  // el «setcpm» del código pisa lo que la tabla de tempos dejó puesto
-  bpmPuesto = null;
+  // el «setcpm» del código pisa lo que la tabla de tempos dejó tempoPuesto
+  tempoPuesto = null;
   try {
     Promise.resolve(evaluate(codigo)).catch(caido);
   } catch (e) {
@@ -93,7 +93,7 @@ function seguirElTema(r) {
   // sin nada que tocar hay que apagar: strudel seguiría con el último stack
   if (!r.codigo) { sonando = false; silenciar(); refrescarTransporte(); }
   // con secciones el número lo pone seguirTempo() en el tic que sigue; acá sólo se olvida el de antes
-  else if (soloElTempo) { bpmPuesto = null; ponerTempo(r.bpm); }
+  else if (soloElTempo) { tempoPuesto = null; ponerTempo(r.bpm, r.tiempos); }
   else correr(r.codigo);
 }
 
