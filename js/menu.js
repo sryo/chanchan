@@ -129,6 +129,10 @@ function seccionesDe(t) {
     return secs;
   }
 
+  if (t.tipo === 'figura')
+    return [{ titulo: 'cada nota', ops: Object.entries(FIGURAS).map(([f, n]) =>
+      ({ txt: 'en ' + f, desc: n + ' por vuelta', nuevo: 'en ' + f, puesto: norm(hoy) === 'en ' + f })) }];
+
   if (t.tipo === 'modificador')
     return [{ titulo: 'cómo', ops: MODIFICADORES.map(m =>
       ({ txt: m[0], desc: m[2], nuevo: m[0], puesto: norm(hoy) === norm(m[0]) })) }];
@@ -191,7 +195,7 @@ function seccionesDe(t) {
 
 // corre en cada cuadro del hover (ver REGLAS.md, 133 instrumentos): sólo «mal»
 // obliga a armar el menú para saber
-const CON_MENU = ['tempo', 'paso', 'nota', 'instrumento', 'modificador', 'arreglo',
+const CON_MENU = ['tempo', 'paso', 'nota', 'instrumento', 'modificador', 'figura', 'arreglo',
                   'euclides', 'veces', 'forma'];
 const tieneMenu = t => !!t &&
   (CON_MENU.includes(t.tipo) || (t.tipo === 'mal' && !!seccionesDe(t)));

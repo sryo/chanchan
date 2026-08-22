@@ -116,9 +116,39 @@
   "tramos": [],
   "tempos": []
  },
- "que se abre no estira la vuelta": {
-  "codigo": "setcpm(90/4)\nnote(\"c4 - - -\").sound(\"bajo\").lpf(sine.range(300, 4000).slow(4)).orbit(0)",
+ "lo que se fue avisa": {
+  "codigo": "setcpm(90/4)\nnote(\"c4 - - -\").sound(\"bajo\").orbit(0)",
   "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: «que se abre» ya no existe."
+  ],
+  "tramos": [],
+  "tempos": []
+ },
+ "una por vuelta avisa con la barra": {
+  "codigo": "setcpm(90/4)\nnote(\"[c4,e4,g4] [f4,a4,c5]\").sound(\"piano\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: «una por vuelta» ya no existe: escribí «|» entre los pasos que van en vueltas distintas: «do mayor | fa mayor»"
+  ],
+  "tramos": [],
+  "tempos": []
+ },
+ "el punto ya no es silencio": {
+  "codigo": "setcpm(90/4)\ns(\"bd sd\").bank(\"linndrum\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: el silencio es «-»."
+  ],
+  "tramos": [],
+  "tempos": []
+ },
+ "las figuras": {
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"<[[c4,e4,g4]] [[f4,a4,c5]]>\").sound(\"piano\").struct(\"x*16\").orbit(0), // piano\n  note(\"c4\").sound(\"viola\").struct(\"x*12\").orbit(1), // viola\n  note(\"c4\").sound(\"bajo\").struct(\"x*2\").orbit(2), // bajo\n)",
+  "vueltas": 2,
   "bpm": 90,
   "errores": [],
   "tramos": [],

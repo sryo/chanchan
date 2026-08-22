@@ -180,6 +180,7 @@ function armarSecciones(r, soloPega) {
       return sec('y ahí, qué', filtrar(MODIFICADORES.filter(envolvible)
         .map(m => op(m[0], ' ' + m[0], m[2]))));
     const mods = MODIFICADORES.map(m => op(m[0], null, m[2]));
+    const figuras = Object.entries(FIGURAS).map(([f, n]) => op('en ' + f, null, n + ' por vuelta'));
     // «en un viol» no empieza como «en una viola»: se matchea contra el nombre
     // pelado. El artículo exige espacio o fin («en laúd»), y «una» antes que «un»
     const m = norm(r.prefijo).match(/^en\s*(?:(?:una|un|los|las|el|la)(?:\s+|$))?\s*(.*)$/);
@@ -196,6 +197,7 @@ function armarSecciones(r, soloPega) {
     // sólo el prefijo: al aceptarlo el sugeridor vuelve a abrirse con la otra mitad
     const envolturas = ENVOLTURAS.map(p => op(p, p + ' ', 'y después, qué hace'));
     return [...sec('cómo', filtrar(mods)),
+            ...sec('cada nota', filtrar(figuras)),
             ...sec('el reparto', filtrar(euclides)),
             ...sec('de a ratos', filtrar(envolturas)),
             ...sec('entra y sale', filtrar(arreglos)),

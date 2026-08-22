@@ -187,12 +187,7 @@ const MODIFICADORES = [
   ['al doble',            '.fast(2)',           'el doble de rápido'],
   ['a la mitad',          '.slow(2)',           'la mitad de rápido'],
   ['a un cuarto',         '.slow(4)',           'cuatro veces más lento'],
-  ['a un octavo',         '.slow(8)',           'ocho veces más lento'],
   ['cada golpe dos veces',  '.ply(2)',          'cada paso suena dos veces seguidas'],
-  ['cada golpe tres veces', '.ply(3)',          'cada paso suena tres veces seguidas'],
-  ['en negras',           '.struct("x*4")',     'cada nota, cuatro veces por vuelta'],
-  ['en corcheas',         '.struct("x*8")',     'cada nota, ocho veces por vuelta'],
-  ['sincopado',           '.struct("x ~ ~ x ~ ~ x ~")', 'en el uno, la y de dos y el cuatro'],
   ['callado',             'mute',               'no suena, pero queda escrito'],
   ['bajito',              '.gain(.45)',         'más callado'],
   ['fuerte',              '.gain(1.3)',         'más alto'],
@@ -202,24 +197,31 @@ const MODIFICADORES = [
   ['que se apaga',        '.release(1.2)',      'la cola tarda en irse'],
   ['apagado',             '.lpf(500)',          'como detrás de una puerta'],
   ['brillante',           '.hpf(700)',          'más filoso'],
-  ['que se abre',         '.lpf(sine.range(300, 4000).slow(4))', 'el filtro respira, abriendo y cerrando'],
-  ['con voz',             '.vowel("<a e i o u>")', 'una vocal distinta por vuelta'],
-  ['roto',                '.crush(4)',          'como si entrara en un aparato viejo'],
   ['sucio',               '.distort(1).postgain(.6)', 'saturado, al borde'],
   ['temblando',           '.vib(5).vibmod(.3)', 'la afinación tiembla'],
   ['con eco',             '.room(.6)',          'suena en una sala grande'],
   ['repicando',           '.delay(.5).delaytime(.125).delayfeedback(.4)', 'se repite y se va apagando'],
   ['al revés',            '.rev()',             'de atrás para adelante'],
-  ['de ida y vuelta',     '.palindrome()',      'una vuelta como está y la que sigue al revés', 2],
-  ['rodando',             '.iter(4)',           'cada vuelta arranca un paso más adelante', 4],
   ['con swing',           '.swingBy(1/3, 4)',   'desparejo, arrastrado'],
-  ['perdiendo golpes',    '.degradeBy(.3)',     'de a ratos falta uno'],
-  ['de un lado al otro',  '.pan(sine)',         'se mueve entre los parlantes'],
-  ['cruzado',             '.jux(rev)',          'a un parlante como está, al otro al revés'],
   ['arpegiado',           '.arp("0 1 2 3")',    'el acorde se desarma en notas, subiendo'],
   ['arpegiado bajando',   '.arp("2 1 0")',      'el acorde se desarma en notas, bajando'],
-  ['una por vuelta',      '<>',                 'en vez de sonar juntos, se turnan'],
 ];
+
+// lo que se fue del idioma; el aviso dice con qué se escribe ahora, si hay con qué
+const RETIRADOS = {
+  'una por vuelta': 'escribí «|» entre los pasos que van en vueltas distintas: «do mayor | fa mayor»',
+  'sincopado': 'escribí el ritmo con pasos: «pum - - pum - - pum -»',
+  'con voz': '', 'roto': '', 'rodando': '', 'de ida y vuelta': '', 'perdiendo golpes': '',
+  'de un lado al otro': '', 'cruzado': '', 'que se abre': '', 'cada golpe tres veces': '', 'a un octavo': '',
+};
+
+// «en corcheas»: cada nota, tantas veces por vuelta
+const FIGURAS = { blancas: 2, negras: 4, corcheas: 8, tresillos: 12, semicorcheas: 16 };
+function leerFigura(texto) {
+  const m = norm(texto).match(/^en (\S+)$/);
+  const n = m && FIGURAS[m[1]];
+  return n ? { nombre: m[1], codigo: '.struct("x*' + n + '")' } : null;
+}
 
 // ------------------------------------------------------------------ el arreglo
 // lleva números, así que no es una fila de la tabla; el menú y el sugeridor salen de estas mismas funciones
@@ -290,7 +292,7 @@ function partirEnvoltura(texto, base = 0) {
 }
 
 const modificadorDe = t => MODIFICADORES.find(m => norm(m[0]) === norm(t));
-const envolvible = mod => !!mod && mod[1] !== 'mute' && mod[1] !== '<>';
+const envolvible = mod => !!mod && mod[1] !== 'mute';
 const comoFuncion = codigo => 'x => x' + codigo;
 
 // «vueltas» y «adentro» son los dos períodos; el mcm lo saca el traductor
@@ -378,14 +380,14 @@ for (const [nombre, o] of Object.entries(SIN_GM))
 for (const [de, a] of Object.entries(ALIAS))
   INSTRUMENTOS[norm(de)] = INSTRUMENTOS[norm(a)];
 // «constructor» es una palabra: sin prototipo, lo que no está no está
-for (const t of [SONIDOS, NOTAS, ALTERACIONES, OCTAVAS, ACORDE, INSTRUMENTOS]) Object.setPrototypeOf(t, null);
+for (const t of [SONIDOS, NOTAS, ALTERACIONES, OCTAVAS, ACORDE, INSTRUMENTOS, FIGURAS, RETIRADOS]) Object.setPrototypeOf(t, null);
 const instrumentoDe = n => INSTRUMENTOS[norm(n)];
 
 // los alias van aparte: su .nombre es el del instrumento al que apuntan
 const TODAS_LAS_PALABRAS = () => [
   ...Object.keys(SONIDOS), ...Object.keys(NOTAS), ...Object.keys(ALTERACIONES), ...Object.keys(ACORDES),
   ...Object.keys(OCTAVAS), ...new Set(Object.values(INSTRUMENTOS).map(i => i.nombre)), ...Object.keys(ALIAS),
-  ...MODIFICADORES.map(m => m[0]),
+  ...MODIFICADORES.map(m => m[0]), ...Object.keys(FIGURAS).map(f => 'en ' + f),
 ];
 
 function parecida(palabra) {

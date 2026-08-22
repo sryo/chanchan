@@ -23,7 +23,10 @@ const EJEMPLOS = runInContext('EJEMPLOS', ctx);
 // renglones que alguna vez salieron mal
 const CASOS = [
   ['al revés es una llamada',           'la viola toca do re, al revés'],
-  ['que se abre no estira la vuelta',   'el bajo toca do - - -, que se abre'],
+  ['lo que se fue avisa',               'el bajo toca do - - -, que se abre'],
+  ['una por vuelta avisa con la barra', 'el piano toca do mayor fa mayor, una por vuelta'],
+  ['el punto ya no es silencio',        'la bata toca pum . tas'],
+  ['las figuras',                       'el piano toca do mayor | fa mayor, en semicorcheas\nla viola toca do, en tresillos\nel bajo toca do, en blancas'],
   ['a la mitad sí la estira',           'el bajo toca do - - -, a la mitad'],
   ['constructor no es un golpe',        'la bata toca pum constructor'],
   ['constructor no es un instrumento',  'el constructor toca do re'],

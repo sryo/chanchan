@@ -143,6 +143,8 @@ if (temas.status) {
 
 // y lo que da el traductor contra esperado.json: probar.mjs
 const fotos = spawnSync(process.execPath, [new URL('probar.mjs', import.meta.url).pathname], { encoding: 'utf8' });
+const idioma = spawnSync(process.execPath, [new URL('idioma.mjs', import.meta.url).pathname, '--ver'], { encoding: 'utf8' });
+if (idioma.status) { console.error((idioma.stderr || '').trim() || 'no se pudo revisar IDIOMA.md'); choques++; }
 if (fotos.status) { console.error((fotos.stderr || '').trim() || 'no se pudo probar el traductor'); choques++; }
 
 console.log('%d nombres de primer nivel, %d problemas', donde.size, choques);

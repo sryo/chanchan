@@ -113,7 +113,7 @@ function traducirLinea(texto, nro) {
     if (w === '|') {
       marcar(pw[k].i, pw[k].w.length, 'estructura');
       cortes.push(pasos.length);
-    } else if (w === '-' || w === '.') {
+    } else if (w === '-') {
       pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'silencio', { tipo: 'paso' }));
       pasos.push('-'); lugares.push(null);
     } else if (w === '_') {
@@ -154,6 +154,8 @@ function traducirLinea(texto, nro) {
       if (modo === 'sonido') { roto = true; error(pw[k].i, fin - pw[k].i, 'no mezclés golpes con notas en la misma línea: hacé dos líneas.'); }
       modo = 'nota';
       k = k2 - 1;
+    } else if (w === '.') {
+      error(pw[k].i, pw[k].w.length, 'el silencio es «-».');
     } else {
       const s = parecida(pw[k].w);
       error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
@@ -173,7 +175,7 @@ function traducirLinea(texto, nro) {
   // ---- los modificadores
   // las que dicen quién: «en pizzicato», «en una 808»
   const quiénTk = [];
-  let cola = '', instrumento = null, alterna = false, callado = false, maquina = MAQUINA;
+  let cola = '', instrumento = null, callado = false, maquina = MAQUINA;
   // los tres períodos que forman el de la línea; «al doble» no cuenta
   let lento = 1, vueltasMascara = 1, vueltasMod = 1;
   for (const c of clausulas.slice(1)) {
@@ -212,6 +214,12 @@ function traducirLinea(texto, nro) {
       marcar(rango[0], rango[1], 'mod', { tipo: 'euclides', n: euclid.n, m: euclid.m });
       continue;
     }
+    const figura = leerFigura(c.txt);
+    if (figura) {
+      cola += figura.codigo;
+      marcar(rango[0], rango[1], 'mod', { tipo: 'figura' });
+      continue;
+    }
     const envuelve = leerCada(c.txt) || leerVeces(c.txt);
     if (envuelve) {
       if (envuelve.falla === 'numero') {
@@ -237,15 +245,13 @@ function traducirLinea(texto, nro) {
       marcar(rango[0], rango[1], 'mod', { tipo: 'veces' });
       continue;
     }
+    if (n in RETIRADOS) {
+      error(rango[0], rango[1], '«' + c.txt.trim() + '» ya no existe' + (RETIRADOS[n] ? ': ' + RETIRADOS[n] : '.'));
+      continue;
+    }
     const mod = modificadorDe(n);
     if (mod) {
-      if (mod[1] === '<>' && cortes.length) {
-        error(rango[0], rango[1], 'esta línea ya está partida en compases con «|», ' +
-          'que es lo mismo que hace «una por vuelta» pero paso por paso.');
-        continue;
-      }
-      if (mod[1] === '<>') alterna = true;
-      else if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
+      if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
       else cola += mod[1];
       // sólo un .slow() entero: «que se abre» lleva uno adentro del filtro
       const frena = /^\.slow\((\d+)\)$/.exec(mod[1]);
@@ -262,7 +268,7 @@ function traducirLinea(texto, nro) {
     errs.push({ nro, msg: 'los golpes ya traen su sonido: «en ' + instrumento.nombre + '» sólo sirve con notas.' });
 
   if (roto) return { tipo: 'mala', tk, errs };
-  // <> es lo que usa «una por vuelta», por eso no van juntas; un compás vacío es silencio.
+  // un compás vacío es silencio
   // «_» no cruza la barra en strudel: el que abre un compás repite la nota que venía
   const porCompases = lista => {
     const out = [];
@@ -276,8 +282,7 @@ function traducirLinea(texto, nro) {
     }
     return '<' + out.map(c => '[' + (c.join(' ') || '-') + ']').join(' ') + '>';
   };
-  const juntar = lista => cortes.length ? porCompases(lista)
-    : alterna ? '<' + lista.join(' ') + '>' : lista.join(' ');
+  const juntar = lista => cortes.length ? porCompases(lista) : lista.join(' ');
   const patron = juntar(pasos);
   let codigo;
   if (modo === 'nota') {
@@ -294,7 +299,7 @@ function traducirLinea(texto, nro) {
   if (sujetoTk) sujetoTk.voz = voz;
   for (const t of pasoTk) t.voz = voz;
   for (const t of quiénTk) t.voz = voz;
-  const largo = cortes.length ? cortes.length + 1 : alterna ? pasos.length : 1;
+  const largo = cortes.length ? cortes.length + 1 : 1;
   const vueltas = mcm(mcm(largo * lento, vueltasMascara), vueltasMod);
   return { tipo: 'parte', nro, nombre, voz, codigo, cotejo, lugares, callado, vueltas, tk, errs };
 }
