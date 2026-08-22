@@ -33,23 +33,69 @@ const MATIZ = {};
 // Cuatro bandas: dos trabajos —teñir y leerse— por dos modos. Por qué se parte
 // por trabajo y no por modo, en REGLAS.md. Los números, que es lo que vive acá:
 //
-// La croma del día no puede pasar de 0,135: con más se sale de gamut en un tercio
-// de los tonos, el navegador los recorta, y el contraste salta de un tono a otro.
-// De noche la trama baja hasta rozar el fondo a propósito — el primero de cada
-// familia, y ahí caen «pum» y «piano», queda en menos de dos de contraste. La
-// cinta de noche es una cinta apagada. Para levantarla sin aclararla hay que
-// acortarla por abajo (0.43 en vez de 0.40), no correrla entera.
+// La croma es un pedido y no una promesa: 0,135 sólo entra en sRGB cerca del medio
+// de la banda, y en las puntas el navegador la recorta —a L 0,38 la mitad de los
+// tonos bajan, y el cian llega a 0,07—. Se pide igual porque recortar degrada
+// parejo y bajarla a lo que entra en todas partes dejaría la rueda entera lavada.
+// El largo de cada banda es todo lo que el contraste deja, porque de ese largo
+// sale la distancia entre dos partes de la misma familia. Los topes, medidos
+// contra el peor tono de cada punta: de día la trama llega hasta 0,60 —más arriba
+// baja de tres contra el papel— y la tinta hasta 0,54, que es texto de dieciséis
+// píxeles y necesita más. Los pisos son al revés de noche, y por eso las dos
+// bandas se dan vuelta: 0,46 abajo levanta la cinta nocturna, que con 0,40 quedaba
+// en menos de dos de contraste.
+//
+// El piso de día no puede bajar de la tinta de la página (0,309): abajo de ahí el
+// nombre de una parte pesaría más que el texto del tema.
 const BANDA = {
-  trama: { claro: { de: 0.48, a: 0.58, croma: 0.135 }, oscuro: { de: 0.40, a: 0.50, croma: 0.15 } },
-  tinta: { claro: { de: 0.44, a: 0.56, croma: 0.135 }, oscuro: { de: 0.62, a: 0.76, croma: 0.15 } },
+  trama: { claro: { de: 0.38, a: 0.60, croma: 0.135 }, oscuro: { de: 0.46, a: 0.68, croma: 0.15 } },
+  tinta: { claro: { de: 0.38, a: 0.54, croma: 0.135 }, oscuro: { de: 0.56, a: 0.78, croma: 0.15 } },
 };
 const deNoche = () => document.documentElement.dataset.luz === 'oscuro';
 
+// ----------------------------------------------------- la luz es de este tema
+// El lugar de un instrumento adentro de su banda no sale del catálogo sino de los
+// que suenan acá. Dos violas del catálogo son dos casilleros pegados de los ocho
+// que tiene la familia y salían a ΔE 0,040, que es casi el mismo verde; repartidas
+// entre las dos que hay en el tema se van a las dos puntas de la banda.
+//
+// Era el problema más grande de la rueda y no el que parecía: de los seis temas de
+// la casa, en cuatro el par más parecido era de una misma familia —el peor, un
+// pizzicato y un timbal a ΔE 0,027, abajo del umbral de «el mismo color a simple
+// vista»— y en uno solo era de familias vecinas.
+let pasoDelTema = {};
+
+// El tono hace de nombre de familia: es lo único que MATIZ le da igual a todos sus
+// instrumentos, y no hace falta cargar el nombre hasta acá para agruparlos.
+function repartirLaLuz(marcas) {
+  const porFamilia = new Map();
+  for (const t of marcas.flat()) {
+    const m = t && t.voz && MATIZ[norm(t.voz)];
+    if (!m) continue;
+    if (!porFamilia.has(m.tono)) porFamilia.set(m.tono, new Set());
+    porFamilia.get(m.tono).add(norm(t.voz));
+  }
+  pasoDelTema = {};
+  for (const suyos of porFamilia.values()) {
+    // el orden del catálogo decide quién queda más claro, así que agregar una
+    // viola no le da vuelta el color a la que ya estaba
+    const nombres = [...suyos].sort((a, b) => MATIZ[a].paso - MATIZ[b].paso);
+    nombres.forEach((n, i) =>
+      // uno solo va al medio de la banda y no a la punta oscura: un tema de una
+      // parte no tiene con qué contrastar y le conviene el lugar más legible
+      pasoDelTema[n] = nombres.length > 1 ? i / (nombres.length - 1) : 0.5);
+  }
+}
+
 // el tono es de la familia y no cambia nunca; la banda pone la luz y la croma
 function enLaRueda(banda, voz) {
-  const m = MATIZ[norm(voz || '')] || MATIZ[norm(INSTRUMENTO_POR_DEFECTO)];
+  const n = norm(voz || '');
+  const m = MATIZ[n] || MATIZ[norm(INSTRUMENTO_POR_DEFECTO)];
   const b = BANDA[banda][deNoche() ? 'oscuro' : 'claro'];
-  return 'oklch(' + (b.de + (b.a - b.de) * m.paso).toFixed(3) + ' ' + b.croma + ' ' + m.tono + ')';
+  // el del catálogo es el de antes de que se reparta: lo usan el menú y el
+  // sugeridor, que muestran instrumentos que todavía no están en ningún tema
+  const paso = n in pasoDelTema ? pasoDelTema[n] : m.paso;
+  return 'oklch(' + (b.de + (b.a - b.de) * paso).toFixed(3) + ' ' + b.croma + ' ' + m.tono + ')';
 }
 
 // lo que se lee

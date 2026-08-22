@@ -133,6 +133,7 @@ function asegurarRenglonFinal() {
 function repintarTexto() {
   const r = traducir(src.value);
   calladasActuales = r.calladas;
+  repartirLaLuz(r.marcas);
   pintar(r.marcas);
   armarPuntos(r.marcas, r.calladas, r.renglones);
 }
@@ -155,6 +156,9 @@ function actualizar(reproducir) {
   // las calladas y las que traducir() salteó están escritas, pero no suenan
   const suenan = new Set(r.partes.map(p => p.nro));
   espejos = r.renglones.filter(x => x.pat && suenan.has(x.nro));
+  // la luz de cada parte sale de las que hay en la hoja, así que se reparte antes
+  // de que algo pregunte por un color — la cinta y la marca también lo usan
+  repartirLaLuz(r.marcas);
   pintar(r.marcas);
   armarPuntos(r.marcas, r.calladas);
   dibujarCinta(r.renglones);

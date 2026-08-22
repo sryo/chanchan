@@ -28,7 +28,7 @@ El color no decora: cada canal dice una cosa y sólo una.
 
 | canal | qué dice | dónde |
 |---|---|---|
-| **la rueda** | quién toca | `color.js` — 18 familias cada 20°, croma clavada en 0,135 de día y 0,15 de noche |
+| **la rueda** | quién toca | `color.js` — el tono es la familia, 18 cada 20°; la luz es el instrumento, repartida entre los del tema |
 | **la tinta de la página** | lo que el tema dice: el tempo, las secciones, la forma | `--texto` |
 | **la tinta del tema** | de qué tema estamos hablando: su nombre, su lista, su enlace | `--marca-tinta` |
 | **el rojo pleno** | esto no se entiende | `--mal`, croma al máximo que entra en pantalla |
@@ -39,14 +39,26 @@ Está **escrita a mano** y no salida de un orden cualquiera: el color tiene que
 querer decir algo —el bronce dorado, las cañas en el oliva de la madera, la
 flauta en el aire, las cuerdas frotadas en el azul frío—. Y a la vez las nueve
 familias que de verdad conviven en un tema caen en los lugares pares, o sea a
-**40° unas de otras**, que es lo único que la cinta necesita para que dos franjas
-no se confundan. Con un paso áureo, percusión y bajos quedaban a 12° y la batería
-y el bajo salían del mismo verde. Las otras nueve van en el medio, al lado del
-pariente que les toca, a 20°: un tema con batería y steel drums cuesta un poco
-más de leer, y es el precio de que la rueda se entienda.
+**40° unas de otras**. Con un paso áureo, percusión y bajos quedaban a 12° y la
+batería y el bajo salían del mismo verde. Las otras nueve van en el medio, al
+lado del pariente que les toca, a 20°.
 
-Adentro de una familia manda la luz: todos los bajos son del mismo tono, el slap
-más claro que el acústico.
+Esos 40° son el techo y no una holgura, y **reordenar la rueda no los levanta**:
+ocho familias que conviven todas con todas no se pueden repartir el círculo mejor
+que a 45°, o sea ΔE 0,103 donde hoy hay 0,092. Doce por ciento a cambio de mandar
+el bajo al verde. El otro eje es el que compra.
+
+Adentro de una familia manda la luz, y el lugar de cada instrumento **sale de los
+que suenan en el tema y no del catálogo**: dos violas del catálogo son dos
+casilleros pegados de los ocho que tiene la familia, y las dos que hay en el tema
+se van a las dos puntas de la banda. Era el problema grande de la rueda y no el
+que parecía —en cuatro de los seis temas de la casa el par más parecido era de
+una misma familia, y el peor, un pizzicato y un timbal, caía en ΔE 0,027, abajo
+del umbral de «el mismo color a simple vista»—.
+
+De ahí sale que **la banda vale por su largo**: de ese largo salen las distancias
+de adentro de una familia, así que cada una llega hasta donde el contraste la
+deja y no hasta donde queda cómoda.
 
 ### dos trabajos, cuatro bandas
 
@@ -61,8 +73,9 @@ una con su versión de día y de noche. La tinta se da vuelta entera entre modos
 dos quedan del lado de acá de la tinta de la página, así que el nombre de una
 parte es texto de color y nunca un subrayado fluorescente.
 
-Entre los dos modos la diferencia no la puede hacer la luz sola: correrla lo
-suficiente deja la franja más pálida en menos de dos contra su fondo. La hace
+Entre los dos modos la diferencia no la puede hacer la luz sola: las dos bandas
+ya usan todo el recorrido que el contraste permite, y correrlas encima dejaría
+una punta contra su fondo. La hace
 también la croma, y ésa sale gratis. De día la rueda va más clara y desaturada
 —tinta sobre papel—; de noche más profunda y saturada —luz sobre vidrio—. Son dos
 medios distintos, no el mismo pigmento con otro fondo atrás.
