@@ -19,8 +19,9 @@ function cargarTema(tema) {
 // renglones y tres colores, y nueve barras en quince píxeles son barro. Hasta
 // cinco: más no dicen «seis instrumentos», dicen «muchos». No los tiempos por
 // minuto, que era lo fácil de sacar y no es lo que uno recuerda de un tema.
-// Va por traducirLinea() y no por traducir(): lo caro es el eval por parte, que
-// vive en el segundo; y el resultado se guarda por texto.
+// Va por traducirLinea() y no por traducir(): alcanza con leer cada renglón, y
+// la forma y las secciones que arma el segundo acá no dicen nada. El resultado
+// se guarda por texto.
 const TIRAS_MAX = 5;
 const _voces = new Map();
 

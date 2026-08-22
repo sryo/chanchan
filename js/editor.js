@@ -131,7 +131,7 @@ function asegurarRenglonFinal() {
 // —la cinta, los errores— espera los 400 ms de deshacer.js. Si los puntitos se
 // van con la espera, su data-l queda viejo y un click calla la línea de al lado.
 function repintarTexto() {
-  const r = traducir(src.value, false);
+  const r = traducir(src.value);
   calladasActuales = r.calladas;
   repartirLaLuz(r.marcas);
   pintar(r.marcas);
@@ -147,13 +147,26 @@ function actualizar(reproducir) {
   vueltasActuales = r.vueltas;
   tramosActuales = r.tramos;
   temposActuales = r.tempos;
-  // un solo eval por línea y antes de dibujar: los golpes quedan colgados del
-  // renglón, así que un resize o un cambio de luz no le preguntan nada a strudel
-  if (motorListo) for (const x of r.renglones) {
-    try { x.pat = eval(x.cotejo); } catch (e) { x.pat = null; }
-    x.golpes = x.pat && golpesDe(x.pat, r.vueltas);
+  // Strudel se consulta acá y en ningún otro lado, una vez por vuelta: los golpes
+  // quedan colgados del renglón, así que un resize o un cambio de luz no le
+  // preguntan nada, y el espejo de cada tecla tampoco. Y cada parte se prueba
+  // sola: si una falla, se cae ella y no el tema entero. Lo decide el editor y no
+  // traducir() porque es lo único que no se sabe leyendo la hoja.
+  if (motorListo) {
+    for (const x of r.renglones) {
+      try { x.pat = eval(x.cotejo); } catch (e) { x.pat = null; }
+      x.golpes = x.pat && golpesDe(x.pat, r.vueltas);
+    }
+    const vivas = r.partes.filter(p => {
+      try { eval(p.codigo).queryArc(0, 1); return true; }
+      catch (e) {
+        r.errores.push({ nro: p.nro, msg: 'strudel no pudo con esta línea, la salteo: ' + String(e.message || e) });
+        return false;
+      }
+    });
+    if (vivas.length < r.partes.length) { r.partes = vivas; r.codigo = armarCodigo(vivas, r.tramos, r.bpm); }
   }
-  // las calladas y las que traducir() salteó están escritas, pero no suenan
+  // las calladas y las que strudel rechazó están escritas, pero no suenan
   const suenan = new Set(r.partes.map(p => p.nro));
   espejos = r.renglones.filter(x => x.pat && suenan.has(x.nro));
   // la luz de cada parte sale de las que hay en la hoja, así que se reparte antes

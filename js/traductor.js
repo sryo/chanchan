@@ -325,7 +325,7 @@ function traducirLinea(texto, nro) {
   return { tipo: 'parte', nro, nombre, voz, codigo, cotejo, lugares, callado, vueltas, tk, errs };
 }
 
-function traducir(fuente, probar = true) {
+function traducir(fuente) {
   const lineas = fuente.split('\n');
   const partes = [], renglones = [], errores = [], marcas = [], calladas = new Set();
   // las secciones en el orden en que están escritas, y las líneas de cada una
@@ -358,18 +358,6 @@ function traducir(fuente, probar = true) {
       else partes.push(r);
     }
   });
-  // Cada parte se prueba sola: si una falla, se cae ella y no el tema entero.
-  // Es lo único de acá que le cuesta a strudel, y el espejo no lo necesita —los
-  // renglones y las marcas salen iguales—, así que en cada tecla se saltea.
-  if (motorListo && probar) {
-    for (let i = partes.length - 1; i >= 0; i--) {
-      try { eval(partes[i].codigo).queryArc(0, 1); }
-      catch (e) {
-        errores.push({ nro: partes[i].nro, msg: 'strudel no pudo con esta línea, la salteo: ' + String(e.message || e) });
-        partes.splice(i, 1);
-      }
-    }
-  }
   // ---- la forma
   // Sin línea de forma las secciones van una vez cada una, en el orden en que
   // están escritas: es lo que uno espera al leer la hoja de arriba abajo.
@@ -423,36 +411,39 @@ function traducir(fuente, probar = true) {
     cae += t.largo;
   }
 
-  // Una parte por tramo: donde no le toca va un silencio. Se arma un «arrange» por
-  // línea y no uno solo con los stacks adentro, así la cinta sigue dibujando una
-  // franja por línea y el puntito del margen sigue siendo el índice de la línea.
-  const enLaForma = (cod, seccion) => !tramos.length || !seccion ? cod
-    : 'arrange(' + tramos.map(t =>
-        '[' + t.largo + ', ' + (t.nom === seccion ? cod : 'silence') + ']').join(', ') + ')';
-  for (const r of renglones) r.cotejo = enLaForma(r.cotejo, r.seccion);
-
-  let codigo = '';
-  if (partes.length) {
-    // Lo único que el traductor le agrega sin que lo diga el idioma: un bus de
-    // efectos por parte. Con un bus compartido, «con eco» en una línea metía a las
-    // otras en la misma sala. Va por nombre y no por línea: la misma viola en la
-    // estrofa y en el estribillo es una sola, y su eco se cortaba al cambiar de sección.
-    const buses = [...new Set(partes.map(p => p.nombre))];
-    const conBus = partes.map(p =>
-      enLaForma(p.codigo, p.seccion) + '.orbit(' + buses.indexOf(p.nombre) + ')');
-    codigo = 'setcpm(' + (tempos.length ? tempos[0].bpm : bpm) + '/4)\n';
-    // el nombre va en un comentario del código y lo escribió el usuario: estos
-    // tres cortan un comentario de línea igual que un enter, y lo que sigue corre
-    codigo += partes.length === 1
-      ? conBus[0]
-      : 'stack(\n' + conBus.map((c, i) => '  ' + c + ', // ' + partes[i].nombre.replace(/[\r\u2028\u2029]/g, ' ') +
-          (partes[i].seccion ? ' · ' + partes[i].seccion : '')).join('\n') + '\n)';
-  }
+  for (const r of renglones) r.cotejo = enLaForma(r.cotejo, r.seccion, tramos);
   // Con forma, la vuelta larga es la forma entera y no se puede acotar: acotar
   // busca un divisor, y el divisor de una canción es media canción.
   const vueltas = tramos.length ? Math.max(1, total)
     : acotarVueltas(renglones.reduce((a, r) => mcm(a, r.vueltas), 1));
   const arranca = tempos.length ? tempos[0].bpm : bpm;
-  return { codigo, errores, marcas, partes, renglones, calladas,
+  return { codigo: armarCodigo(partes, tramos, arranca), errores, marcas, partes, renglones, calladas,
            bpm: arranca, vueltas, tramos, tempos: tempos.length > 1 ? tempos : [] };
+}
+
+// Una parte por tramo: donde no le toca va un silencio. Se arma un «arrange» por
+// línea y no uno solo con los stacks adentro, así la cinta sigue dibujando una
+// franja por línea y el puntito del margen sigue siendo el índice de la línea.
+const enLaForma = (cod, seccion, tramos) => !tramos.length || !seccion ? cod
+  : 'arrange(' + tramos.map(t =>
+      '[' + t.largo + ', ' + (t.nom === seccion ? cod : 'silence') + ']').join(', ') + ')';
+
+// Lo único que el traductor le agrega sin que lo diga el idioma: un bus de
+// efectos por parte. Con un bus compartido, «con eco» en una línea metía a las
+// otras en la misma sala. Va por nombre y no por línea: la misma viola en la
+// estrofa y en el estribillo es una sola, y su eco se cortaba al cambiar de sección.
+// Va aparte de traducir() porque el editor lo vuelve a armar sin las partes que
+// strudel rechazó: eso es lo único que no se sabe leyendo la hoja, y traducir()
+// no le pregunta nada a strudel.
+function armarCodigo(partes, tramos, bpm) {
+  if (!partes.length) return '';
+  const buses = [...new Set(partes.map(p => p.nombre))];
+  const conBus = partes.map(p =>
+    enLaForma(p.codigo, p.seccion, tramos) + '.orbit(' + buses.indexOf(p.nombre) + ')');
+  // el nombre va en un comentario del código y lo escribió el usuario: estos
+  // tres cortan un comentario de línea igual que un enter, y lo que sigue corre
+  return 'setcpm(' + bpm + '/4)\n' + (partes.length === 1
+    ? conBus[0]
+    : 'stack(\n' + conBus.map((c, i) => '  ' + c + ', // ' + partes[i].nombre.replace(/[\r\u2028\u2029]/g, ' ') +
+        (partes[i].seccion ? ' · ' + partes[i].seccion : '')).join('\n') + '\n)');
 }
