@@ -37,12 +37,27 @@ function desdeCuando(t) {
 
 // se copian como cualquier párrafo, y apretar uno lo escribe y lo hace sonar
 const ESPERA_CLICK = 180;
+
+// Cada cosa de la hoja vacía es un enlace de verdad: se copia con el botón derecho,
+// se abre en otra pestaña, se alcanza con Tab. El hash se arma después, que es
+// asíncrono. Sin draggable, que arrastrar un enlace arrastra la dirección en vez de
+// seleccionar el texto.
+const afuera = e => e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0;
+
+function enlaceA(nombre, txt) {
+  const a = document.createElement('a');
+  a.textContent = nombre || txt.split('\n')[0];
+  a.draggable = false;
+  a.href = '#';
+  hashDe(nombre, txt).then(h => { a.href = '#' + h; });
+  return a;
+}
 const RENGLONES_DE_MUESTRA = ['la bata toca pum pa pum pa', 'el bajo toca do - sol -', 'el piano toca do mayor | fa mayor'];
 
 // el texto recibe el mouse para poder copiarlo, así que apretarlo ya no cae en la
 // hoja: se la devuelve, salvo que se esté seleccionando o sea un botón
 cajaVacio.addEventListener('click', e => {
-  if (getSelection().isCollapsed && !e.target.closest('button')) src.focus();
+  if (getSelection().isCollapsed && !e.target.closest('button, a')) src.focus();
 });
 
 function armarVacio() {
@@ -57,14 +72,15 @@ function armarVacio() {
     (ejemplos.length ? '<p class="pista">o escuchá un tema hecho</p><div class="ejemplos temas"></div>' : '');
   const muestras = cajaVacio.querySelector('.muestras');
   for (const linea of RENGLONES_DE_MUESTRA) {
-    const p = document.createElement('p');
+    const p = enlaceA('', linea);
     p.className = 'muestra';
-    p.textContent = linea;
     let apreto = null, espera;
     p.addEventListener('mousedown', e => { apreto = [e.clientX, e.clientY]; });
     p.addEventListener('click', e => {
       const a = apreto; apreto = null;
       clearTimeout(espera);
+      if (afuera(e)) return;                    // otra pestaña: que lo abra el enlace
+      e.preventDefault();
       // el segundo click de un doble o un triple es para seleccionar, y llega tarde
       // para el primero: por eso escribir espera a que no venga ninguno
       if (e.detail > 1) return;
@@ -82,10 +98,14 @@ function armarVacio() {
   }
   const poner = (lista, caja) => {
     for (const e of lista) {
-      const b = document.createElement('button');
-      b.textContent = e.nombre;
-      b.addEventListener('click', () => { cargarTema(e); src.focus(); });
-      caja.appendChild(b);
+      const a = enlaceA(e.nombre, e.txt);
+      a.addEventListener('click', ev => {
+        if (afuera(ev)) return;                 // otra pestaña: que lo abra el enlace
+        ev.preventDefault();
+        cargarTema(e);
+        src.focus();
+      });
+      caja.appendChild(a);
     }
   };
   if (mios.length) poner(mios, cajaVacio.querySelector('.ejemplos.mios'));

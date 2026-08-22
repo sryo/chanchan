@@ -120,15 +120,17 @@ const desinflar = txt => porElTubo(new TextEncoder().encode(txt), new Compressio
 const inflar = async b64 => new TextDecoder().decode(await porElTubo(deBase64(b64), new DecompressionStream('deflate-raw')));
 
 // los dos puntos son legales en un fragmento y encodeURIComponent los escapa: el primero es siempre el nuestro
-async function armarHash() {
-  const nombre = encodeURIComponent(campoNombre.value.trim()) + ':';
-  const plano = nombre + encodeURIComponent(src.value);
+async function hashDe(nombre, txt) {
+  const antes = encodeURIComponent(nombre.trim()) + ':';
+  const plano = antes + encodeURIComponent(txt);
   if (!hayZip()) return plano;
   try {
-    const corto = nombre + MARCA_Z + aBase64(await desinflar(src.value));
+    const corto = antes + MARCA_Z + aBase64(await desinflar(txt));
     return corto.length < plano.length ? corto : plano;
   } catch (e) { return plano; }
 }
+
+const armarHash = () => hashDe(campoNombre.value.trim(), src.value);
 
 // la barra vertical es de los enlaces viejos, y la barra de direcciones la reescribe «%7C»; vale
 // sólo sin dos puntos: un nombre de ahora puede traer un «%7C» adentro
@@ -215,7 +217,19 @@ function acomodarNombre() {
 }
 campoNombre.addEventListener('input', () => { acomodarNombre(); guardar(); });
 
+// un enlace que llega de afuera —pegado en la barra, apretado en otra pestaña— abre
+// ese tema sin recargar; el hash se consume igual que al arrancar
+let hashPropio = false;
+addEventListener('hashchange', async () => {
+  if (hashPropio) { hashPropio = false; return; }
+  if (location.hash.length < 2) return;
+  const tema = await leerHash();
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
+  if (tema) cargarTema(tema); else avisar(noSePudo());
+});
+
 btnEnlace.addEventListener('click', async () => {
+  hashPropio = true;
   location.hash = await armarHash();
   try {
     await navigator.clipboard.writeText(location.href);
