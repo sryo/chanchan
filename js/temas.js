@@ -38,12 +38,11 @@ function desdeCuando(t) {
 // lo que encuentra quien llega por primera vez, y lo que da «nuevo»: un documento, con sus notas
 const PRIMERA_HOJA = () => [
   '* acá la música se escribe con palabras.',
-  '* empezá con una de éstas, o escribí la tuya:',
   'la bata toca pum pa pum pa',
   'el bajo toca do - sol -',
   'el piano toca do mayor | fa mayor',
-  '* o escuchá un tema hecho:',
-  ...EJEMPLOS.map(e => '@' + e.nombre),
+  '* un tema entero:',
+  '@o fortuna',
 ].join('\n');
 
 // --------------------------------------------------------- abrir otro tema
