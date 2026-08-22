@@ -57,8 +57,10 @@ una misma familia, y el peor, un pizzicato y un timbal, caía en ΔE 0,027, abaj
 del umbral de «el mismo color a simple vista»—.
 
 De ahí sale que **la banda vale por su largo**: de ese largo salen las distancias
-de adentro de una familia, así que cada una llega hasta donde el contraste la
-deja y no hasta donde queda cómoda.
+de adentro de una familia. Pero se estira sólo hasta donde no cambia lo que el
+modo es —de noche la cinta tiene que seguir siendo fondo, y a 0,68 de techo pasaba
+a estar adelante—, y estirarla de más tampoco compra: el piso queda igual. El
+trabajo lo hace repartir la luz.
 
 ### dos trabajos, cuatro bandas
 
@@ -146,6 +148,12 @@ el mismo tema; la marca de «abierto» va en la tuya, que es la que se escribe e
 cada tecla, y la del ejemplo queda limpia porque es la manera de volver a cómo
 venía.
 
+Y es lo que dice la pestaña: `nombre — chanchán`, o la página sola mientras no
+tenga nombre, porque «sin título» es lo que dice un campo vacío y no un nombre
+que convenga dejar escrito en un marcador. Con el icono son las dos maneras de
+contestar cuál de los chanchanes abiertos es éste: una por nombre, la otra por
+color.
+
 ## la cinta se lee, el margen escribe
 
 La cinta de arriba es el tema visto de lejos. Dentro de ella:
@@ -210,6 +218,29 @@ de otra librería con otra grilla obliga a rehacer esa cuenta.**
 
 El enlace y el «papel o tinta» son de acá: ninguna librería tiene la segunda
 —todas resuelven claro y oscuro con un sol y una luna, que es otra metáfora—.
+
+### el de la pestaña
+
+Es el único que no puede vivir en el sprite: `rel="icon"` no toma un fragmento.
+Pero tampoco es un archivo — va escrito adentro del `href`, en `data:`, que es la
+manera de que siga sin haber un pedido de red por un dibujo.
+
+Y no es un logo: es **la cinta**, con los colores del tema abierto, así que la
+pestaña dice qué tema está abierto y no qué página es. Por eso lo redibuja
+`pintarMarca()`, que es la que ya pinta la marca en las otras superficies. No se
+puede achicar a escala —la banda entera mide 65 píxeles contra una ventana de
+mil, o sea un cuarto de píxel a dieciséis—: lo que se achica es la ventana, y
+queda la vuelta, que es lo que se reconoce de lejos. Pasadas cinco o seis partes
+las franjas dejan de contarse y quedan como una banda de colores; lo que no hace
+nunca es mostrar un color que no sea de una parte escrita.
+
+Lo que el html trae escrito a mano es lo único que se ve sin js —el marcador, la
+vista previa— y por eso es la hoja vacía: el marco solo, esperando. En una tinta
+que se vea, que la del marco está calculada contra el papel de la página y la
+pestaña es la barra del navegador.
+
+La aguja no entra ahí: el navegador frena los cuadros de las pestañas de atrás,
+así que una aguja en el icono miente sobre dónde está el tema.
 
 ## los eventos, desde que los botones tienen dibujos adentro
 

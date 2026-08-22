@@ -37,19 +37,22 @@ const MATIZ = {};
 // de la banda, y en las puntas el navegador la recorta —a L 0,38 la mitad de los
 // tonos bajan, y el cian llega a 0,07—. Se pide igual porque recortar degrada
 // parejo y bajarla a lo que entra en todas partes dejaría la rueda entera lavada.
-// El largo de cada banda es todo lo que el contraste deja, porque de ese largo
-// sale la distancia entre dos partes de la misma familia. Los topes, medidos
-// contra el peor tono de cada punta: de día la trama llega hasta 0,60 —más arriba
-// baja de tres contra el papel— y la tinta hasta 0,54, que es texto de dieciséis
-// píxeles y necesita más. Los pisos son al revés de noche, y por eso las dos
-// bandas se dan vuelta: 0,46 abajo levanta la cinta nocturna, que con 0,40 quedaba
-// en menos de dos de contraste.
+//
+// El largo de la banda es de dónde sale la distancia entre dos partes de la misma
+// familia, así que cada una se estira — pero sólo hasta donde no cambia lo que el
+// modo es. De noche el techo va a 0,56 y no más arriba: a 0,68 la franja más clara
+// llegaba a casi seis de contraste y la cinta dejaba de ser fondo. De día el piso
+// baja a 0,42 y no a 0,38, donde la franja más oscura pesaba como un subrayado.
+//
+// Estirarlas de más tampoco compraba: el piso de los seis temas de la casa queda
+// en ΔE 0,074 contra los 0,075 de la versión que se iba de rango. El trabajo lo
+// hace repartir la luz, no ensanchar la banda.
 //
 // El piso de día no puede bajar de la tinta de la página (0,309): abajo de ahí el
 // nombre de una parte pesaría más que el texto del tema.
 const BANDA = {
-  trama: { claro: { de: 0.38, a: 0.60, croma: 0.135 }, oscuro: { de: 0.46, a: 0.68, croma: 0.15 } },
-  tinta: { claro: { de: 0.38, a: 0.54, croma: 0.135 }, oscuro: { de: 0.56, a: 0.78, croma: 0.15 } },
+  trama: { claro: { de: 0.42, a: 0.60, croma: 0.135 }, oscuro: { de: 0.40, a: 0.56, croma: 0.15 } },
+  tinta: { claro: { de: 0.40, a: 0.56, croma: 0.135 }, oscuro: { de: 0.62, a: 0.80, croma: 0.15 } },
 };
 const deNoche = () => document.documentElement.dataset.luz === 'oscuro';
 
