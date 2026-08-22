@@ -41,6 +41,7 @@ const PRIMERA_HOJA = () => [
   'la bata toca pum pa pum pa',
   'el bajo toca do - sol -',
   'el piano toca do mayor | fa mayor',
+  '* apretá acá para escuchar un tema escrito así:',
   '@o fortuna',
 ].join('\n');
 
