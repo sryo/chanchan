@@ -130,6 +130,10 @@ Una sección es posicional: un renglón es de la última sección abierta arriba
 
 Los íconos son el logo en tinta sobre papel, dibujado por el mismo canvas que pinta la pestaña y guardado en png porque iOS no toma otra cosa. `manifest.webmanifest` es lo que hace que el teléfono ofrezca ponerlo en la pantalla de inicio.
 
+**El error trae su arreglo cuando lo hay**
+
+Un error que se arregla de una sola manera lleva el arreglo puesto: qué tramo del renglón se cambia por qué. Lo pone el traductor, que es el que sabe; el cajón lo ofrece como un botón al lado del mensaje, y el ▾ de la palabra en rojo ofrece el mismo. Tocarlo es un paso como cualquier otro, con su deshacer. Los que se arreglan de más de una manera, «muy» sin altura, una nota que falta, un tempo fuera de rango, no traen botón: el mensaje es la respuesta.
+
 **La cinta se lee, el margen escribe**
 
 La cinta de arriba es el tema visto de lejos. Las franjas son las voces y salen de la rueda. La regla de vueltas, los cortes de sección, la aguja y el anillo son tiempo, y van en tinta de página.

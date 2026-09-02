@@ -67,7 +67,7 @@ const CASOS = [
 const foto = txt => {
   const r = traducir(txt);
   return { codigo: r.codigo, vueltas: r.vueltas, bpm: r.bpm,
-           errores: r.errores.map(e => e.nro + ': ' + e.msg),
+           errores: r.errores.map(e => e.nro + ': ' + e.msg + (e.arreglo ? ' → «' + e.arreglo.texto + '»' : '')),
            tramos: r.tramos.map(t => t.nom + '×' + t.largo), tempos: r.tempos, enlaces: r.enlaces };
 };
 const ahora = {};

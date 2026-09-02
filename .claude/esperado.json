@@ -157,7 +157,7 @@
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "1: el silencio es «-»."
+   "1: el silencio es «-». → «-»"
   ],
   "tramos": [],
   "tempos": [],
@@ -392,8 +392,8 @@
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "1: «tas» ahora se escribe «pa».",
-   "1: «chas» ahora se escribe «plas»."
+   "1: «tas» ahora se escribe «pa». → «pa»",
+   "1: «chas» ahora se escribe «plas». → «plas»"
   ],
   "tramos": [],
   "tempos": [],
@@ -404,7 +404,7 @@
   "vueltas": 2,
   "bpm": 90,
   "errores": [
-   "3: el «!» va pegado a un golpe o a una nota: «pum!»."
+   "3: el «!» va pegado a un golpe o a una nota: «pum!». → «»"
   ],
   "tramos": [],
   "tempos": [],
@@ -440,7 +440,7 @@
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "1: «menor séptima» sobra: «fa!» ya dice el acorde."
+   "1: «menor séptima» sobra: «fa!» ya dice el acorde. → «»"
   ],
   "tramos": [],
   "tempos": [],
@@ -451,10 +451,10 @@
   "vueltas": 4,
   "bpm": 90,
   "errores": [
-   "1: «bemol» sobra: «do sostenido» ya dice si va sostenida o bemol.",
-   "1: «agudo» sobra: «re grave» ya dice la altura.",
-   "1: «menor» sobra: «mi mayor» ya dice el acorde.",
-   "1: «mayor» sobra: «fa menor séptima» ya dice el acorde."
+   "1: «bemol» sobra: «do sostenido» ya dice si va sostenida o bemol. → «»",
+   "1: «agudo» sobra: «re grave» ya dice la altura. → «»",
+   "1: «menor» sobra: «mi mayor» ya dice el acorde. → «»",
+   "1: «mayor» sobra: «fa menor séptima» ya dice el acorde. → «»"
   ],
   "tramos": [],
   "tempos": [],
@@ -477,13 +477,13 @@
   "vueltas": 2,
   "bpm": 90,
   "errores": [
-   "1: «fuerte» y «bajito» se pisan: dejá una sola.",
-   "2: «en negras» y «en corcheas» se pisan: dejá una sola.",
-   "2: «tres en ocho» y «en corcheas» se pisan: dejá una sola.",
-   "3: «en una viola» y «en un piano» se pisan: dejá una sola.",
+   "1: «fuerte» y «bajito» se pisan: dejá una sola. → «»",
+   "2: «en negras» y «en corcheas» se pisan: dejá una sola. → «»",
+   "2: «tres en ocho» y «en corcheas» se pisan: dejá una sola. → «»",
+   "3: «en una viola» y «en un piano» se pisan: dejá una sola. → «»",
    "4: no conozco «en una 808». Pasá el mouse por encima y tocá el ▾.",
    "4: no conozco «en una 909». Pasá el mouse por encima y tocá el ▾.",
-   "4: «dos vueltas sí y dos no» y «una vuelta sí y una no» se pisan: dejá una sola."
+   "4: «dos vueltas sí y dos no» y «una vuelta sí y una no» se pisan: dejá una sola. → «»"
   ],
   "tramos": [],
   "tempos": [],
@@ -503,10 +503,10 @@
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "1: no conozco «xx». ¿Será «pa»?",
-   "2: el silencio es «-».",
-   "3: no conozco «xx». ¿Será «pa»?",
-   "3: no conozco «yy». ¿Será «pa»?"
+   "1: no conozco «xx». ¿Será «pa»? → «pa»",
+   "2: el silencio es «-». → «-»",
+   "3: no conozco «xx». ¿Será «pa»? → «pa»",
+   "3: no conozco «yy». ¿Será «pa»? → «pa»"
   ],
   "tramos": [],
   "tempos": [],
@@ -517,8 +517,8 @@
   "vueltas": 2,
   "bpm": 90,
   "errores": [
-   "1: el «!» va pegado a un golpe o a una nota: «pum!».",
-   "2: el «!» va pegado a un golpe o a una nota: «pum!»."
+   "1: el «!» va pegado a un golpe o a una nota: «pum!». → «»",
+   "2: el «!» va pegado a un golpe o a una nota: «pum!». → «»"
   ],
   "tramos": [],
   "tempos": [],
@@ -530,8 +530,8 @@
   "bpm": 90,
   "errores": [
    "1: «muy» va con la altura: «muy grave» o «muy agudo».",
-   "2: «sostenido» sobra: «do!» ya dice si va sostenida o bemol.",
-   "2: «menor» sobra: «mi!» ya dice el acorde."
+   "2: «sostenido» sobra: «do!» ya dice si va sostenida o bemol. → «»",
+   "2: «menor» sobra: «mi!» ya dice el acorde. → «»"
   ],
   "tramos": [],
   "tempos": [],
@@ -543,7 +543,7 @@
   "bpm": 90,
   "errores": [
    "1: no conozco «en una 808». Pasá el mouse por encima y tocá el ▾.",
-   "2: los golpes ya traen su sonido: «en piano» sólo sirve con notas."
+   "2: los golpes ya traen su sonido: «en piano» sólo sirve con notas. → «»"
   ],
   "tramos": [],
   "tempos": [],

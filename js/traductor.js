@@ -16,7 +16,11 @@ function traducirLinea(texto, nro) {
   const tk = [], errs = [];
   let roto = false;
   const marcar = (i, len, cls, dato) => { const t = { i, len, cls, ...dato }; tk.push(t); return t; };
-  const error = (i, len, msg, dato) => { marcar(i, len, 'mal', { tipo: 'mal', ...dato }); errs.push({ nro, msg }); };
+  const error = (i, len, msg, dato) => { marcar(i, len, 'mal', { tipo: 'mal', ...dato }); errs.push({ nro, msg, arreglo: dato && dato.arreglo }); };
+  // un arreglo mecánico, cuando lo hay: qué tramo del renglón se cambia por qué; el cajón lo ofrece
+  const arreglar = (i, len, nuevo) => ({ i, len, sacado: texto.substr(i, len), texto: nuevo });
+  // sacar una cláusula, con su coma
+  const sinClausula = c => arreglar(c.desde - 1, c.hasta - c.desde + 1, '');
   const mala = () => ({ tipo: 'mala', tk, errs });
 
   const r = leerRenglon(texto), ws = r.palabras;
@@ -150,7 +154,8 @@ function traducirLinea(texto, nro) {
     const sufijo = sufijoDeNota(k);
     // un «!» suelto es error, pero el paso sigue ahí: silencio, o el corte de compás
     if (acento && !(SONIDOS[w] || NOTAS[w] || sufijo)) {
-      error(pw[k].i, pw[k].w.length, 'el «!» va pegado a un golpe o a una nota: «pum!».');
+      error(pw[k].i, pw[k].w.length, 'el «!» va pegado a un golpe o a una nota: «pum!».',
+        { arreglo: arreglar(pw[k].i + pw[k].w.length - 1, 1, '') });
       if (w === '|') cortes.push(pasos.length);
       else { pasos.push('-'); lugares.push(null); desconocidos++; }
       continue;
@@ -199,18 +204,23 @@ function traducirLinea(texto, nro) {
       error(pw[k].i, pw[k].w.length, '«muy» va con la altura: «muy grave» o «muy agudo».');
     } else if (sufijo) {
       // «do sostenido bemol», «pum mayor»: va después de una nota, y de una que no lo tenga
-      const escrito = texto.slice(pw[k].i, sufijo.fin);
-      error(pw[k].i, sufijo.fin - pw[k].i, notaAntes && notaAntes.hasta === k
+      const escrito = texto.slice(pw[k].i, sufijo.fin), sobra = notaAntes && notaAntes.hasta === k;
+      error(pw[k].i, sufijo.fin - pw[k].i, sobra
         ? '«' + escrito + '» sobra: «' + notaAntes.escrito + '» ya dice ' + DICE[sufijo.campo] + '.'
-        : '«' + escrito + '» va después de una nota: «do ' + escrito + '».');
+        : '«' + escrito + '» va después de una nota: «do ' + escrito + '».',
+        // lo que sobra se saca con el espacio de antes
+        sobra ? { arreglo: arreglar(pw[k - 1].i + pw[k - 1].w.length, sufijo.fin - pw[k - 1].i - pw[k - 1].w.length, '') } : null);
       k += sufijo.largo - 1;
     } else {
       // lo que no se entiende suena como silencio: el error ya está, y los otros pasos no se corren
-      if (w === '.') error(pw[k].i, pw[k].w.length, 'el silencio es «-».');
-      else if (GOLPES_VIEJOS[w]) error(pw[k].i, pw[k].w.length, '«' + w + '» ahora se escribe «' + GOLPES_VIEJOS[w] + '».');
+      const signo = acento ? '!' : '';
+      if (w === '.') error(pw[k].i, pw[k].w.length, 'el silencio es «-».', { arreglo: arreglar(pw[k].i, pw[k].w.length, '-') });
+      else if (GOLPES_VIEJOS[w]) error(pw[k].i, pw[k].w.length, '«' + w + '» ahora se escribe «' + GOLPES_VIEJOS[w] + '».',
+        { arreglo: arreglar(pw[k].i, pw[k].w.length, GOLPES_VIEJOS[w] + signo) });
       else {
         const s = parecida(pw[k].w);
-        error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
+        error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'),
+          s ? { arreglo: arreglar(pw[k].i, pw[k].w.length, s + signo) } : null);
       }
       pasos.push('-'); lugares.push(null); desconocidos++;
     }
@@ -240,7 +250,7 @@ function traducirLinea(texto, nro) {
   const dicho = new Map();
   const sePisan = (clave, c, rango) => {
     const antes = dicho.get(clave);
-    if (antes) error(rango[0], rango[1], '«' + c.texto.trim() + '» y «' + antes + '» se pisan: dejá una sola.');
+    if (antes) error(rango[0], rango[1], '«' + c.texto.trim() + '» y «' + antes + '» se pisan: dejá una sola.', { arreglo: sinClausula(c) });
     else dicho.set(clave, c.texto.trim());
     return !!antes;
   };
@@ -252,7 +262,7 @@ function traducirLinea(texto, nro) {
     const inst = n.match(/^en (?:un |una |el |la |los |las )?(.+)$/);
     const caja = inst && maquinaDe(inst[1]);
     if (caja && modo !== 'sonido') {
-      error(rango[0], rango[1], 'una caja de ritmos sólo sirve con golpes: «' + c.texto.trim() + '» va en la bata.');
+      error(rango[0], rango[1], 'una caja de ritmos sólo sirve con golpes: «' + c.texto.trim() + '» va en la bata.', { arreglo: sinClausula(c) });
       continue;
     }
     if (caja) {
@@ -340,7 +350,8 @@ function traducirLinea(texto, nro) {
       continue;
     }
     const s = parecida(c.texto);
-    error(rango[0], rango[1], 'no conozco «' + c.texto.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
+    error(rango[0], rango[1], 'no conozco «' + c.texto.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'),
+      s ? { arreglo: arreglar(rango[0], rango[1], s) } : null);
   }
 
   // un golpe que la caja no tiene sonaría mudo sin decir nada; el token se pinta, la línea sigue
@@ -354,8 +365,9 @@ function traducirLinea(texto, nro) {
   }
   if (modo === 'sonido' && instrumento) {
     const t = quiénTk.find(x => !x.modo);
-    if (t) t.cls = 'mal';
-    errs.push({ nro, msg: 'los golpes ya traen su sonido: «en ' + instrumento.nombre + '» sólo sirve con notas.' });
+    const arreglo = t && arreglar(texto.lastIndexOf(',', t.i), t.i + t.len - texto.lastIndexOf(',', t.i), '');
+    if (t) { t.cls = 'mal'; t.arreglo = arreglo; }
+    errs.push({ nro, msg: 'los golpes ya traen su sonido: «en ' + instrumento.nombre + '» sólo sirve con notas.', arreglo });
   }
 
   if (roto) return mala();

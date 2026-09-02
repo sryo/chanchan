@@ -353,4 +353,5 @@ if (visualViewport) for (const ev of ['resize', 'scroll']) visualViewport.addEve
   if (sug) acomodar(sugeridor, rectDe(sug.desde));
   const t = tokenDelMenu && tokenDelSpan(tokenDelMenu);
   if (t) acomodar(menu, t.r);
+  if (panelTemas.matches(':popover-open')) acomodar(panelTemas, btnAbrir.getBoundingClientRect());
 });

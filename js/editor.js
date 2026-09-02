@@ -14,7 +14,7 @@ function avisar(msg, deshace) {
   p.textContent = msg;
   if (deshace) {
     const b = document.createElement('button');
-    b.className = 'volver';
+    b.className = 'accion';
     b.textContent = deshace[0];
     b.addEventListener('click', () => { deshace[1](); p.remove(); });
     p.append(' ', b);
@@ -317,8 +317,7 @@ function actualizar(reproducir) {
   pintarHoja(r);
   dibujarCinta(r.renglones);
   pintarMarca(r.renglones);
-  cajaErr.innerHTML = r.errores.map(e =>
-    '<p><b>línea ' + e.nro + ':</b> ' + esc(e.msg) + '</p>').join('');
+  pintarErrores(r.errores);
   if (reproducir) seguirElTema(r);
   return r;
 }
@@ -336,6 +335,36 @@ document.addEventListener('click', e => {
   if (document.activeElement === src || e.target.closest('input, textarea')) return;
   if (e.target.closest('button, .panel, #puntos')) src.focus({ preventScroll: true });
 });
+
+// cada error con su línea, y el botón del arreglo cuando el traductor dejó uno
+// si el mensaje ya nombra el arreglo, «¿será «pa»?», ése es el botón; si no, va uno al final
+function pintarErrores(errores) {
+  cajaErr.innerHTML = '';
+  for (const e of errores) {
+    const p = document.createElement('p');
+    p.innerHTML = '<b>línea ' + e.nro + ':</b> ';
+    const boton = txt => {
+      const b = document.createElement('button');
+      b.className = 'accion';
+      b.textContent = txt;
+      b.addEventListener('click', () => aplicarArreglo(e.nro, e.arreglo));
+      return b;
+    };
+    const nombrado = e.arreglo && e.arreglo.texto && '«' + e.arreglo.texto + '»';
+    const donde = nombrado ? e.msg.lastIndexOf(nombrado) : -1;
+    if (donde >= 0) p.append(e.msg.slice(0, donde), boton(nombrado), e.msg.slice(donde + nombrado.length));
+    else p.append(e.msg, ...(e.arreglo ? [' ', boton(e.arreglo.texto ? '«' + e.arreglo.texto + '»' : 'sacar')] : []));
+    cajaErr.appendChild(p);
+  }
+}
+
+// el arreglo es un paso más; si el texto ya no es el que el traductor vio, se rehace el cajón y nada más
+function aplicarArreglo(nro, a) {
+  const pos = baseDe(src.value.split('\n'), nro - 1) + a.i;
+  if (src.value.substr(pos, a.len) !== a.sacado) return actualizar(false);
+  aplicar(paso(pos, a.sacado, a.texto), { cursor: pos + a.texto.length });
+  if (a.texto) mostrarDeshacer(anclaDe(pos, a.texto.length), false);
+}
 
 // el espejo y los puntitos al momento; lo que necesita a strudel, a los 400 ms
 let relojActualizar;

@@ -42,8 +42,10 @@ const btnAbrir = document.getElementById('abrir');
 panelTemas.addEventListener('beforetoggle', e => {
   if (e.newState !== 'open') { panelTemas.style.minWidth = ''; return; }
   armarTemas();
-  // recién abierto se puede medir
-  queueMicrotask(() => acomodar(panelTemas, btnAbrir.getBoundingClientRect()));
+});
+// se ubica recién abierto: antes no mide y quedaría pegado al botón, afuera de una pantalla angosta
+panelTemas.addEventListener('toggle', e => {
+  if (e.newState === 'open') acomodar(panelTemas, btnAbrir.getBoundingClientRect());
 });
 
 function armarTemas() {

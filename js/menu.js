@@ -191,8 +191,10 @@ function seccionesDe(t) {
         { ...alPie, ops: conEspacio(ofrecerSilencios()) },
       ];
     }
-    const s = parecida(hoy);
-    return s ? [{ titulo: '¿será…?', ops: [{ txt: s, nuevo: s }] }] : null;
+    // el mismo arreglo que ofrece el cajón
+    if (d.arreglo) return [{ titulo: d.arreglo.texto ? '¿será…?' : 'sobra', ops: [
+      { txt: d.arreglo.texto || 'sacar', hacer: () => aplicarArreglo(t.l + 1, d.arreglo) }] }];
+    return null;
   }
   return null;
 }
@@ -236,9 +238,10 @@ function pintarPanel(panel, secs, t, dueño = t) {
       (o.familia ? '<span class="d">' + icono('chevron', 'chica derecha') + '</span>' : '') +
       '</div>').join('') + '</div>').join('');
 
-  // columnas fijas: el pie abarca todas, y con auto-fit eso estira el menú a la pantalla
+  // columnas fijas: el pie abarca todas, y con auto-fit eso estira el menú a la pantalla.
+  // Cada una mide lo que su contenido, sin encogerse: en una pantalla angosta el panel scrollea
   const columnas = secs.filter(x => x.ops.length && !x.pie).length;
-  panel.style.gridTemplateColumns = 'repeat(' + columnas + ', minmax(118px, max-content))';
+  panel.style.gridTemplateColumns = 'repeat(' + columnas + ', max-content)';
 
   panel.querySelectorAll('.op').forEach(el => {
     const o = secs[+el.dataset.sec].ops[+el.dataset.op];

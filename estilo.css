@@ -264,7 +264,7 @@
   .panel h3:first-child { margin-top: 0; }
   .panel .op {
     display: flex; gap: 10px; align-items: baseline;
-    padding: 3px 14px; cursor: pointer;
+    padding: 3px 14px; cursor: pointer; white-space: nowrap;
   }
   .panel .op:hover { background: var(--realce); }
   .panel .op .d { margin-left: auto; color: var(--tenue); font-size: var(--letra-chica); }
@@ -283,7 +283,7 @@
   #errores p { margin: 0 0 4px; color: var(--mal); }
   #errores b { color: var(--texto); font-weight: 600; }
 
-  #errores .volver {
+  #errores .accion {
     background: none; border: 0; padding: 0; color: var(--texto);
     text-decoration: underline dotted currentColor; text-underline-offset: 4px;
   }
