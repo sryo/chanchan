@@ -46,7 +46,7 @@ Un tema es una hoja de texto. Cada renglón dice quién toca qué, o cómo se ar
 
     la bata toca pum pa pum pa
 
-Quién toca, después ${codigo('toca')}, después qué. El nombre es cualquiera: la bata, el bajo, la melodía, las cuerdas tocan. Si el nombre es un instrumento de la lista del final, suena con ése. Si no, con piano.
+Quién, después ${codigo('toca')}, después qué: la bata, el bajo, la melodía, las cuerdas.
 
 Los pasos se reparten parejo en la vuelta. Cuatro pasos son negras, ocho son corcheas. Una vuelta son cuatro tiempos, salvo que el tempo diga otra cosa.
 
@@ -62,7 +62,7 @@ ${columnas(Object.entries(SONIDOS).map(([w, [, d]]) => [w, d]))}
 
 Do re mi fa sol la si. Después, si hace falta, ${codigo('sostenido')} o ${codigo('bemol')}. Después la altura: ${alturas.map(codigo).join(', ')}. Sin nada es la del medio.
 
-Una nota lleva una sola alteración, una sola altura y un solo acorde. ${codigo('do sostenido bemol')} no es un do: es un error, y se marca en rojo.
+Una nota lleva una sola alteración, una sola altura y un solo acorde. en ${codigo('do sostenido bemol')} sobra el bemol, y se marca en rojo. Si tipeás ${codigo('do#')}, el editor lo escribe ${codigo('do sostenido')}; Backspace lo devuelve.
 
 Golpes y notas no van en el mismo renglón. Si la bata y el bajo tocan juntos, son dos renglones.
 
@@ -127,7 +127,7 @@ ${parejos.map(([n, q]) => codigo(fraseArreglo(n, q))).join(', ')}. Y desparejo: 
 
 **Lo que se pisa**
 
-Dos frases que dicen lo mismo no van juntas. ${codigo('bajito, fuerte')} es un error. Lo mismo dos instrumentos, dos figuras o dos repartos en el mismo renglón.
+Dos frases que dicen lo mismo no van juntas. ${codigo('bajito, fuerte')} es un error. Lo mismo dos instrumentos, dos de entra y sale, o dos maneras de repartir los pasos, sea figura o reparto.
 
 Las que se suman sí van. ${codigo('al doble, al doble')} es cuatro veces más rápido, y ${codigo('un tono arriba, medio tono arriba')} es tono y medio.
 
@@ -179,7 +179,7 @@ Se escriben con letras hasta ${NUMEROS[NUMEROS.length - 1]}, o con cifras. Los a
 
 **Los instrumentos**
 
-Cualquiera de estos nombres puede ser el nombre de la parte, o ir después de la coma con ${codigo('en')}. Van por familia.
+Cualquiera de estos nombres puede ser el nombre de la parte, o ir después de la coma con ${codigo('en')}. Sin instrumento, piano. Van por familia.
 
 ${FAMILIAS.map(([fam, tabla]) => fam + ': ' + Object.keys(tabla).join(', ')).join('\n\n')}
 

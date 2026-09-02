@@ -8,7 +8,7 @@ Cuando una regla se puede escribir como código, se escribe como código y no ac
 
 No hay estado escondido en la interfaz. Todo lo que cambia cómo suena está escrito en la hoja, con palabras del idioma. Callar una parte es escribir `callado`, no prender un interruptor. Si mandás el enlace, del otro lado suena igual.
 
-De ahí salen dos cosas que parecen caprichos y no lo son. Los puntitos del margen y el ▾ escriben en el texto en vez de guardar algo aparte. Y cualquier control nuevo hace lo mismo, o no entra.
+Los puntitos del margen y el ▾ escriben en el texto en vez de guardar algo aparte. Y cualquier control nuevo hace lo mismo, o no entra.
 
 Palabras para lo que suena, un signo para lo que no. Todo renglón que hace sonar algo se escribe con palabras del idioma. Los cuatro signos viven adentro de una secuencia de pasos, y los cuatro dicen algo musical. El `@` que apunta a otro documento y el `*` de un apunte son las excepciones: no suenan, y por eso no son palabras. Se ve de un vistazo que ese renglón no es música.
 
@@ -78,7 +78,9 @@ Los que salen de la misma palabra se sueldan de costado y se leen como una sola 
 
 Dos temas con el mismo nombre son el mismo tema. Renombrar mueve la entrada y no deja una nueva. Si no, tecleando un nombre quedaría una por cada letra. Irse a otro tema no borra el que se deja atrás.
 
-Una hoja que persiste tiene nombre. Si al irse no lo tiene y hay algo escrito, la casa la bautiza «sin título», o «sin título 2», y entra en la lista. La hoja de bienvenida sin tocar no cuenta.
+Una hoja que persiste tiene nombre. Si al irse no lo tiene y hay algo escrito, la casa la bautiza «sin título», o «sin título 2», y entra en la lista. Irse es cambiar de tema o cerrar la pestaña. La hoja de bienvenida sin tocar no cuenta.
+
+Dos pestañas con el mismo tema se pisan una a la otra: la última que guarda gana. Es el precio de no tener un servidor.
 
 Ningún gesto pisa un texto distinto con el mismo nombre. Renombrar encima de otro pone el campo en rojo y la hoja sigue guardada con el nombre de antes, hasta que el campo diga uno libre. Lo que llega por enlace o por archivo y choca con uno tuyo distinto queda como «nombre 2», y el cajón lo dice. Con el mismo texto no hay choque: es el mismo tema.
 
@@ -93,6 +95,34 @@ Dos nombres que se leen igual son el mismo: `Canción` y `cancion`. Todo lo que 
 El historial es de la hoja. Deshacer nunca cruza de tema. Cambiar de tema guarda el historial de la hoja que se deja y levanta el del tema que llega. Renombrar no lo mueve, porque la hoja es la misma. Si no, un ⌘Z después de abrir otro tema traía el texto del anterior con el nombre del nuevo, y el guardado lo escribía así.
 
 La pestaña dice el nombre, o la página sola mientras no tenga. «Sin título» es lo que dice un campo vacío, no un nombre que convenga dejar escrito en un marcador. Con el icono son las dos maneras de contestar cuál de los chanchanes abiertos es éste: una por nombre, la otra por color.
+
+**Toda edición es un paso**
+
+Un paso dice en qué posición se sacó qué texto y se puso cuál. Se aplica, se invierte, corre las posiciones ajenas, y viaja como json. Vive en `cambios.js`, que no sabe nada del editor.
+
+Todo lo que cambia el texto entra por `aplicar()`, en `editor.js`: el cursor se pone o se mapea, el historial anota, la hoja se actualiza. El tecleo no se intercepta: lo que el textarea cambió se mide contra el texto de antes y sale un paso igual. Nada escribe el textarea por su cuenta, salvo cargar un tema, que no es una edición.
+
+El historial guarda pasos y no fotos. Un grupo es lo que un ⌘Z deshace. El tecleo sigue en el mismo grupo mientras haya pasado poco tiempo y toque lo que el grupo dejó puesto: un click lejos abre grupo aunque no haya pasado el plazo. Un gesto del menú es su propio grupo. Cada grupo guarda dónde estaba el cursor antes, y al deshacer vuelve ahí; rehacer vuelve adonde se apretó ⌘Z. Cuando llegue un cambio ajeno, será un paso más por la misma puerta.
+
+Lo que guarda una posición no se rebusca: se corre. Cada archivo anota en `alCambiar` cómo mueve lo suyo con los pasos, sobre el texto de antes, que es donde valen sus posiciones: el ▾ y el de deshacer siguen a su palabra, la selección a sus tokens, la franja a su renglón, el arrastre al token que va cambiando de largo. Lo que cae adentro de lo que se sacó, se va. Un panel abierto no se corre: se cierra, porque sus opciones ya no valen.
+
+**Un renglón se lee una vez**
+
+`leerRenglon()`, en `renglon.js`, dice qué clase de renglón es y dónde está cada pedazo: el apunte y su enlace, la sección, el tempo y su número, la parte con su artículo, su sujeto, su verbo y sus cláusulas. Nunca falla, ni con un renglón a medio escribir. El traductor lo toma y valida y traduce; el sugeridor le pregunta en qué pedazo cae el cursor; los puntitos buscan la marca de «callado» que dejó el traductor. Nadie vuelve a partir un renglón por su cuenta.
+
+**Las teclas y las órdenes**
+
+Nadie escucha el teclado por su cuenta. Cada archivo anota sus atajos en `teclado.js` con `atajo(tecla, nombre, orden)`, y un solo despachador los recorre en el orden en que se anotaron: el primero que contesta gana. `Mod` es ⌘ en Mac y ctrl en el resto, y `Meta-Enter` no es `Enter`. Cada atajo lleva su nombre, así la tabla puede mostrarse; hoy sólo se muestra en el título del botón de tocar.
+
+Una orden es una función que recibe si tiene que hacerlo. Sin hacerlo, sólo contesta si aplica; con hacerlo, lo hace y contesta lo mismo. Así se encadenan varias en una tecla, y el menú pinta en gris lo que no entra antes de que alguien lo apriete. Cerrar un panel no es contestar la tecla: la tecla sigue su camino.
+
+**Las reglas de entrada**
+
+Lo que el editor transforma al vuelo mientras se tipea, en `reglas.js`, se puede devolver con una tecla: Backspace justo después trae lo que se había tipeado, y nada más. Vale para aceptar una sugerencia y para `do#`, que se vuelve `do sostenido`. Cualquier otro cambio, o mover el cursor, olvida la regla. Ninguna regla corre en medio de una composición, que es cómo entra una tilde.
+
+**Las secciones se mueven escribiendo renglones**
+
+Una sección es posicional: un renglón es de la última sección abierta arriba. Por eso mover un renglón es reordenar renglones, y cruzar un encabezado lo cambia de sección solo. Las órdenes de estructura viven en `secciones.js`: subir, bajar y duplicar con la selección, llevar o copiar un renglón a otra sección desde el ▾ de su nombre, abrir una sección arriba, y desde el ▾ del encabezado seleccionar la sección o unirla con la anterior. Todas escriben renglones, todas devuelven falso en los bordes, y ninguna toca la forma: si un nombre queda sin sección, el rojo lo dice.
 
 **La cinta se lee, el margen escribe**
 

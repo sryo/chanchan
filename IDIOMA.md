@@ -34,7 +34,7 @@ Para la batería. Se escriben como se cantan.
 
 Do re mi fa sol la si. Después, si hace falta, `sostenido` o `bemol`. Después la altura: `muy grave`, `grave`, `agudo`, `muy agudo`. Sin nada es la del medio.
 
-Una nota lleva una sola alteración, una sola altura y un solo acorde. `do sostenido bemol` no es un do: es un error, y se marca en rojo.
+Una nota lleva una sola alteración, una sola altura y un solo acorde. en `do sostenido bemol` sobra el bemol, y se marca en rojo. Si tipeás `do#`, el editor lo escribe `do sostenido`; Backspace lo devuelve.
 
 Golpes y notas no van en el mismo renglón. Si la bata y el bajo tocan juntos, son dos renglones.
 
@@ -140,7 +140,7 @@ Después de cualquiera de éstas va el cómo.
 
 **Lo que se pisa**
 
-Dos frases que dicen lo mismo no van juntas. `bajito, fuerte` es un error. Lo mismo dos instrumentos, dos figuras o dos repartos en el mismo renglón.
+Dos frases que dicen lo mismo no van juntas. `bajito, fuerte` es un error. Lo mismo dos instrumentos, dos de entra y sale, o dos maneras de repartir los pasos, sea figura o reparto.
 
 Las que se suman sí van. `al doble, al doble` es cuatro veces más rápido, y `un tono arriba, medio tono arriba` es tono y medio.
 
@@ -192,7 +192,7 @@ Se escriben con letras hasta dieciséis, o con cifras. Los arreglos y el `cada` 
 
 **Los instrumentos**
 
-Cualquiera de estos nombres puede ser el nombre de la parte, o ir después de la coma con `en`. Van por familia.
+Cualquiera de estos nombres puede ser el nombre de la parte, o ir después de la coma con `en`. Sin instrumento, piano. Van por familia.
 
 pianos: piano de concierto, piano brillante, piano de cola, piano de bar, piano eléctrico, piano dulce, clavecín, clavinet
 

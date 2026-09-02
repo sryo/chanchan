@@ -400,7 +400,7 @@
   "enlaces": []
  },
  "acento por paso": {
-  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd sd - sd\").bank(\"linndrum\").velocity(\"1.4 1 - 1.4\").gain(.45).orbit(0), // bata\n  note(\"<[c4 _ d4] [- e4]>\").sound(\"bajo\").velocity(\"<[1.4 _ 1] [- 1.4]>\").orbit(1), // bajo\n  note(\"c4\").sound(\"viola\").orbit(2), // viola\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd sd - sd\").bank(\"linndrum\").velocity(\"1.4 1 - 1.4\").gain(.45).orbit(0), // bata\n  note(\"<[c4 _ d4] [- e4]>\").sound(\"bajo\").velocity(\"<[1.4 _ 1] [- 1.4]>\").orbit(1), // bajo\n  note(\"c4 -\").sound(\"viola\").orbit(2), // viola\n)",
   "vueltas": 2,
   "bpm": 90,
   "errores": [
@@ -436,10 +436,12 @@
   "enlaces": []
  },
  "el acento cierra el grupo de la nota": {
-  "codigo": "setcpm(90/4)\nnote(\"[c4,e4,g4] d#4 e2 [f4,g#4,c5,d#5]\").sound(\"piano\").velocity(\"1.4 1.4 1.4 1.4\").orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"[c4,e4,g4] d#4 e2 f4\").sound(\"piano\").velocity(\"1.4 1.4 1.4 1.4\").orbit(0)",
   "vueltas": 1,
   "bpm": 90,
-  "errores": [],
+  "errores": [
+   "1: «menor séptima» sobra: «fa!» ya dice el acorde."
+  ],
   "tramos": [],
   "tempos": [],
   "enlaces": []
@@ -505,6 +507,68 @@
    "2: el silencio es «-».",
    "3: no conozco «xx». ¿Será «pa»?",
    "3: no conozco «yy». ¿Será «pa»?"
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "un «!» suelto deja el paso o el corte": {
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4 - d4\").sound(\"bajo\").orbit(0), // bajo\n  note(\"<[c4] [d4]>\").sound(\"bajo\").orbit(0), // bajo\n)",
+  "vueltas": 2,
+  "bpm": 90,
+  "errores": [
+   "1: el «!» va pegado a un golpe o a una nota: «pum!».",
+   "2: el «!» va pegado a un golpe o a una nota: «pum!»."
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "muy sin altura, y el acento en la raíz cierra el grupo": {
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4 d4\").sound(\"piano\").orbit(0), // piano\n  note(\"c4 e4\").sound(\"piano\").velocity(\"1.4 1.4\").orbit(0), // piano\n)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: «muy» va con la altura: «muy grave» o «muy agudo».",
+   "2: «sostenido» sobra: «do!» ya dice si va sostenida o bemol.",
+   "2: «menor» sobra: «mi!» ya dice el acorde."
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "una caja en las notas, y un instrumento en los golpes": {
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4 d4\").sound(\"bajo\").orbit(0), // bajo\n  s(\"bd sd\").bank(\"linndrum\").orbit(1), // bata\n)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: no conozco «en una 808». Pasá el mouse por encima y tocá el ▾.",
+   "2: los golpes ya traen su sonido: «en piano» sólo sirve con notas."
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "la forma con comas": {
+  "codigo": "setcpm(90/4)\nstack(\n  arrange([1, s(\"bd\").bank(\"linndrum\")], [1, silence], [1, s(\"bd\").bank(\"linndrum\")]).orbit(0), // bata · estrofa\n  arrange([1, silence], [1, note(\"c4\").sound(\"bajo\")], [1, silence]).orbit(1), // bajo · estribillo\n)",
+  "vueltas": 3,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [
+   "estrofa×1",
+   "estribillo×1",
+   "estrofa×1"
+  ],
+  "tempos": [],
+  "enlaces": []
+ },
+ "el tema va a medio escribir no es tempo": {
+  "codigo": "setcpm(90/4)\ns(\"bd\").bank(\"linndrum\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: no entiendo la línea. Va «la bata toca pum - pa -» o «va a 92».",
+   "2: no entiendo la línea. Va «la bata toca pum - pa -» o «va a 92»."
   ],
   "tramos": [],
   "tempos": [],

@@ -273,6 +273,8 @@
   .panel .op .d { margin-left: auto; color: var(--tenue); font-size: var(--letra-chica); }
   /* el peso va además del color: en monoespaciada no corre nada, y se ve con un tono pálido */
   .panel .op.puesto { color: var(--parte, var(--texto)); font-weight: 600; }
+  /* la orden no entra: se ve, no se aprieta */
+  .panel .op.noEntra { color: var(--tenue); pointer-events: none; }
   .t-activo {
     background: var(--vivo); border-radius: 3px;
     box-shadow: 0 0 0 2px var(--vivo);

@@ -1,4 +1,4 @@
-// fotos del traductor: que el castellano siga dando el mismo código, sin strudel
+// fotos del traductor, y las cuentas puras de los pasos: sin strudel
 //   node .claude/probar.mjs            compara con esperado.json
 //   node .claude/probar.mjs --rehacer  acepta lo de ahora como lo esperado
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -15,7 +15,7 @@ const ctx = createContext({
   localStorage: { getItem: () => null, setItem() {} },
   addEventListener() {},
 });
-for (const f of ['texto', 'ejemplos', 'vocabulario', 'color', 'traductor'])
+for (const f of ['texto', 'cambios', 'ejemplos', 'vocabulario', 'color', 'renglon', 'traductor'])
   runInContext(leer('js/' + f + '.js'), ctx, { filename: f + '.js' });
 const traducir = runInContext('traducir', ctx);
 const EJEMPLOS = runInContext('EJEMPLOS', ctx);
@@ -57,6 +57,11 @@ const CASOS = [
   ['las cláusulas que se pisan avisan',      'el bajo toca do, bajito, fuerte\nla viola toca re, en corcheas, en negras, tres en ocho\nel piano toca mi, en un piano, en una viola\nla bata toca pum, en una 808, en una 909, una vuelta sí y una no, dos vueltas sí y dos no'],
   ['las relativas se componen',              'el bajo toca do, al doble, al doble, un tono arriba, medio tono arriba, cada golpe dos veces, cada golpe dos veces'],
   ['un paso desconocido es un silencio',     'la bata toca pum xx pa\nel bajo toca do . re\nla bata toca xx yy'],
+  ['un «!» suelto deja el paso o el corte',  'el bajo toca do -! re\nel bajo toca do |! re'],
+  ['muy sin altura, y el acento en la raíz cierra el grupo', 'el piano toca do muy re\nel piano toca do! sostenido mi! menor'],
+  ['una caja en las notas, y un instrumento en los golpes', 'el bajo toca do re, en una 808\nla bata toca pum pa, en un piano'],
+  ['la forma con comas',                     'la estrofa:\nla bata toca pum\nel estribillo:\nel bajo toca do\nel tema va estrofa, estribillo, estrofa'],
+  ['el tema va a medio escribir no es tempo', 'el tema va\nel tema\nla bata toca pum'],
 ];
 
 const foto = txt => {
@@ -92,6 +97,44 @@ for (const clave of new Set([...Object.keys(esperado), ...Object.keys(ahora)])) 
     if (JSON.stringify(esperado[clave][campo]) !== JSON.stringify(ahora[clave][campo]))
       console.error('  %s\n    era:   %s\n    ahora: %s', campo, JSON.stringify(esperado[clave][campo]), JSON.stringify(ahora[clave][campo]));
 }
+// ---- ningún token pisa a otro
+for (const [clave, txt] of [...EJEMPLOS.map(e => ['tema: ' + e.nombre, e.txt]), ...CASOS])
+  traducir(txt).marcas.forEach((tks, l) => {
+    const orden = tks.slice().sort((a, b) => a.i - b.i);
+    for (let k = 1; k < orden.length; k++)
+      if (orden[k].i < orden[k - 1].i + orden[k - 1].len) {
+        distintas++;
+        console.error('tokens pisados en «%s», renglón %d: %j y %j', clave, l + 1, orden[k - 1], orden[k]);
+      }
+  });
+
+// ---- los pasos: ida y vuelta entre dos textos, y las posiciones que corren
+const C = n => runInContext(n, ctx);
+const es = (que, a, b) => {
+  if (JSON.stringify(a) === JSON.stringify(b)) return;
+  distintas++;
+  console.error('paso: «%s»\n    da:    %s\n    debía: %s', que, JSON.stringify(a), JSON.stringify(b));
+};
+for (const [viejo, nuevo] of [['la bata toca pum', 'la bata toca pum pa'], ['do re mi', 'do mi'], ['', 'x'], ['abc', ''],
+                              ['pum pa', 'pum! pa'], ['aaa', 'aa'], ['aa', 'aaa'], ['do mayor', 'do menor'], ['xyx', 'xx']]) {
+  const p = C('pasoEntre')(viejo, nuevo);
+  es('ida ' + viejo + ' → ' + nuevo, C('aplicarPaso')(viejo, p), nuevo);
+  es('vuelta ' + nuevo + ' → ' + viejo, C('aplicarPaso')(nuevo, C('invertir')(p)), viejo);
+}
+es('igual no es paso', C('pasoEntre')('a', 'a'), null);
+const q = C('paso')(5, 'cinco', 'xx');       // en 5 se sacan cinco letras y se ponen dos
+es('antes queda', C('mapear')(3, q), 3);
+es('después corre', C('mapear')(12, q), 9);
+es('al borde de adelante se queda', C('mapear')(5, q, 1), 5);
+es('al borde de atrás se va al final de lo puesto', C('mapear')(10, q, -1), 7);
+es('adentro, al lado que se pida', [C('mapear')(7, q, -1), C('mapear')(7, q, 1)], [5, 7]);
+const ins = C('paso')(5, '', 'xx');
+es('inserción justo encima, según el lado', [C('mapear')(5, ins, -1), C('mapear')(5, ins, 1)], [5, 7]);
+es('un rango sobrevive con lo insertado afuera', C('mapearRango')({ desde: 5, hasta: 8 }, [ins]), { desde: 7, hasta: 10 });
+es('un rango borrado se va', C('mapearRango')({ desde: 5, hasta: 8 }, [C('paso')(4, 'abcdef', '')]), null);
+let mal = 0; try { C('aplicarPaso')('hola', q); } catch (e) { mal++; }
+es('un paso que no calza rompe', mal, 1);
+
 // un tema que viene hecho no puede traer errores
 for (const e of EJEMPLOS)
   if (ahora['tema: ' + e.nombre].errores.length) { distintas++; console.error('«%s» trae errores: %s', e.nombre, ahora['tema: ' + e.nombre].errores.join(' | ')); }
