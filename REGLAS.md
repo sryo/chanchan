@@ -124,6 +124,12 @@ Lo que el editor transforma al vuelo mientras se tipea, en `reglas.js`, se puede
 
 Una sección es posicional: un renglón es de la última sección abierta arriba. Por eso mover un renglón es reordenar renglones, y cruzar un encabezado lo cambia de sección solo. Las órdenes de estructura viven en `secciones.js`: subir, bajar y duplicar con la selección, llevar o copiar un renglón a otra sección desde el ▾ de su nombre, abrir una sección arriba, y desde el ▾ del encabezado seleccionar la sección o unirla con la anterior. Todas escriben renglones, todas devuelven falso en los bordes, y ninguna toca la forma: si un nombre queda sin sección, el rojo lo dice.
 
+**Sin red**
+
+`sw.js` es un service worker: no es un script de la página y no entra en el ámbito ni en el chequeador. Al instalarse guarda la cáscara, el html, el css, los scripts, la tipografía y strudel, y después guarda lo que baja a medida que baja, las muestras incluidas. Con red se va a la red, así una versión nueva llega en la carga siguiente sin versionar nada a mano; sin red, sirve lo guardado. Suena lo que ya se escuchó, y los osciladores, que no bajan nada. Desde `file://` no hay worker y todo anda como siempre.
+
+Los íconos son el logo en tinta sobre papel, dibujado por el mismo canvas que pinta la pestaña y guardado en png porque iOS no toma otra cosa. `manifest.webmanifest` es lo que hace que el teléfono ofrezca ponerlo en la pantalla de inicio.
+
 **La cinta se lee, el margen escribe**
 
 La cinta de arriba es el tema visto de lejos. Las franjas son las voces y salen de la rueda. La regla de vueltas, los cortes de sección, la aguja y el anillo son tiempo, y van en tinta de página.

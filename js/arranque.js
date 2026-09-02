@@ -21,6 +21,10 @@ temaInicial().then(inicial => {
 // y otra vez cuando entra la tipografía
 document.fonts.ready.then(() => { medirTipografia(); reacomodar(); });
 
+// sin red, ver REGLAS.md: el worker guarda lo que baja; sólo lo hay bajo https o localhost
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol))
+  navigator.serviceWorker.register('sw.js').catch(() => { /* sin worker se anda igual */ });
+
 // fijado a un commit y no a «main»: si arriba sacan un sonido, acá se calla
 const MUESTRAS = 'https://raw.githubusercontent.com/felixroos/dough-samples/9eacfc86ec4393e68a463ff52b01c19cfaa77f38/';
 const CROMA_GM = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
