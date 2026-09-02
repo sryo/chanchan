@@ -99,7 +99,7 @@ function seguirElTema(r) {
 
 // ------------------------------------------------------------- tocar y parar
 // el atajo va en el title: es lo único del transporte que la pantalla no muestra
-const TECLA_TOCAR = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘↩' : 'ctrl↩';
+const TECLA_TOCAR = mostrarTecla('Mod-Enter');
 function refrescarTransporte() {
   btnTocar.innerHTML = icono(sonando ? 'parar' : 'tocar', 'maciza');
   const que = sonando ? 'parar' : 'tocar';
@@ -125,9 +125,5 @@ function alternarTocar() {
 
 btnTocar.addEventListener('click', alternarTocar);
 
-// la barra espaciadora es una tecla del idioma, así que el atajo es meta+Enter; anda también escribiendo
-addEventListener('keydown', e => {
-  if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey)) return;
-  e.preventDefault();
-  alternarTocar();
-});
+// la barra espaciadora es una tecla del idioma, así que el atajo es meta+Enter; anda también escribiendo el nombre
+atajo('Mod-Enter', 'tocar o parar', hacer => { if (hacer) alternarTocar(); return true; }, 'todos');

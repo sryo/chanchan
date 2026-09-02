@@ -55,9 +55,11 @@ async function oir(receta) {
   try {
     await despertar();
     let ctx = getAudioContext();
-    const frios = receta.voces.filter(v => !precalentados.has(v.s));
+    // por banco y muestra: el «bd» de una caja no calienta el de otra
+    const clave = v => (v.bank || '') + '/' + v.s;
+    const frios = receta.voces.filter(v => !precalentados.has(clave(v)));
     if (frios.length) {
-      frios.forEach(v => precalentados.add(v.s));
+      frios.forEach(v => precalentados.add(clave(v)));
       await Promise.all(frios.map(v =>
         strudel.superdough({ ...v, gain: 0 }, ctx.currentTime + .001, .01)));
       // si mientras bajaba el mouse se fue a otra cosa, ésta ya no va

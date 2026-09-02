@@ -2,9 +2,6 @@
 // autocompletar y «sugerir siguiente» son lo mismo con el prefijo vacío: cada
 // ranura tiene vocabulario cerrado
 
-// {l, c} del cursor; pintar() deja ahí el ancla de la que cuelga el panel
-let anclaCaret = null;
-
 // la pasada por palabra suelta es la que hace que «corche» encuentre «en corcheas»
 function candidatos(prefijo, lista, clave, soloPega) {
   const p = norm(prefijo || '');
@@ -20,84 +17,58 @@ function candidatos(prefijo, lista, clave, soloPega) {
       if (d <= Math.max(2, Math.floor(p.length / 3))) parecidas.push([c, d, n.length]);
     }
   }
-  // el Levenshtein sólo si nada empieza como lo tipeado: si no «sinc» trae «siku»
+  // el Levenshtein sólo si nada empieza como lo tipeado
   const cual = pega.length ? pega : (soloPega ? [] : parecidas);
   return cual.sort((a, b) => a[1] - b[1] || a[2] - b[2]).map(x => x[0]);
 }
 
-// no lo contesta el parser: traducirLinea no sabe de líneas a medio escribir
+// en qué pedazo del renglón cae el cursor, y qué puede ir ahí; el esqueleto lo da leerRenglon()
 function ranuraEn(linea, col) {
-  const ws = palabras(linea, 0);
+  const r = leerRenglon(linea);
   const trozo = (a, z) => ({ desde: a, hasta: z, prefijo: linea.slice(a, z).trim() });
   const palabraEn = () => trozo(
     col - linea.slice(0, col).match(/[^\s,]*$/)[0].length,
     col + linea.slice(col).match(/^[^\s,]*/)[0].length);
 
-  if (linea.trimStart().startsWith('*')) {
-    const a = linea.indexOf('@');
-    return a >= 0 && col > a
-      ? { ranura: 'enlace', ...trozo(a + 1, linea.length - linea.match(/[.,;:!?\s]*$/)[0].length) }
+  if (r.clase === 'apunte')
+    return r.arroba >= 0 && col > r.arroba
+      ? { ranura: 'enlace', ...trozo(r.arroba + 1, linea.length - linea.match(/[.,;:!?\s]*$/)[0].length) }
       : null;
-  }
-  const arroba = linea.indexOf('@');
-  if (arroba >= 0 && !linea.slice(0, arroba).trim())
-    return { ranura: 'enlace', ...trozo(arroba + 1, linea.length) };
-
-  if (esTempo(linea)) {
-    const m = linea.match(/(\d+(?:[.,]\d+)?)/);
-    return { ranura: 'tempo', ...(m ? trozo(m.index, m.index + m[1].length) : palabraEn()) };
-  }
-
-  // el tempo ya salió arriba, así que «va» acá sólo puede ser la forma
-  if (/^\s*(?:(?:la banda|el tema|la cancion|la canción)\s+)?va(\s|$)/i.test(linea))
-    return { ranura: 'forma', ...palabraEn() };
-
-  const iVerbo = ws.findIndex(x => VERBO.test(x.w));
+  if (r.clase === 'enlace') return { ranura: 'enlace', ...trozo(r.arroba + 1, linea.length) };
+  if (r.clase === 'tempo') return null;
+  if (r.clase === 'forma') return { ranura: 'forma', ...palabraEn() };
   // el renglón vacío se ofrece solo, como la coma: recién abierto no se sabe qué puede ir
-  if (iVerbo < 0) return { ranura: 'linea', arranque: !linea.trim(), ...trozo(0, linea.length) };
+  if (r.clase !== 'parte') return { ranura: 'linea', arranque: r.clase === 'vacia', ...trozo(0, linea.length) };
 
-  const finVerbo = ws[iVerbo].i + ws[iVerbo].w.length;
-  // pegado al verbo ya escrito, lo que sigue es el primer paso, con su espacio adelante;
-  // con un instrumento por nombre, notas
-  if (col === finVerbo) {
-    const nombre = ws.slice(/^(el|la|los|las)$/i.test(ws[0].w) ? 1 : 0, iVerbo).map(x => x.w).join(' ');
-    return { ranura: 'paso', arranque: true, pega: ' ', modo: instrumentoDe(nombre) ? 'nota' : null,
-             trasNota: false, ...trozo(col, col) };
-  }
-  if (col < finVerbo) {
-    // del artículo, si hay, al verbo
-    const prim = ws[/^(el|la|los|las)$/i.test(ws[0].w) ? 1 : 0];
-    const a = prim && prim.i < ws[iVerbo].i ? prim.i : ws[iVerbo].i;
-    return { ranura: 'nombre', ...trozo(a, Math.max(a, ws[iVerbo].i - 1)) };
+  const { verbo, clausulas, modo } = r;
+  // pegado al verbo ya escrito y sin pasos, lo que sigue es el primero, con su espacio adelante
+  if (col === verbo.hasta && !clausulas[0].palabras.length)
+    return { ranura: 'paso', arranque: true, pega: ' ', modo: modoDelNombre(r.nombre), trasNota: false, ...trozo(col, col) };
+  if (col < verbo.hasta) {
+    // del nombre, si hay, al verbo
+    const a = r.sujeto ? r.sujeto.desde : verbo.desde;
+    return { ranura: 'nombre', ...trozo(a, r.sujeto ? r.sujeto.hasta : a) };
   }
 
-  const cl = [];
-  let pos = finVerbo;
-  for (const t of linea.slice(finVerbo).split(',')) { cl.push({ txt: t, i: pos }); pos += t.length + 1; }
-  const cual = cl.findIndex(c => col >= c.i && col <= c.i + c.txt.length);
-  const c = cl[cual];
-
-  // el modo lo fija el primer paso reconocido: «en <caja>» sólo vale con golpes,
-  // «en <instrumento>» sólo con notas
-  const pw = palabras(cl[0].txt, cl[0].i);
-  const modo = pw.some(x => SONIDOS[norm(x.w)]) ? 'sonido'
-             : pw.some(x => NOTAS[norm(x.w)]) ? 'nota' : null;
-
+  const cual = clausulas.findIndex(c => col >= c.desde && col <= c.hasta);
+  const c = clausulas[cual];
   if (cual > 0) {
     // con el prefijo ya escrito se elige lo de adentro. El tramo arranca en el fin
     // del prefijo y no tras el espacio: la opción trae su propio espacio adelante
-    const env = partirEnvoltura(c.txt, c.i);
+    const env = partirEnvoltura(c.texto, c.desde);
     if (env && col > env.fin)
-      return { ranura: 'clausula', modo, envuelve: true, ...trozo(env.fin, c.i + c.txt.length) };
-    // las cláusulas se matchean enteras: el prefijo es toda la cláusula
-    const a = c.i + c.txt.length - c.txt.replace(/^\s+/, '').length;
-    return { ranura: 'clausula', modo, ...trozo(a, c.i + c.txt.length) };
+      return { ranura: 'clausula', modo, envuelve: true, ...trozo(env.fin, c.hasta) };
+    // las cláusulas se matchean enteras: el prefijo es toda la cláusula; pegada a la coma, la opción trae el espacio
+    return { ranura: 'clausula', modo, pega: /^\s/.test(c.texto) ? '' : ' ',
+             ...trozo(c.hasta - c.texto.replace(/^\s+/, '').length, c.hasta) };
   }
 
+  const pw = clausulas[0].palabras;
   const previa = pw.filter(x => x.i + x.w.length < col).pop();
   const n = previa && norm(previa.w);
   const trasNota = !!n && !!(NOTAS[n] || ALTERACIONES[n] || ACORDE[n] || OCTAVAS[n] || n === 'muy');
-  return { ranura: 'paso', modo, trasNota, arranque: !pw.length, ...palabraEn() };
+  // sin ningún paso escrito, el nombre dice el modo
+  return { ranura: 'paso', modo: modo || modoDelNombre(r.nombre), trasNota, arranque: !pw.length, ...palabraEn() };
 }
 
 const sugeridor = document.createElement('div');
@@ -107,6 +78,10 @@ sugeridor.popover = 'auto';
 document.body.appendChild(sugeridor);
 
 let sug = null;
+
+// una sugerencia no sobrevive a un cambio que no es suyo: sus opciones ya no valen.
+// El tecleo la vuelve a abrir por «input», y aceptar la reabre después
+alCambiar.push(() => { if (sug) cerrarSugeridor(); });
 
 const APODOS_MAQUINA = {};
 for (const [apodo2, banco] of Object.entries(ALIAS_MAQUINA))
@@ -127,20 +102,19 @@ const unDe = n => articuloDe(n).startsWith('la') ? 'en una ' : 'en un ';
 
 // lo que la hoja ya tiene, para ofrecer lo que le falta en el renglón l: el tempo
 // de arriba, las secciones con su grafía, si hay forma, y las partes que las otras
-// secciones tienen y la de acá no. Se lee entera: son milisegundos
+// secciones tienen y la de acá no
 function loQueHayEnLaHoja(l) {
   const lineas = src.value.split('\n');
   const r = traducir(src.value);
   const tk = n => r.marcas[n] || [];
-  const secciones = new Map();
   let primeraSeccion = -1, abierta = null;
   lineas.forEach((x, n) => {
     const s = tk(n).find(t => t.tipo === 'seccion');
     if (!s) return;
     if (primeraSeccion < 0) primeraSeccion = n;
-    if (!secciones.has(s.nombre)) secciones.set(s.nombre, s.escrito);
     if (n < l) abierta = s.nombre;
   });
+  const escritoDe = nombre => (r.secciones.find(s => s.nombre === nombre) || {}).escrito;
   const tempo = lineas.some((x, n) => (primeraSeccion < 0 || n < primeraSeccion) && tk(n).some(t => t.tipo === 'tempo'));
   const forma = r.marcas.flat().some(t => t.tipo === 'forma');
   // la parte como está escrita, del artículo al verbo
@@ -154,9 +128,9 @@ function loQueHayEnLaHoja(l) {
     const clave = norm(x.nombre);
     if (!x.seccion || acá.has(clave) || vistas.has(clave)) continue;
     vistas.add(clave);
-    faltan.push({ txt: encabezado(x), seccion: secciones.get(x.seccion) });
+    faltan.push({ txt: encabezado(x), seccion: escritoDe(x.seccion) });
   }
-  return { tempo, forma, abierta, secciones: [...secciones.values()], faltan };
+  return { tempo, forma, abierta, secciones: r.secciones.map(s => s.escrito), faltan };
 }
 
 // un nombre de sección que la hoja todavía no usa
@@ -165,7 +139,7 @@ const seccionLibre = usadas => SECCIONES_DE_SIEMPRE.find(s => !usadas.some(u => 
 
 // como el menú del ▾, pero la opción lleva «pone», no «nuevo»
 function seccionesEnCaret(r) {
-  // el Levenshtein recién si ninguna sección pega: si no «do sost» ofrece «sol»
+  // el Levenshtein recién si ninguna sección pega
   const secs = armarSecciones(r, true);
   return secs.length ? secs : armarSecciones(r, false);
 }
@@ -184,10 +158,9 @@ function armarSecciones(r, soloPega) {
   const instrumentos = () => comoOps([...ofrecerInstrumentos(), ...ofrecerAlias()]);
 
   if (r.ranura === 'linea') {
-    // se matchea sólo el nombre de la parte: contra la plantilla entera «la» pega
-    // con «la arpa toca» por el artículo
+    // se matchea sólo el nombre de la parte, sin el artículo
     const ws = norm(r.prefijo).split(/\s+/).filter(Boolean);
-    if (/^(el|la|los|las)$/.test(ws[0] || '')) ws.shift();
+    if (ARTICULO.test(ws[0] || '')) ws.shift();
     if (ws.length > 1 && 'tocan'.startsWith(ws[ws.length - 1])) ws.pop();
     const pelado = ws.join(' ');
     const plantilla = n => ({ ...op(articuloDe(n) + ' ' + n + ' ' + verboDe(n), null, 'una parte nueva'),
@@ -249,13 +222,11 @@ function armarSecciones(r, soloPega) {
       return sec('y ahí, qué', filtrar(ofrecerEnvolvibles().map(o => op(o.txt, ' ' + o.txt, o.desc))));
     const mods = comoOps(ofrecerModificadores());
     const figuras = comoOps(ofrecerFiguras());
-    // «en un viol» no empieza como «en una viola»: se matchea contra el nombre
-    // pelado. El artículo exige espacio o fin («en laúd»), y «una» antes que «un»
+    // se matchea contra el nombre pelado: el artículo exige espacio o fin, y «una» antes que «un»
     const m = norm(r.prefijo).match(/^en\s*(?:(?:una|un|los|las|el|la)(?:\s+|$))?\s*(.*)$/);
     const pelado = m ? m[1] : r.prefijo;
     const conEn = r.modo === 'sonido'
       ? ofrecerMaquinas().map(m2 => ({ ...op('en una ' + m2.txt, null, m2.desc, m2.receta),
-                                       // «808» tiene que encontrar la «roland tr808»
                                        buscar: m2.txt + ' ' + (APODOS_MAQUINA[m2.banco] || []).join(' ') }))
       : instrumentos().map(o => ({ ...op(unDe(o.txt) + o.txt, null, o.desc, o.receta), buscar: o.txt }));
     const arreglos = comoOps(ofrecerArreglos());
@@ -274,25 +245,23 @@ function armarSecciones(r, soloPega) {
 }
 
 function reemplazarRango(desde, hasta, txt) {
-  const l = src.value.slice(0, desde).split('\n').length - 1;
-  const i = desde - (src.value.lastIndexOf('\n', desde - 1) + 1);
-  src.value = src.value.slice(0, desde) + txt + src.value.slice(hasta);
-  src.selectionStart = src.selectionEnd = desde + txt.length;
+  aplicar(paso(desde, src.value.slice(desde, hasta), txt), { cursor: desde + txt.length });
   src.focus();
-  // sin grupo: aceptar es su propio paso de deshacer
-  registrar(src.value, { l, i, len: txt.length });
-  actualizar(true);
-  mostrarDeshacer({ l, i, len: txt.length }, false);
+  // el botón cuelga de la palabra, no del espacio que la precede
+  const sangria = txt.length - txt.trimStart().length;
+  mostrarDeshacer(anclaDe(desde + sangria, txt.trim().length), false);
 }
 
 function aceptarSugerencia(o) {
   if (!sug || !o) return;
-  const { desde, hasta } = sug;
+  const { desde, hasta } = sug, tipeado = src.value.slice(desde, hasta);
   let txt = (sug.pega || '') + o.pone;
   const finLinea = hasta >= src.value.length || src.value[hasta] === '\n';
   if (finLinea && !/\s$/.test(txt)) txt += ' ';
   cerrarSugeridor();
   reemplazarRango(desde, hasta, txt);
+  // aceptar es una regla de entrada: Backspace devuelve lo tipeado, ver reglas.js
+  recordarRegla(desde, txt.length, tipeado);
   // asignar .value no dispara «input»; y una envoltura sola pide la otra mitad
   abrirSugeridor(false);
 }
@@ -306,75 +275,66 @@ function marcarElegido() {
 function cerrarSugeridor() {
   if (!sug) return;
   sug = null;
-  anclaCaret = null;
   mostrarPanel(sugeridor, false);
-  pintar(marcasActuales);
 }
 sugeridor.addEventListener('toggle', e => { if (e.newState === 'closed') cerrarSugeridor(); });
 
-// un span vacío en el corte de una fila mide al final de la fila de arriba: se mide
-// el glifo que sigue al cursor, que está en la fila de abajo
-function rectDelCaret(ancla) {
-  let nodo = ancla.nextSibling;
-  while (nodo && nodo.nodeType !== Node.TEXT_NODE) nodo = nodo.firstChild || nodo.nextSibling;
-  if (nodo && nodo.data && nodo.data[0] !== '\n') {
-    const rango = document.createRange();
-    rango.setStart(nodo, 0); rango.setEnd(nodo, 1);
-    const caja = rango.getClientRects()[0];
-    if (caja) return { left: caja.left, right: caja.left, top: caja.top, bottom: caja.bottom };
-  }
-  return ancla.getBoundingClientRect();
-}
-
 function abrirSugeridor(aPedido) {
   if (src.selectionStart !== src.selectionEnd) return cerrarSugeridor();
-  const pos = src.selectionStart;
-  const l = src.value.slice(0, pos).split('\n').length - 1;
-  const base = src.value.lastIndexOf('\n', pos - 1) + 1;
+  const pos = src.selectionStart, { l, i } = resolver(pos), base = pos - i;
   const linea = src.value.split('\n')[l];
-  const r = ranuraEn(linea, pos - base);
-  if (!r) return cerrarSugeridor();     // una nota sin «@»: nada que ofrecer
+  const r = ranuraEn(linea, i);
+  if (!r) return cerrarSugeridor();     // un apunte sin «@», o el tempo: nada que ofrecer
   r.l = l;                              // la vista previa suena con el instrumento de la línea
   // lo que ya está escrito no se ofrece: si era lo único, no hay panel, y el Enter baja
   const secs = seccionesEnCaret(r)
     .map(x => ({ ...x, ops: x.ops.filter(o => norm(o.txt) !== norm(r.prefijo)) }))
     .filter(x => x.ops.length);
   const ops = secs.flatMap(x => x.ops);
-  // sólo con una palabra empezada; la coma, el «@», el verbo y el renglón vacío son
+  // con una letra alcanza; la coma, el «@», el verbo y el renglón vacío son
   // la excepción: recién abiertos es cuando no se sabe qué puede ir
   const reciénAbierta = r.ranura === 'enlace' || (r.ranura === 'clausula' && !r.prefijo) || r.arranque;
-  if (!ops.length || (!aPedido && !reciénAbierta && r.prefijo.length < 2))
+  if (!ops.length || (!aPedido && !reciénAbierta && !r.prefijo))
     return cerrarSugeridor();
   ops.forEach(o => { o.hacer = () => aceptarSugerencia(o); });
   // abierto solo y sin nada tipeado no marca nada: Enter sigue siendo Enter, Tab acepta la primera
   sug = { desde: base + r.desde, hasta: base + r.hasta, ops, elegido: aPedido || r.prefijo ? 0 : -1, pega: r.pega };
   pintarPanel(sugeridor, secs, null, [{ l }]);
   mostrarPanel(sugeridor, true);
-  anclaCaret = { l, c: r.desde };
-  pintar(marcasActuales);
-  const sp = hl.querySelector('#ancla');
-  if (!sp) return cerrarSugeridor();
-  acomodar(sugeridor, rectDelCaret(sp));
+  acomodar(sugeridor, rectDe(base + r.desde));
   marcarElegido();
 }
 
-src.addEventListener('keydown', e => {
-  if (e.key === 'Tab' && !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey) {
-    e.preventDefault();
-    return sug ? aceptarSugerencia(sug.ops[Math.max(0, sug.elegido)]) : abrirSugeridor(true);
-  }
-  if (!sug) return;
-  if (e.key === 'Enter') {
-    if (sug.elegido < 0) return cerrarSugeridor();
-    e.preventDefault(); return aceptarSugerencia(sug.ops[sug.elegido]);
-  }
-  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    const n = sug.ops.length, abajo = e.key === 'ArrowDown';
+// ---- las órdenes del sugeridor
+const aceptarPrimera = hacer => {
+  if (!sug) return false;
+  if (hacer) aceptarSugerencia(sug.ops[Math.max(0, sug.elegido)]);
+  return true;
+};
+const pedirSugerencias = hacer => { if (hacer) abrirSugeridor(true); return true; };
+// sin nada marcado, Enter cierra el panel y sigue siendo Enter: la orden no aplica
+const aceptarMarcada = hacer => {
+  if (!sug) return false;
+  if (sug.elegido < 0) { if (hacer) cerrarSugeridor(); return false; }
+  if (hacer) aceptarSugerencia(sug.ops[sug.elegido]);
+  return true;
+};
+const moverMarca = abajo => hacer => {
+  if (!sug) return false;
+  if (hacer) {
+    const n = sug.ops.length;
     sug.elegido = sug.elegido < 0 ? (abajo ? 0 : n - 1) : (sug.elegido + (abajo ? 1 : -1) + n) % n;
-    return marcarElegido();
+    marcarElegido();
   }
-  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) cerrarSugeridor();
-});
+  return true;
+};
+// irse del lugar cierra el panel, y la tecla sigue su camino
+const soltarSugerencia = hacer => { if (hacer) cerrarSugeridor(); return false; };
+
+atajo('Tab', 'aceptar la sugerencia, o pedirla', encadenar(aceptarPrimera, pedirSugerencias));
+atajo('Enter', 'aceptar la sugerencia marcada', aceptarMarcada);
+atajo('ArrowDown', 'bajar en la lista', moverMarca(true));
+atajo('ArrowUp', 'subir en la lista', moverMarca(false));
+for (const t of ['ArrowLeft', 'ArrowRight', 'Home', 'End']) atajo(t, 'cerrar la sugerencia', soltarSugerencia);
 src.addEventListener('input', () => abrirSugeridor(false));
 src.addEventListener('blur', cerrarSugeridor);

@@ -5,7 +5,7 @@ menu.className = 'panel';
 menu.popover = 'auto';
 document.body.appendChild(menu);
 let pidiendoCuadro = false, relojFamilia, esperaOir;
-// lo escribe el rastro del mouse, al final; lo lee pintar() para el subrayado
+// lo escribe el rastro del mouse, al final; lo lee realzar() para la manija
 let señalado = null;
 // estado del menú, no del documento
 let familiaElegida = null;
@@ -38,23 +38,17 @@ const textoDe = t => src.value.split('\n')[t.l].substr(t.i, t.len);
 
 // el sujeto de una línea de golpes no se toca: la caja va como cláusula al final
 function ponerClausula(l, texto) {
-  const lineas = src.value.split('\n');
+  const lineas = src.value.split('\n'), base = baseDe(lineas, l);
   const vieja = (marcasActuales[l] || []).find(x => x.tipo === 'instrumento' && x.conEn);
-  lineas[l] = vieja
-    ? lineas[l].slice(0, vieja.i) + texto + lineas[l].slice(vieja.i + vieja.len)
-    : lineas[l] + ', ' + texto;
-  const donde = vieja ? vieja.i + texto.length : lineas[l].length;
-  escribir(lineas.join('\n'), baseDe(lineas, l) + donde);
-  registrar(src.value, { l, i: vieja ? vieja.i : lineas[l].length - texto.length, len: texto.length });
-  actualizar(true);
+  const p = vieja
+    ? paso(base + vieja.i, lineas[l].substr(vieja.i, vieja.len), texto)
+    : paso(base + lineas[l].length, '', ', ' + texto);
+  aplicar(p, { cursor: p.desde + p.puesto.length });
 }
 
 function reemplazar(t, texto, grupo) {
-  const lineas = src.value.split('\n');
-  lineas[t.l] = lineas[t.l].slice(0, t.i) + texto + lineas[t.l].slice(t.i + t.len);
-  escribir(lineas.join('\n'), baseDe(lineas, t.l) + t.i + texto.length);
-  registrar(src.value, { l: t.l, i: t.i, len: texto.length }, grupo);
-  actualizar(true);
+  const lineas = src.value.split('\n'), desde = baseDe(lineas, t.l) + t.i;
+  aplicar(paso(desde, lineas[t.l].substr(t.i, t.len), texto), { cursor: desde + texto.length, grupo });
   mostrarDeshacer({ l: t.l, i: t.i, len: texto.length }, false);
 }
 
@@ -66,7 +60,7 @@ function seccionesDe(t) {
   const d = datosDe(t), hoy = textoDe(t), voz = vozDeLinea(t.l);
   const como = (ops, nuevo = o => o.txt) => ops.map(o =>
     ({ ...o, nuevo: nuevo(o), puesto: norm(hoy) === norm(nuevo(o)) }));
-  // sin rótulo: en versalitas chicas «o nada» se leía «0 nada»
+  // sin rótulo
   const alPie = { titulo: '', pie: true, ops: como(ofrecerSilencios()) };
 
   if (t.tipo === 'paso' && d.modo !== 'nota')
@@ -85,9 +79,11 @@ function seccionesDe(t) {
     ];
   }
 
+  // el nombre de la parte es el renglón: al pie, adónde llevarlo; ver secciones.js
+  const pie = t.tipo === 'instrumento' && !d.conEn ? [{ titulo: '', pie: true, ops: ordenesDeParte(t.l) }] : [];
   if (t.tipo === 'instrumento' && d.modo === 'sonido') {
     const todas = ofrecerMaquinas();
-    if (!todas.length) return null;
+    if (!todas.length) return pie.length ? pie : null;
     const marcas = [...new Set(todas.map(m => m.marca))].sort();
     const puesta = d.conEn ? maquinaDe(hoy.replace(SIN_EN, '')) : null;
     const marca = marcas.includes(familiaElegida) ? familiaElegida
@@ -96,6 +92,7 @@ function seccionesDe(t) {
       { titulo: 'marcas', ops: marcas.map(x => ({ txt: x, familia: x, puesto: x === marca })) },
       { titulo: marca, detalle: true, ops: todas.filter(m => m.marca === marca).map(m =>
           ({ ...m, clausula: 'en una ' + m.txt, puesto: !!puesta && puesta.banco === m.banco })) },
+      ...pie,
     ];
   }
 
@@ -112,8 +109,12 @@ function seccionesDe(t) {
       { titulo: 'familias', ops: familias.map(f => ({ ...f, familia: f.txt, puesto: f.txt === fam })) },
       { titulo: fam, detalle: true, ops: ofrecerInstrumentos().filter(i => i.desc === fam).map(i =>
           ({ ...i, desc: null, nuevo: pre + i.txt, puesto: !!puesta && puesta.nombre === i.txt })) },
+      ...pie,
     ];
   }
+
+  if (t.tipo === 'seccion')
+    return [{ titulo: d.escrito, ops: ordenesDeEncabezado(t.l) }];
 
   if (t.tipo === 'figura')
     return [{ titulo: 'cada nota', ops: como(ofrecerFiguras()) }];
@@ -149,7 +150,7 @@ function seccionesDe(t) {
   // abrirlo no va acá: el nombre se aprieta
   if (t.tipo === 'enlace')
     return [{ titulo: 'apuntar a', ops: temasTodos().map(x =>
-      ({ txt: x.nombre, nuevo: x.nombre, puesto: norm(x.nombre) === norm(d.nombre) })) }];
+      ({ txt: x.nombre, nuevo: x.nombre, puesto: mismoTema(x.nombre, d.nombre) })) }];
 
   if (t.tipo === 'forma') {
     const vistas = seccionesEscritas();
@@ -160,10 +161,10 @@ function seccionesDe(t) {
 
   if (t.tipo === 'tempo') {
     const n = parseFloat(hoy.replace(',', '.')) || 90;
-    const acotado = paso => Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, n + paso));
-    const secs = [{ titulo: 'tiempos por minuto', ops: [-10, -5, -1, 1, 5, 10].map(paso =>
-      ({ txt: (paso > 0 ? '+' : '') + paso, desc: acotado(paso) + '',
-         nuevo: String(acotado(paso)) })) }];
+    const acotado = delta => Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, n + delta));
+    const secs = [{ titulo: 'tiempos por minuto', ops: [-10, -5, -1, 1, 5, 10].map(delta =>
+      ({ txt: (delta > 0 ? '+' : '') + delta, desc: acotado(delta) + '',
+         nuevo: String(acotado(delta)) })) }];
     // sin compás escrito se ofrece acá, pisando el número y lo que le sigue
     if (!(marcasActuales[t.l] || []).some(x => x.tipo === 'compas')) {
       const linea = src.value.split('\n')[t.l];
@@ -177,16 +178,16 @@ function seccionesDe(t) {
     return [{ titulo: 'compás', ops: como(ofrecerCompases()) }];
 
   if (t.tipo === 'mal') {
-    // «el piano toca» sin pasos: lo que puede ir ahí. Con un instrumento por nombre, notas
+    // «el piano toca» sin pasos: lo que puede ir ahí, según lo que el nombre diga
     if (d.falta === 'paso') {
-      const ins = instrumentoDe(d.quien);
+      const modo = modoDelNombre(d.quien), ins = instrumentoDe(d.quien);
       // sin espacio después del verbo, el paso lo trae
       const linea = src.value.split('\n')[t.l];
       const pega = t.i > 0 && !/\s/.test(linea[t.i - 1] || ' ') ? ' ' : '';
       const conEspacio = ops => ops.map(o => ({ ...o, nuevo: pega + o.txt }));
       return [
-        ...(ins ? [] : [{ titulo: 'golpes', ops: conEspacio(ofrecerGolpes()) }]),
-        { titulo: 'notas', ops: conEspacio(ofrecerNotas(ins && ins.nombre)) },
+        ...(modo === 'nota' ? [] : [{ titulo: 'golpes', ops: conEspacio(ofrecerGolpes()) }]),
+        ...(modo === 'sonido' ? [] : [{ titulo: 'notas', ops: conEspacio(ofrecerNotas(ins && ins.nombre)) }]),
         { ...alPie, ops: conEspacio(ofrecerSilencios()) },
       ];
     }
@@ -198,7 +199,7 @@ function seccionesDe(t) {
 
 // corre en cada cuadro del hover (ver REGLAS.md, 133 instrumentos): sólo «mal»
 // obliga a armar el menú para saber
-const CON_MENU = ['tempo', 'compas', 'enlace', 'paso', 'nota', 'instrumento', 'modificador', 'figura', 'arreglo',
+const CON_MENU = ['tempo', 'compas', 'enlace', 'paso', 'nota', 'instrumento', 'modificador', 'figura', 'arreglo', 'seccion',
                   'euclides', 'veces', 'forma'];
 const tieneMenu = t => !!t &&
   (CON_MENU.includes(t.tipo) || (t.tipo === 'mal' && !!seccionesDe(t)));
@@ -224,7 +225,9 @@ function pintarPanel(panel, secs, t, dueño = t) {
   panel.innerHTML = secs.filter(s => s.ops.length).map(s =>
     '<div class="sec' + (s.detalle ? ' detalle' : '') + (s.pie ? ' pie' : '') +
     '">' + (s.titulo ? '<h3>' + esc(s.titulo) + '</h3>' : '') + s.ops.map((o, j) =>
+      // una op con orden que no entra se pinta y no se aprieta
       '<div class="op' + (o.puesto ? ' puesto' : '') + (o.familia ? ' conSub' : '') +
+      (o.orden && !o.orden(false) ? ' noEntra' : '') +
       '" data-op="' + j + '" data-sec="' + secs.indexOf(s) + '"' +
       // .puesto lo lee de --parte
       (o.color ? ' style="--parte:' + o.color + '"' : '') + '>' +
@@ -233,8 +236,7 @@ function pintarPanel(panel, secs, t, dueño = t) {
       (o.familia ? '<span class="d">' + icono('chevron', 'chica derecha') + '</span>' : '') +
       '</div>').join('') + '</div>').join('');
 
-  // con auto-fit el pie, que abarca 1/-1, impide colapsar las pistas vacías y el
-  // menú mide la pantalla entera: se fija la cantidad real de columnas
+  // columnas fijas: el pie abarca todas, y con auto-fit eso estira el menú a la pantalla
   const columnas = secs.filter(x => x.ops.length && !x.pie).length;
   panel.style.gridTemplateColumns = 'repeat(' + columnas + ', minmax(118px, max-content))';
 
@@ -253,7 +255,9 @@ function pintarPanel(panel, secs, t, dueño = t) {
     el.addEventListener('mouseleave', () => { clearTimeout(esperaOir); clearTimeout(relojFamilia); });
     el.addEventListener('mousedown', e => {
       e.preventDefault();
-      if (o.hacer) { o.hacer(); return cerrarMenu(); }
+      // una op con orden la hace; una con «hacer», lo suyo
+      const hacer = o.hacer || (o.orden && (() => o.orden(true)));
+      if (hacer) { hacer(); return cerrarMenu(); }
       if (o.familia) return verFamilia(o.familia, t);
       if (o.clausula) { ponerClausula(t.l, o.clausula); return cerrarMenu(); }
       reemplazar(t, o.nuevo);
@@ -316,7 +320,7 @@ function abrirMenu(t) {
   const secs = seccionesDe(t);
   if (!secs) return;
   tokenDelMenu = t;
-  // apiladas las notas miden 738 px y «acorde» queda abajo del scroll
+  // notas e instrumentos, en columnas
   menu.classList.toggle('columnas',
     t.tipo === 'instrumento' || t.tipo === 'nota' || t.tipo === 'paso');
   pintarPanel(menu, secs, t);
@@ -347,7 +351,7 @@ let tokenDelMenu = null;
 // «señalado» no trae el tipo: se rearma del span. El último trozo, porque una
 // palabra partida termina abajo y la unión arranca en el margen
 function tokenDelSpan(t) {
-  const sp = t && hl.querySelector('span[data-l="' + t.l + '"][data-i="' + t.i + '"]');
+  const sp = spanDe(t);
   const trozos = sp ? sp.getClientRects() : [];
   const r = trozos[trozos.length - 1];
   return r ? { l: +sp.dataset.l, i: +sp.dataset.i, len: +sp.dataset.len, tipo: sp.dataset.tipo, r } : null;
@@ -401,7 +405,7 @@ src.addEventListener('mousemove', e => {
       : t.tipo === 'tempo' ? 'ew-resize'
       : e.altKey && arrastrable(t) ? 'ns-resize' : '';
     if (antes === ahora) return;
-    señalado = t && { l: t.l, i: t.i };
+    señalado = t && { l: t.l, i: t.i, len: t.len };
     realzar();
     ponerManija(señalado);
   });
@@ -415,6 +419,14 @@ src.addEventListener('mouseleave', e => {
 });
 let arrastre = null;
 const UMBRAL = 3;
+
+// el señalado y el token del arrastre siguen a su palabra; un menú abierto se cierra,
+// que sus opciones ya no valen
+alCambiar.push((pasos, viejo) => {
+  señalado = mapearAncla(señalado, pasos, viejo);
+  if (tokenDelMenu) { tokenDelMenu = null; mostrarPanel(menu, false); }
+  if (arrastre) arrastre.t = mapearAncla(arrastre.t, pasos, viejo) || arrastre.t;
+});
 
 // sin mover el mouse no hay mousemove que limpie el cursor
 addEventListener('keyup', e => { if (e.key === 'Alt') src.style.cursor = ''; });
@@ -432,7 +444,7 @@ src.addEventListener('mousedown', e => {
   if (!t || !arrastrable(t) || (!e.altKey && t.tipo !== 'tempo')) return;
   e.preventDefault();
   const d = datosDe(t);
-  arrastre = { t, x: e.clientX, y: e.clientY, movido: false, len: t.len,
+  arrastre = { t, x: e.clientX, y: e.clientY, movido: false,
                grupo: 'tira' + Date.now(),
                acorde: d.acorde || '',
                base: t.tipo === 'tempo' ? (parseFloat(textoDe(t).replace(',', '.')) || 90)
@@ -451,8 +463,7 @@ function moverArrastre(dx, dy) {
   }
   if (texto === a.ultimo) return;
   a.ultimo = texto;
-  reemplazar({ ...a.t, len: a.len }, texto, a.grupo);   // el token cambia de largo al ganar «sostenido»
-  a.len = texto.length;
+  reemplazar(a.t, texto, a.grupo);   // el token cambia de largo al ganar «sostenido»: lo sigue alCambiar
   if (!sonando && a.t.tipo !== 'tempo')
     oir({ voces: [{ s: 'piano', note: nombreNota(a.semi, 0) }], dura: .3 });
 }
