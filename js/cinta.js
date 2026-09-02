@@ -26,8 +26,8 @@ function golpesDe(pat, vueltas) {
 
 // mientras strudel no está, el ancho se reparte entre los pasos escritos
 function golpesParejos(r, vueltas) {
-  const paso = vueltas / r.lugares.length;
-  return r.lugares.map((l, k) => l && { desde: k * paso, hasta: (k + 1) * paso })
+  const largo = vueltas / r.lugares.length;
+  return r.lugares.map((l, k) => l && { desde: k * largo, hasta: (k + 1) * largo })
     .filter(Boolean);
 }
 
@@ -195,6 +195,14 @@ addEventListener('resize', reacomodar);
 // ------------------------------------------------------ señalar una franja
 // el puntito y la franja son la misma línea: pasar por uno enciende al otro
 let franjaSeñalada = null;
+
+// la franja señalada es un renglón: sigue al texto, y si el renglón se fue, se apaga
+alCambiar.push((pasos, viejo) => {
+  if (franjaSeñalada == null) return;
+  const largo = viejo.split('\n')[franjaSeñalada].length;
+  const a = mapearAncla({ l: franjaSeñalada, i: 0, len: largo + 1 }, pasos, viejo);
+  franjaSeñalada = a ? a.l : null;
+});
 
 function aplicarFranja(l) {
   if (franjaSeñalada === l) return;

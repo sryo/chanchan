@@ -53,12 +53,7 @@ let actual = { renglones: [], vueltas: 1, tramos: [], tempos: [], espejos: [] };
 
 // de los encabezados y no de la forma, que una sección recién abierta no está en
 // ninguna; se queda con la primera grafía
-const seccionesEscritas = () => {
-  const vistas = new Map();
-  for (const x of marcasActuales.flat())
-    if (x && x.tipo === 'seccion' && !vistas.has(x.nombre)) vistas.set(x.nombre, x.escrito);
-  return vistas;
-};
+const seccionesEscritas = () => new Map(encabezados().reverse().map(e => [e.nombre, e.escrito]));
 let activos = new Set();
 
 // el span se rehace en cada pintada: se busca por posición, no se guarda el nodo
@@ -85,7 +80,7 @@ const colgantes = [];
 const colgar = (el, lugar) => { colgantes[lugar] = el; };
 
 function pegarA(el, ancla, sangria = SANGRIA_COLGANTE) {
-  if (!spanDe(ancla)) { el.classList.remove('vivo'); el.colgadoDe = null; return false; }
+  if (!spanDe(ancla)) { el.classList.remove('vivo'); el.colgadoDe = null; acomodarColgantes(); return false; }
   el.colgadoDe = ancla;
   el.sangria = sangria;
   el.classList.add('vivo');
@@ -116,7 +111,7 @@ function acomodarColgantes() {
 }
 
 // el realce cambia en cada cuadro: se prende y apaga en los spans que ya están, sin
-// rehacer el espejo; pintar() anota qué dejó puesto para que realzar() sepa qué mover
+// rehacer el espejo
 let realzados = new Set(), conManija = null;
 const claveManija = () => señalado && enElBoton() ? señalado.l + ':' + señalado.i : null;
 const vivoDe = t => 'color-mix(in oklab,' + tramaDe(t.voz) + ' 30%,var(--fondo))';
@@ -153,58 +148,125 @@ function pintar(marcas) {
   hl.innerHTML = lineas.map((l, n) => {
     const tk = (marcas[n] || []).slice().sort((a, b) => a.i - b.i);
     let out = '', cur = 0;
-    // no hay geometría del cursor en ningún lado y con pre-wrap no se calcula:
-    // un span vacío acá mide exacto y no corre el texto
-    const anc = anclaCaret && anclaCaret.l === n ? anclaCaret.c : -1;
-    let ancPuesto = false;
-    const plano = (a, z) => {
-      if (ancPuesto || anc < a || anc > z) return esc(l.slice(a, z));
-      ancPuesto = true;
-      return esc(l.slice(a, anc)) + '<span id="ancla"></span>' + esc(l.slice(anc, z));
-    };
     for (const t of tk) {
       if (t.i < cur) continue;
-      out += plano(cur, t.i);
-      if (!ancPuesto && anc >= t.i && anc <= t.i + t.len) { ancPuesto = true; out += '<span id="ancla"></span>'; }
-      const vivo = activos.has(n + ':' + t.i) ? ' t-activo' : '';
+      out += esc(l.slice(cur, t.i));
       const esEditable = t.tipo && t.tipo !== 'mal' ? ' t-editable' : '';
-      const bajoElMouse = !(señalado && señalado.l === n && señalado.i === t.i) ? ''
-        : enElBoton() ? ' t-manija' : '';
       const datos = t.tipo ? ' data-tipo="' + t.tipo + '" data-l="' + n + '" data-i="' + t.i + '" data-len="' + t.len + '"' : '';
       const alto = t.alto ? ' data-alto="' + t.alto + '"' : '';
-      // el color sale de la rueda; el realce va como variable, así .t-activo sigue siendo una sola regla
+      // el color sale de la rueda; el realce y la manija los pone decorar() sobre los spans
       const tinte = !t.voz ? ''
         : t.cls === 'sujeto' ? ' style="color:' + tintaDe(t.voz) + '"'
         // el instrumento dice quién: del color de la parte, un escalón atrás del sujeto
         : t.tipo === 'instrumento' ? ' style="color:color-mix(in oklab,' + tintaDe(t.voz) + ' 62%,var(--fondo))"'
-        : vivo ? ' style="--vivo:' + vivoDe(t) + '"'
         : '';
       // el span de afuera es el que sigue midiendo para el ▾ y para el realce
       const crudo = l.substr(t.i, t.len);
       const cuerpo = t.raizLen && t.raizLen < t.len
         ? esc(crudo.slice(0, t.raizLen)) + '<span class="t-cola">' + esc(crudo.slice(t.raizLen)) + '</span>'
         : esc(crudo);
-      out += '<span class="t-' + t.cls + vivo + esEditable + bajoElMouse + '"' + datos + alto + tinte + '>' +
-        cuerpo + '</span>';
+      out += '<span class="t-' + t.cls + esEditable + '"' + datos + alto + tinte + '>' + cuerpo + '</span>';
       cur = t.i + t.len;
     }
-    return out + plano(cur, l.length);
-    // sin '\n' al final: el texto ya termina en uno, y un renglón de más le pone a
-    // #hl una barra que #src no tiene, y ahí las líneas largas cortan distinto
-  }).join('\n');
+    return out + esc(l.slice(cur));
+    // el salto de más: un pre no dibuja la fila vacía de después del último salto y el
+    // textarea sí; sin él, al fondo de la hoja el espejo queda una fila más arriba
+  }).join('\n') + '\n';
   hl.scrollTop = src.scrollTop;
-  realzados = new Set(activos);
-  conManija = claveManija();
+  decorar();
+}
+
+// lo que no es del documento, el realce del reloj y la manija del mouse, va encima
+// de los spans recién puestos: pintar() no lo sabe
+function decorar() {
+  realzados = new Set();
+  conManija = null;
+  realzar();
+}
+
+// la caja del glifo que está en pos, medida en el espejo, que es glifo a glifo el
+// textarea; se mide el glifo y no un punto, porque un punto en el corte de una
+// fila cae en la fila de arriba
+function rectDe(pos) {
+  const camino = document.createTreeWalker(hl, NodeFilter.SHOW_TEXT);
+  let nodo = null, base = 0, ultimo = null;
+  for (let n; (n = camino.nextNode());) {
+    if (pos < base + n.data.length) { nodo = n; break; }
+    base += n.data.length; ultimo = n;
+  }
+  const rango = document.createRange();
+  const caja = c => ({ left: c.left, right: c.left, top: c.top, bottom: c.bottom });
+  if (nodo && nodo.data[pos - base] !== '\n') {
+    rango.setStart(nodo, pos - base); rango.setEnd(nodo, pos - base + 1);
+    const c = rango.getClientRects()[0];
+    if (c) return caja(c);
+  }
+  // sin glifo, al final de un renglón, un rango vacío no mide: un span vacío puesto
+  // un instante sí, y ahí no hay corte de fila que lo confunda
+  if (nodo) rango.setStart(nodo, pos - base);
+  else if (ultimo) rango.setStart(ultimo, ultimo.data.length);
+  else return caja(hl.getBoundingClientRect());
+  rango.collapse(true);
+  const marca = document.createElement('span');
+  rango.insertNode(marca);
+  const c = marca.getBoundingClientRect();
+  const padre = marca.parentNode;
+  marca.remove();
+  padre.normalize();
+  return caja(c);
 }
 
 const baseDe = (lineas, l) => lineas.slice(0, l).reduce((n, x) => n + x.length + 1, 0);
+// dónde empieza el renglón de una posición; lastIndexOf con -1 miraría el 0
+const inicioDeRenglon = (txt, pos) => pos > 0 ? txt.lastIndexOf('\n', pos - 1) + 1 : 0;
+// de una posición en el texto a {l, i}, que es lo que miden los spans
+function resolver(pos, txt = src.value) {
+  const l = txt.slice(0, pos).split('\n').length - 1;
+  return { l, i: pos - inicioDeRenglon(txt, pos) };
+}
+const anclaDe = (pos, len) => ({ ...resolver(pos), len });
 
 // asignar .value manda el cursor al final; esto lo devuelve
-function escribir(txt, desde, hasta) {
-  const a = desde ?? src.selectionStart, z = hasta ?? desde ?? src.selectionEnd;
+function escribir(txt, a, z) {
   src.value = txt;
   src.setSelectionRange(Math.min(a, txt.length), Math.min(z, txt.length));
 }
+
+// quien tenga posiciones guardadas se anota acá y las corre cuando el texto cambia;
+// «viejo» es el texto de antes, que es donde valen las posiciones que tiene
+const alCambiar = [];
+const avisarCambio = (pasos, viejo) => { for (const f of alCambiar) f(pasos, viejo); };
+
+// un ancla {l, i, len} de antes, después de los pasos; null si lo que anclaba se fue.
+// Sin len es un punto, y «lado» dice adónde va si le insertan encima
+function mapearAncla(a, pasos, viejo, lado = 1) {
+  if (!a) return a;
+  const desde = baseDe(viejo.split('\n'), a.l) + a.i;
+  if (a.len == null) return { ...a, ...resolver(mapearPor(desde, pasos, lado)) };
+  const r = mapearRango({ desde, hasta: desde + a.len }, pasos);
+  return r && { ...a, ...resolver(r.desde), len: r.hasta - r.desde };
+}
+
+// toda edición entra por acá, ver REGLAS.md. Varios pasos sobre el mismo texto van
+// de atrás para adelante, así ninguno corre al otro
+let nGesto = 0;
+function aplicar(pasos, { cursor, sel, grupo } = {}) {
+  pasos = [].concat(pasos).sort((a, b) => b.desde - a.desde);
+  const selAntes = { a: src.selectionStart, z: src.selectionEnd };
+  let txt = src.value;
+  for (const p of pasos) txt = aplicarPaso(txt, p);
+  const viejo = src.value;
+  const [a, z] = sel || [cursor ?? mapearPor(selAntes.a, pasos, -1), cursor ?? mapearPor(selAntes.z, pasos, -1)];
+  escribir(txt, a, z);
+  anotarPasos(pasos, selAntes, grupo ?? 'gesto' + ++nGesto);
+  avisarCambio(pasos, viejo);
+  actualizar(true);
+}
+
+// los que cuelgan de una palabra la siguen cuando el texto cambia antes de ella
+alCambiar.push((pasos, viejo) => {
+  for (const el of colgantes) if (el && el.colgadoDe) el.colgadoDe = mapearAncla(el.colgadoDe, pasos, viejo);
+});
 
 function asegurarRenglonFinal() {
   if (/\n$/.test(src.value)) return;
@@ -216,18 +278,22 @@ function asegurarRenglonFinal() {
 // al ritmo de la tecla, sin esperar a strudel: si los puntitos esperan, su data-l
 // queda viejo y un click calla la línea de al lado
 function repintarTexto() {
-  const r = traducir(src.value);
+  pintarHoja(traducir(src.value));
+}
+
+// la luz se reparte antes de que algo pregunte por un color
+function pintarHoja(r) {
   calladasActuales = r.calladas;
   repartirLaLuz(r.marcas);
   pintar(r.marcas);
   armarPuntos(r.marcas, r.calladas, r.renglones);
+  acomodarColgantes();
 }
 
 function actualizar(reproducir) {
   asegurarRenglonFinal();
   guardar();
   const r = traducir(src.value);
-  calladasActuales = r.calladas;
   // strudel se consulta sólo acá, una vez por vuelta: los golpes quedan en el renglón;
   // y cada parte se prueba sola: si falla, se cae ella y no el tema entero
   if (motorListo) {
@@ -248,10 +314,7 @@ function actualizar(reproducir) {
   const suenan = new Set(r.partes.map(p => p.nro));
   actual = { renglones: r.renglones, vueltas: r.vueltas, tramos: r.tramos, tempos: r.tempos,
              espejos: r.renglones.filter(x => x.pat && suenan.has(x.nro)) };
-  // la luz se reparte antes de que algo pregunte por un color
-  repartirLaLuz(r.marcas);
-  pintar(r.marcas);
-  armarPuntos(r.marcas, r.calladas);
+  pintarHoja(r);
   dibujarCinta(r.renglones);
   pintarMarca(r.renglones);
   cajaErr.innerHTML = r.errores.map(e =>
@@ -266,7 +329,7 @@ src.addEventListener('input', () => {
   asegurarRenglonFinal();
   clearTimeout(relojActualizar);
   relojActualizar = setTimeout(() => actualizar(true), 400);
-  registrarTecla();
+  anotarTecleo();
   repintarTexto();
 });
 // primero el espejo: los puntitos se posicionan a partir de los spans de #hl
@@ -275,6 +338,4 @@ src.addEventListener('scroll', () => {
   hl.scrollLeft = src.scrollLeft;
   armarPuntos(marcasActuales, calladasActuales);
   cerrarMenu();
-  // al ▾ lo reacomoda cerrarMenu; al de deshacer hay que reacomodarlo acá
-  acomodarColgantes();
 });

@@ -1,39 +1,98 @@
 // --------------------------------------------------------------- deshacer
-// instantáneas del texto entero, que un tema son unos cientos de caracteres; el
-// ctrl+Z nativo no sirve porque asignar src.value le borra el historial
-let historial = [], puntero = -1, grupoTecla = 0, aplicando = false;
+// pasos y no fotos, ver REGLAS.md. El ctrl+Z nativo no sirve porque asignar
+// src.value le borra el historial
+let hechos = [], deshechos = [];
+// el texto contra el que se mide el tecleo: lo que cambió desde acá es un paso
+let anterior = '';
+const PLAZO_GRUPO = 600, HONDO = 100;
 
-// el historial es de la hoja, ver REGLAS.md: cambiar de tema guarda el de la que se deja y levanta el del que llega
+// un historial por hoja, ver REGLAS.md; se levanta sólo si el texto es el que dejó,
+// que volver a un ejemplo desde su fila trae el texto original y no el de la copia
 const historiales = new Map();
-function cambiarHistorial(deja, llega) {
-  historiales.set(claveTema(deja), { historial, puntero });
-  ({ historial, puntero } = historiales.get(claveTema(llega)) || { historial: [], puntero: -1 });
+function cambiarHistorial(deja, llega, txtLlega) {
+  if (deja) historiales.set(claveTema(deja), { hechos, deshechos, txt: src.value });
+  const h = historiales.get(claveTema(llega));
+  historiales.delete(claveTema(llega));
+  ({ hechos, deshechos } = h && h.txt === txtLlega ? h : { hechos: [], deshechos: [] });
+}
+// el texto de ahora es el punto de partida, no un paso
+const arrancarHistorial = () => { anterior = src.value; };
+
+// [desde, hasta] de lo que los pasos dejaron puesto, en el texto de después
+const rangoDe = pasos => [Math.min(...pasos.map(p => p.desde)), Math.max(...pasos.map(p => p.desde + p.puesto.length))];
+// ¿lo que este paso saca toca lo que el grupo dejó puesto?
+const tocaA = (pasos, [a, z]) => pasos.some(p => p.desde <= z && p.desde + p.sacado.length >= a);
+const cerrarGrupo = () => { if (hechos.length) hechos[hechos.length - 1].cerrado = true; };
+
+// pasos ya aplicados, en el orden en que se aplicaron; selAntes es el cursor de antes.
+// Un gesto lleva su grupo y sigue sólo con el mismo; el tecleo no lleva ninguno
+function anotarPasos(pasos, selAntes, grupo) {
+  const arriba = hechos[hechos.length - 1], ahora = Date.now();
+  const sigue = arriba && !arriba.cerrado && (grupo != null
+    ? arriba.grupo === grupo
+    : arriba.grupo == null && ahora - arriba.t <= PLAZO_GRUPO && tocaA(pasos, arriba.rango));
+  if (sigue) {
+    const [a, z] = rangoDe(pasos), [a0, z0] = arriba.rango;
+    arriba.pasos.push(...pasos);
+    arriba.rango = [Math.min(mapearPor(a0, pasos, -1), a), Math.max(mapearPor(z0, pasos, 1), z)];
+    arriba.t = ahora;
+  } else {
+    hechos.push({ pasos, selAntes, rango: rangoDe(pasos), t: ahora, grupo });
+    if (hechos.length > HONDO) hechos.shift();
+  }
+  deshechos = [];
+  anterior = src.value;
 }
 
-function registrar(txt, ancla, grupo) {
-  if (aplicando) return;
-  const arriba = historial[puntero];
-  // un arrastre entero, o una ráfaga de tecleo, son un solo paso para atrás
-  if (grupo && arriba && arriba.grupo === grupo) { arriba.txt = txt; arriba.ancla = ancla; return; }
-  // lo mismo que ya está arriba no es un paso
-  if (!grupo && arriba && arriba.txt === txt) return;
-  historial.length = puntero + 1;          // al cambiar algo se pierde el rehacer
-  historial.push({ txt, ancla, grupo });
-  puntero = historial.length - 1;
+// el tecleo no se intercepta: lo que el textarea cambió es un paso igual
+let selAntesDeTecla = null;
+function anotarTecleo() {
+  const viejo = anterior, p = pasoEntre(viejo, src.value);
+  if (!p) return;
+  anotarPasos([p], selAntesDeTecla || { a: src.selectionStart, z: src.selectionEnd });
+  selAntesDeTecla = null;
+  avisarCambio([p], viejo);
 }
+src.addEventListener('beforeinput', e => {
+  // el «deshacer» del menú Edición iría a la pila nativa, que está vacía
+  if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') {
+    e.preventDefault();
+    e.inputType === 'historyUndo' ? deshacer() : rehacer();
+    return;
+  }
+  selAntesDeTecla = { a: src.selectionStart, z: src.selectionEnd };
+});
 
-function irA(i, cual) {
-  if (i < 0 || i >= historial.length) return;
-  puntero = i;
-  aplicando = true;
-  const txt = historial[i].txt;
-  const ancla = historial[cual === 'deshacer' ? i + 1 : i].ancla;
-  // deshaciendo, el cursor va al principio de lo que se va; rehaciendo, al final de lo que vuelve
-  const donde = ancla && baseDe(txt.split('\n'), ancla.l) + ancla.i + (cual === 'deshacer' ? 0 : ancla.len);
-  escribir(txt, ancla ? donde : undefined);
+// aplica los pasos de un grupo, deja el cursor y cuelga el botón; si un paso no
+// calza el historial está mal y se tira entero antes que romper el texto
+function pasar(pasos, sel, ancla, esRehacer) {
+  const viejo = src.value;
+  let txt;
+  try { txt = pasos.reduce(aplicarPaso, viejo); }
+  catch (e) { hechos = []; deshechos = []; return false; }
+  escribir(txt, sel.a, sel.z);
+  anterior = txt;
+  avisarCambio(pasos, viejo);
   actualizar(true);
-  aplicando = false;
-  mostrarDeshacer(ancla, cual === 'deshacer');
+  mostrarDeshacer(ancla, esRehacer);
+  return true;
+}
+
+function deshacer() {
+  const g = hechos.pop();
+  if (!g) return false;
+  deshechos.push({ ...g, selDespues: { a: src.selectionStart, z: src.selectionEnd } });
+  cerrarGrupo();
+  const p = g.pasos[0];
+  return pasar(g.pasos.slice().reverse().map(invertir), g.selAntes, anclaDe(p.desde, p.sacado.length), true);
+}
+
+function rehacer() {
+  const g = deshechos.pop();
+  if (!g) return false;
+  hechos.push({ ...g, cerrado: true });
+  const p = g.pasos[0];
+  return pasar(g.pasos, g.selDespues, anclaDe(p.desde, p.puesto.length), false);
 }
 
 const botonDeshacer = document.createElement('button');
@@ -70,21 +129,6 @@ botonDeshacer.addEventListener('mousedown', e => {
   botonDeshacer.dataset.que === 'rehacer' ? rehacer() : deshacer();
 });
 
-// 600 ms sin teclear cierran el grupo
-let relojTecla;
-function registrarTecla() {
-  registrar(src.value, null, 'tecla' + grupoTecla);
-  clearTimeout(relojTecla);
-  relojTecla = setTimeout(() => grupoTecla++, 600);
-}
-
-const deshacer = () => irA(puntero - 1, 'deshacer');
-const rehacer  = () => irA(puntero + 1, 'rehacer');
-
-addEventListener('keydown', e => {
-  if (!(e.metaKey || e.ctrlKey) || norm(e.key) !== 'z') return;
-  // escribiendo el nombre, deshacer es del nombre: el historial es del tema
-  if (document.activeElement === campoNombre) return;
-  e.preventDefault();
-  e.shiftKey ? rehacer() : deshacer();
-});
+// sólo en la hoja: escribiendo el nombre, deshacer es del nombre
+atajo('Mod-z', 'deshacer', hacer => hacer ? deshacer() : hechos.length > 0);
+atajo('Mod-Shift-z', 'rehacer', hacer => hacer ? rehacer() : deshechos.length > 0);

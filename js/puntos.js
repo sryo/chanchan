@@ -4,9 +4,14 @@ const puntos = document.createElement('div');
 puntos.id = 'puntos';
 document.querySelector('.wrap').appendChild(puntos);
 
-// el parser acepta «callado» en cualquier cláusula, así que no se busca al final
-const sacarCallado = ln => ln.replace(/\s*,\s*callado\b/i, '');
-const ponerCallado = ln => sacarCallado(ln) + ', callado';
+// el traductor marca la cláusula «callado» donde esté: sacarla es cortar desde su coma
+function sinCallado(ln, l) {
+  const t = (marcasActuales[l] || []).find(x => x.callado);
+  if (!t) return ln;
+  const coma = ln.lastIndexOf(',', t.i);
+  return ln.slice(0, coma < 0 ? t.i : coma) + ln.slice(t.i + t.len);
+}
+const conCallado = (ln, l) => sinCallado(ln, l) + ', callado';
 
 // no son partes: nada que callar
 const NO_SUENA = ['tempo', 'compas', 'mal', 'seccion', 'forma', 'enlace', 'comentario'];
@@ -49,18 +54,20 @@ puntos.addEventListener('mousedown', e => {
 });
 
 function alternarCallado(l, solo) {
-  const lineas = src.value.split('\n');
+  const lineas = src.value.split('\n'), nuevas = lineas.slice();
   const partes = lineasQueSuenan(marcasActuales);
   if (solo) {
     const otras = partes.filter(i => i !== l);
     // si ya estaban todas calladas, el mismo gesto las devuelve
     const todasMudas = otras.every(i => calladasActuales.has(i));
-    otras.forEach(i => { lineas[i] = todasMudas ? sacarCallado(lineas[i]) : ponerCallado(lineas[i]); });
-    lineas[l] = sacarCallado(lineas[l]);
+    otras.forEach(i => { nuevas[i] = todasMudas ? sinCallado(lineas[i], i) : conCallado(lineas[i], i); });
+    nuevas[l] = sinCallado(lineas[l], l);
   } else {
-    lineas[l] = calladasActuales.has(l) ? sacarCallado(lineas[l]) : ponerCallado(lineas[l]);
+    nuevas[l] = calladasActuales.has(l) ? sinCallado(lineas[l], l) : conCallado(lineas[l], l);
   }
-  escribir(lineas.join('\n'));
-  registrar(src.value, null);      // solo o silencio, un solo paso para atrás
-  actualizar(true);
+  // un paso por renglón tocado; solo o silencio, un solo grupo para atrás
+  const pasos = [];
+  let base = 0;
+  lineas.forEach((ln, k) => { if (nuevas[k] !== ln) pasos.push(paso(base, ln, nuevas[k])); base += ln.length + 1; });
+  if (pasos.length) aplicar(pasos);
 }
