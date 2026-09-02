@@ -30,15 +30,6 @@ function desdeCuando(t) {
   return 'hace ' + Math.round(dias / 30) + ' meses';
 }
 
-// la primera visita, y «nuevo»
-const PRIMERA_HOJA = [
-  '* en chanchán podés escribir música con palabras, así:',
-  'la bata toca pum pa pum pa',
-  'el bajo toca do - sol -',
-  'el piano toca do mayor | fa mayor',
-  '* o ir a un tema ya grabado, así: @ricotero',
-].join('\n');
-
 // --------------------------------------------------------- abrir otro tema
 const panelTemas = document.createElement('div');
 panelTemas.id = 'temas';
@@ -90,7 +81,7 @@ function armarTemas() {
       }
       // borrar se deshace, ver REGLAS.md: el aviso dura hasta la tecla que sigue
       avisar('se fue «' + tema.nombre + '» de la lista.', ['volverlo', () => {
-        anotarTema(tema.nombre, tema.txt, null);
+        anotarTema(tema.nombre, eraElAbierto ? src.value : tema.txt, null);
         if (eraElAbierto && !campoNombre.value.trim()) { campoNombre.value = tema.nombre; acomodarNombre(); guardarYa(); }
       }]);
       // abierto no se angosta: el puntero seguiría sobre otra fila

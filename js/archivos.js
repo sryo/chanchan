@@ -69,12 +69,18 @@ async function abrirArchivos(entradas) {
       avisar('«' + n + '» no parece un tema: no tiene ninguna parte ni ningún enlace a otro tema.');
   };
   if (!leidos.length) return quejarse();
-  const traidos = leidos.map(t => recibido({ ...t, txt: conRenglonFinal(t.txt) }));
-  for (const t of traidos.slice(1)) anotarTema(t.nombre, t.txt, null);
-  for (const t of traidos) if (t.handle && t.nombre) handles.set(claveTema(t.nombre), t.handle);
-  cargarTema(traidos[0]);
+  // de a uno, anotando cada uno antes de nombrar al que sigue: dos archivos con el mismo nombre no se pisan
+  const traidos = [];
+  for (const t of leidos.slice(1)) {
+    const r = recibido({ ...t, txt: conRenglonFinal(t.txt) });
+    anotarTema(r.nombre, r.txt, null);
+    traidos.push(r);
+  }
+  const primero = recibido({ ...leidos[0], txt: conRenglonFinal(leidos[0].txt) });
+  for (const t of [primero, ...traidos]) if (t.handle && t.nombre) handles.set(claveTema(t.nombre), t.handle);
+  cargarTema(primero);
   quejarse();
-  for (const t of traidos) if (t.aviso) avisar(t.aviso);
+  for (const t of [primero, ...traidos]) if (t.aviso) avisar(t.aviso);
   src.focus();
 }
 

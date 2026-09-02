@@ -3,6 +3,7 @@
 const CASA = 'chanchan';
 const GUARDADO = CASA;
 const GUARDADO_NOMBRE = CASA + ':nombre';
+const GUARDADO_ABIERTO = CASA + ':abierto';   // con qué nombre está en la lista, que puede no ser el del campo
 
 function recordado(clave) {
   try { return localStorage.getItem(clave); } catch (e) { return null; }   // modo privado
@@ -55,11 +56,14 @@ function nombreLibre(base) {
   return nombre;
 }
 
-// una hoja que persiste tiene nombre, ver REGLAS.md: al dejarla sin nombre y con algo escrito, la bautiza la casa
+// al dejar la hoja, ver REGLAS.md: sin nombre, o con uno que choca y sin otro con el
+// que ya esté guardada, la bautiza la casa. La hoja de bienvenida sin tocar, no
 function bautizar() {
-  if (campoNombre.value.trim() || !src.value.trim()) return;
-  if (conRenglonFinal(src.value) === conRenglonFinal(PRIMERA_HOJA)) return;
-  campoNombre.value = nombreLibre('sin título');
+  if (!src.value.trim() || conRenglonFinal(src.value) === conRenglonFinal(PRIMERA_HOJA)) return;
+  const nombre = campoNombre.value.trim();
+  if (nombre && (nombreAbierto || !campoNombre.classList.contains('choca'))) return;
+  campoNombre.value = nombreLibre(nombre || 'sin título');
+  campoNombre.classList.remove('choca');
   acomodarNombre();
 }
 
@@ -84,6 +88,7 @@ function guardarYa() {
   clearTimeout(relojGuardar);
   const nombre = campoNombre.value.trim();
   const pudo = recordar(GUARDADO, src.value) && recordar(GUARDADO_NOMBRE, campoNombre.value);
+  recordar(GUARDADO_ABIERTO, nombreAbierto);
   // renombrar encima de otro no lo pisa: el campo se pone en rojo y la hoja sigue con el nombre de antes
   const choca = nombre && !mismoTema(nombre, nombreAbierto) && chocaCon(nombre, src.value);
   campoNombre.classList.toggle('choca', !!choca);
@@ -95,6 +100,9 @@ function guardarYa() {
   if (!choca) nombreAbierto = nombre;
 }
 
+// con qué nombre está guardada la hoja que se abre
+const abrirComo = nombre => { nombreAbierto = nombre; };
+
 // se guarda el de ahora y la hoja pasa a ser el otro: lo que se teclee renombra a ése
 function cambiarDeTema(nombre) {
   guardarYa();
@@ -104,14 +112,15 @@ function cambiarDeTema(nombre) {
 // vaciar el guardado perezoso antes de pisar el texto
 function cargarTema(tema) {
   bautizar();
-  const deja = campoNombre.value.trim();
+  // el historial es de la hoja: se guarda bajo el nombre con el que la hoja está en la lista
+  const deja = campoNombre.classList.contains('choca') ? nombreAbierto : campoNombre.value.trim();
   cambiarDeTema(tema.nombre);
-  cambiarHistorial(deja, tema.nombre);
+  cambiarHistorial(deja, tema.nombre, conRenglonFinal(tema.txt));
   src.value = conRenglonFinal(tema.txt);
   campoNombre.value = tema.nombre;
   campoNombre.classList.remove('choca');
   acomodarNombre();
-  registrar(src.value, null);
+  arrancarHistorial();
   actualizar(true);
   guardar();
 }
@@ -134,8 +143,8 @@ function guardar() {
   clearTimeout(relojGuardar);
   relojGuardar = setTimeout(guardarYa, 400);
 }
-// los 400 ms no pueden sobrevivir a cerrar la pestaña
-addEventListener('pagehide', guardarYa);
+// los 400 ms no pueden sobrevivir a cerrar la pestaña; cerrarla es irse: se bautiza
+addEventListener('pagehide', () => { bautizar(); guardarYa(); });
 
 // comprimido porque en claro son miles de caracteres; la «z» lo marca
 // de a bloques: desparramar el arreglo entero como argumentos tiene tope
@@ -171,9 +180,9 @@ function nombrados(nombre, txt) {
   const vistos = new Set([claveTema(nombre)]), lista = [], cola = [txt];
   while (cola.length)
     for (const n of traducir(cola.shift()).enlaces) {
-      const t = !vistos.has(claveTema(n)) && temaLlamado(n);
+      const k = claveTema(n), t = !vistos.has(k) && temaLlamado(n);
       if (!t) continue;
-      vistos.add(claveTema(n)); lista.push(t); cola.push(t.txt);
+      vistos.add(k); lista.push(t); cola.push(t.txt);
     }
   return lista;
 }
@@ -185,13 +194,17 @@ async function armarHash() {
   return (await Promise.all(piezas.map(([n, x]) => hashDe(n, x)))).join(';');
 }
 
-// el tuyo no se pisa
+// los que vienen con el enlace entran como cualquier recibido; devuelve los avisos
 function guardarTraidos(traidos) {
-  const mios = misTemas();
-  for (const t of traidos || [])
-    if (!mios.some(m => mismoTema(m.nombre, t.nombre))) anotarTema(t.nombre, t.txt, null);
+  const avisos = [];
+  for (const t of traidos || []) {
+    if (!t.nombre) continue;
+    const r = recibido(t);
+    anotarTema(r.nombre, r.txt, null);
+    if (r.aviso) avisos.push(r.aviso);
+  }
+  return avisos;
 }
-
 
 // «;» sólo puede ser nuestro: encodeURIComponent lo escapa y base64url no lo trae
 async function abrirCarga(crudo) {
@@ -240,13 +253,23 @@ src.addEventListener('paste', e => {
   e.preventDefault();
   abrirCarga(crudo.slice(crudo.indexOf('#') + 1)).then(tema => {
     if (!tema || !pareceUnTema(tema.txt)) return avisar(noSePudo());
-    guardarTraidos(tema.traidos);
+    const avisos = guardarTraidos(tema.traidos);
     cargarRecibido(tema);
+    avisos.forEach(a => avisar(a));
   });
 });
 
 // termina en un renglón vacío: la hoja dice que ahí se puede seguir
 const conRenglonFinal = txt => txt.replace(/\n*$/, '\n');
+
+// la primera visita, y «nuevo»
+const PRIMERA_HOJA = [
+  '* en chanchán podés escribir música con palabras, así:',
+  'la bata toca pum pa pum pa',
+  'el bajo toca do - sol -',
+  'el piano toca do mayor | fa mayor',
+  '* o ir a un tema ya grabado, así: @ricotero',
+].join('\n');
 
 async function temaInicial() {
   const delEnlace = await leerHash();
@@ -255,12 +278,12 @@ async function temaInicial() {
   if (delEnlace) {
     // el enlace se consume: si quedara en la barra, recargar abriría esa versión vieja encima de lo escrito
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
-    guardarTraidos(delEnlace.traidos);
-    return recibido(delEnlace);
+    const avisos = guardarTraidos(delEnlace.traidos);
+    return { ...recibido(delEnlace), avisos };
   }
   const guardado = recordado(GUARDADO);
   return guardado
-    ? { txt: guardado, nombre: recordado(GUARDADO_NOMBRE) || '' }
+    ? { txt: guardado, nombre: recordado(GUARDADO_NOMBRE) || '', abierto: recordado(GUARDADO_ABIERTO) || '' }
     : { txt: PRIMERA_HOJA, nombre: '' };
 }
 
@@ -284,8 +307,9 @@ addEventListener('hashchange', async () => {
   const tema = await leerHash();
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
   if (!tema) return avisar(noSePudo());
-  guardarTraidos(tema.traidos);
+  const avisos = guardarTraidos(tema.traidos);
   cargarRecibido(tema);
+  avisos.forEach(a => avisar(a));
 });
 
 btnEnlace.addEventListener('click', async () => {

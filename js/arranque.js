@@ -6,11 +6,13 @@ document.body.classList.add('cargando');
 temaInicial().then(inicial => {
   src.value = conRenglonFinal(inicial.txt);
   campoNombre.value = inicial.nombre;
+  abrirComo(inicial.abierto ?? inicial.nombre);
   acomodarNombre();
-  registrar(src.value, null);
+  arrancarHistorial();
   actualizar(false);
   if (inicial.roto) avisar(noSePudo());
   if (inicial.aviso) avisar(inicial.aviso);
+  for (const a of inicial.avisos || []) avisar(a);
   // con un tema abierto no se toca el foco: en el teléfono levanta el teclado
   if (!src.value.trim()) src.focus();
   // la primera medición cae antes de que el navegador acomode el alto del editor
