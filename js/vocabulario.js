@@ -231,8 +231,8 @@ const MODIFICADORES = [
   ['medio tono abajo',    '.transpose(-1)',     'lo mismo, medio tono más grave'],
 ];
 
-// los que ponen un valor: dos en la misma línea se pisan y el traductor avisa.
-// fast, slow, ply, transpose, rev y mute se componen, o repetirlos no cambia nada
+// los que ponen un valor: dos en la misma línea se pisan y el traductor avisa;
+// los relativos se componen: fast, slow, ply, transpose, rev, y mute
 const PISAN = new Set(['gain', 'clip', 'attack', 'release', 'lpf', 'hpf', 'distort', 'vib',
                        'room', 'delay', 'pan', 'arp', 'swingBy']);
 
@@ -347,56 +347,15 @@ function leerVeces(texto) {
   return null;
 }
 
-const SUJETOS_BANDA = ['la banda', 'el tema', 'la cancion'];
-const SUJETO_BANDA = new RegExp('^(?:' + SUJETOS_BANDA.map(s => s + ' ').join('|') + ')?');
-// una línea con el verbo es una parte, sea lo que sea el resto
-const VERBO = /^(toca|tocan)$/i, CON_VERBO = /\b(toca|tocan)\b/i;
-
 // ------------------------------------------------------------- la forma
 
 // más que esto la cinta no se lee como una forma
 const VUELTAS_FORMA = 256;
 
-// «nombre» es el normalizado, para comparar; «escrito» como se tecleó, para mostrar.
-// crudas y cuerpo van palabra a palabra porque norm() no parte ni junta palabras
-function leerSeccion(texto) {
-  if (CON_VERBO.test(texto)) return null;
-  const m = texto.match(/^\s*(.*?)\s*:\s*$/);
-  if (!m) return null;
-  const cuerpo = norm(m[1]).replace(SUJETO_BANDA, '').replace(/^(?:el|la|los|las) /, '');
-  if (!cuerpo) return { falla: 'sinNombre' };
-  const crudas = m[1].split(/\s+/).filter(Boolean);
-  const suyas = crudas.slice(-cuerpo.split(' ').length);
-  const dura = cuerpo.match(/^(\S+)\s+dura\s+(\S+)\s+vueltas?$/);
-  const nombre = dura ? dura[1] : cuerpo;
-  if (!/^[a-z0-9]+$/.test(nombre)) return { falla: 'nombre', escrito: suyas.join(' ') };
-  const escrito = suyas[0];
-  if (!dura) return { nombre, escrito, vueltas: null };
-  const v = cuantasVueltas(dura[2]);
-  if (!(v >= 1 && v <= VUELTAS_FORMA)) return { falla: 'dura' };
-  return { nombre, escrito, vueltas: v };
-}
-
-// «va a» es tempo sólo con número: una sección se puede llamar «a»
-function leerForma(texto) {
-  if (CON_VERBO.test(texto)) return null;
-  const m = norm(texto).replace(SUJETO_BANDA, '').match(/^va\s+(.+)$/);
-  if (!m || /^a(\s+\d|$)/.test(m[1])) return null;
-  return { nombres: m[1].split(' ').filter(Boolean) };
-}
-
 // el mismo rango que ofrecen el menú y el arrastre
 const TEMPO_MIN = 20, TEMPO_MAX = 400;
 // «va a 120 en tres»: cuántos tiempos tiene una vuelta
 const TIEMPOS_MAX = 12;
-
-function esTempo(texto) {
-  if (CON_VERBO.test(texto)) return false;
-  // «el tema va estrofa» es la forma
-  if (leerForma(texto)) return false;
-  const dos = norm(texto).split(' ').slice(0, 2).join(' ');
-  return dos === 'va a' || SUJETOS_BANDA.includes(dos);
-}
 
 const ACORDE = Object.fromEntries(Object.entries(ACORDES).map(([k, v]) => [norm(k), v]));
 
@@ -413,6 +372,17 @@ for (const [de, a] of Object.entries(ALIAS))
 // «constructor» es una palabra: sin prototipo, lo que no está no está
 for (const t of [SONIDOS, NOTAS, ALTERACIONES, OCTAVAS, ACORDE, INSTRUMENTOS, FIGURAS, RETIRADOS, GOLPES_VIEJOS]) Object.setPrototypeOf(t, null);
 const instrumentoDe = n => INSTRUMENTOS[norm(n)];
+
+// nombres que no son instrumentos pero dicen qué toca la parte: «los platillos» llevan
+// golpes, «la melodía» notas. Un instrumento, notas; lo demás no se sabe
+const NOMBRES_DE_GOLPES = new Set(['bata', 'batería', 'percusión', 'platillos', 'tambores', 'bombo'].map(norm));
+const NOMBRES_DE_NOTAS = new Set(['melodía', 'voz'].map(norm));
+function modoDelNombre(nombre) {
+  const n = norm(nombre || '');
+  if (NOMBRES_DE_GOLPES.has(n)) return 'sonido';
+  if (instrumentoDe(n) || NOMBRES_DE_NOTAS.has(n)) return 'nota';
+  return null;
+}
 
 // los alias van aparte: su .nombre es el del instrumento al que apuntan
 const TODAS_LAS_PALABRAS = () => [

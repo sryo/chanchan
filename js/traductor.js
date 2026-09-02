@@ -17,145 +17,116 @@ function traducirLinea(texto, nro) {
   let roto = false;
   const marcar = (i, len, cls, dato) => { const t = { i, len, cls, ...dato }; tk.push(t); return t; };
   const error = (i, len, msg, dato) => { marcar(i, len, 'mal', { tipo: 'mal', ...dato }); errs.push({ nro, msg }); };
+  const mala = () => ({ tipo: 'mala', tk, errs });
 
-  if (!texto.trim()) return { tipo: 'vacia', tk, errs };
+  const r = leerRenglon(texto), ws = r.palabras;
+  if (r.clase === 'vacia') return { tipo: 'vacia', tk, errs };
 
-  const ws = palabras(texto, 0);
-  const sinArticulo = ws[0] && /^(el|la|los|las)$/i.test(ws[0].w) ? ws.slice(1) : ws;
-
-  // ---- * una nota
-  // va primero: «* la estrofa:» no es una sección; puede llevar «@la base»
-  if (texto.trimStart().startsWith('*')) {
-    const ast = texto.indexOf('*'), arroba = texto.indexOf('@', ast);
-    const nombre = arroba < 0 ? '' : texto.slice(arroba + 1).replace(/[.,;:!?\s]+$/, '').trim();
-    if (!nombre) {
-      marcar(ast, texto.length - ast, 'comentario', { tipo: 'comentario' });
+  // ---- * un apunte
+  if (r.clase === 'apunte') {
+    if (!r.nombre) {
+      marcar(r.ast, texto.length - r.ast, 'comentario', { tipo: 'comentario' });
       return { tipo: 'comentario', tk, errs };
     }
-    marcar(ast, arroba - ast, 'comentario', { tipo: 'comentario' });
-    marcar(arroba, 1, 'estructura');
-    const desde = texto.indexOf(nombre, arroba + 1), fin = desde + nombre.length;
-    marcar(desde, nombre.length, 'enlace', { tipo: 'enlace', nombre });
-    if (fin < texto.length) marcar(fin, texto.length - fin, 'comentario', { tipo: 'comentario' });
-    return { tipo: 'comentario', nombre, tk, errs };
+    marcar(r.ast, r.arroba - r.ast, 'comentario', { tipo: 'comentario' });
+    marcar(r.arroba, 1, 'estructura');
+    marcar(r.nombre.desde, r.nombre.texto.length, 'enlace', { tipo: 'enlace', nombre: r.nombre.texto });
+    if (r.nombre.hasta < texto.length) marcar(r.nombre.hasta, texto.length - r.nombre.hasta, 'comentario', { tipo: 'comentario' });
+    return { tipo: 'comentario', nombre: r.nombre.texto, tk, errs };
   }
 
   // ---- la estrofa:
-  const sec = leerSeccion(texto);
-  if (sec) {
-    if (sec.falla) {
-      error(0, texto.length, sec.falla === 'sinNombre'
+  if (r.clase === 'seccion') {
+    if (r.falla) {
+      error(0, texto.length, r.falla === 'sinNombre'
         ? 'a la sección le falta el nombre: «la estrofa:».'
-        : sec.falla === 'dura'
+        : r.falla === 'dura'
           ? 'el largo de la sección va «la estrofa dura ocho vueltas:», con un número de 1 a ' + VUELTAS_FORMA + '.'
-          // los acentos entran: norm() los saca antes de la prueba
-          : 'el nombre de la sección es una palabra sola, sin espacios: «' + sec.escrito + '» no entra.');
-      return { tipo: 'mala', tk, errs };
+          : 'el nombre de la sección es una palabra sola, sin espacios: «' + r.escrito + '» no entra.');
+      return mala();
     }
     for (const x of ws) {
       const crudo = x.w.replace(/:$/, '');
-      if (norm(crudo) !== sec.nombre) { marcar(x.i, x.w.length, 'estructura'); continue; }
-      marcar(x.i, crudo.length, 'sujeto', { tipo: 'seccion', nombre: sec.nombre, escrito: sec.escrito });
+      if (norm(crudo) !== r.nombre) { marcar(x.i, x.w.length, 'estructura'); continue; }
+      marcar(x.i, crudo.length, 'sujeto', { tipo: 'seccion', nombre: r.nombre, escrito: r.escrito });
       if (crudo !== x.w) marcar(x.i + crudo.length, 1, 'estructura');
     }
-    return { tipo: 'seccion', nombre: sec.nombre, escrito: sec.escrito, vueltas: sec.vueltas, tk, errs };
+    return { tipo: 'seccion', nombre: r.nombre, escrito: r.escrito, vueltas: r.vueltas, tk, errs };
   }
 
   // ---- @la base
-  // un signo y no una palabra, ver REGLAS.md
-  const arroba = texto.indexOf('@');
-  if (arroba >= 0 && !texto.slice(0, arroba).trim()) {
-    marcar(arroba, 1, 'estructura');
-    const nombre = texto.slice(arroba + 1).trim();
-    if (!nombre) {
-      error(arroba, 1, 'después del «@» va el nombre de otro tema: «@la base».');
-      return { tipo: 'mala', tk, errs };
+  if (r.clase === 'enlace') {
+    if (!r.nombre.texto) {
+      error(r.arroba, 1, 'después del «@» va el nombre de otro tema: «@la base».');
+      return mala();
     }
-    marcar(texto.indexOf(nombre, arroba + 1), nombre.length, 'enlace', { tipo: 'enlace', nombre });
-    return { tipo: 'enlace', nombre, tk, errs };
+    marcar(r.arroba, 1, 'estructura');
+    marcar(r.nombre.desde, r.nombre.texto.length, 'enlace', { tipo: 'enlace', nombre: r.nombre.texto });
+    return { tipo: 'enlace', nombre: r.nombre.texto, tk, errs };
   }
 
   // ---- va estrofa estrofa estribillo
-  const forma = leerForma(texto);
-  if (forma) {
+  if (r.clase === 'forma') {
     // cada nombre es su propio token, para el ▾
     for (const x of ws) {
       const suelta = norm(x.w);
-      if (/^(la|el|banda|tema|cancion|canción|va)$/i.test(suelta)) marcar(x.i, x.w.length, 'estructura');
+      if (/^(la|el|banda|tema|cancion|va)$/.test(suelta)) marcar(x.i, x.w.length, 'estructura');
       else marcar(x.i, x.w.length, 'sujeto', { tipo: 'forma', nombre: suelta });
     }
-    return { tipo: 'forma', nro, nombres: forma.nombres, tk, errs };
+    return { tipo: 'forma', nro, nombres: r.nombres, tk, errs };
   }
 
   // ---- va a 92
-  if (esTempo(texto)) {
-    const m = texto.match(/(\d+(?:[.,]\d+)?)/);
-    if (!/\bva a\b/.test(norm(texto)) || !m) {
+  if (r.clase === 'tempo') {
+    const num = r.numero;
+    if (!/\bva a\b/.test(norm(texto)) || !num) {
       error(0, texto.length, 'para el tempo escribí «va a 92».');
-      return { tipo: 'mala', tk, errs };
+      return mala();
+    }
+    // un cero deja el reloj de strudel parado sin decir por qué
+    const bpm = parseFloat(num.texto.replace(',', '.'));
+    if (!(bpm >= TEMPO_MIN && bpm <= TEMPO_MAX)) {
+      error(num.desde, num.texto.length, 'el tempo va entre ' + TEMPO_MIN + ' y ' + TEMPO_MAX + ' tiempos por minuto.');
+      return mala();
     }
     // sólo el número es token con menú: toda la frase no dejaría dónde poner el cursor
-    if (m.index > 0) marcar(0, m.index, 'estructura');
-    marcar(m.index, m[1].length, 'estructura', { tipo: 'tempo' });
-    const finNum = m.index + m[1].length;
-    if (finNum < texto.length) marcar(finNum, texto.length - finNum, 'estructura');
-    // un cero deja el reloj de strudel parado sin decir por qué
-    const bpm = parseFloat(m[1].replace(',', '.'));
-    if (!(bpm >= TEMPO_MIN && bpm <= TEMPO_MAX)) {
-      error(m.index, m[1].length, 'el tempo va entre ' + TEMPO_MIN + ' y ' + TEMPO_MAX + ' tiempos por minuto.');
-      return { tipo: 'mala', tk, errs };
-    }
+    if (num.desde > 0) marcar(0, num.desde, 'estructura');
+    marcar(num.desde, num.texto.length, 'estructura', { tipo: 'tempo' });
     // «en tres»: cuántos tiempos tiene una vuelta; sin nada, cuatro
     let tiempos = 4;
-    const cola = texto.slice(finNum);
+    const cola = r.cola.texto;
     if (cola.trim()) {
       const en = norm(cola).match(/^en (\S+)$/);
       tiempos = en ? cuantasVueltas(en[1]) : 0;
       if (!(tiempos >= 2 && tiempos <= TIEMPOS_MAX)) {
-        error(finNum, cola.length, 'después del número va el compás, «va a 120 en tres», con un número de 2 a ' + TIEMPOS_MAX + ', o nada.');
-        return { tipo: 'mala', tk, errs };
+        error(num.hasta, cola.length, 'después del número va el compás, «va a 120 en tres», con un número de 2 a ' + TIEMPOS_MAX + ', o nada.');
+        return mala();
       }
-      tk.pop();
-      const desde = finNum + (cola.length - cola.trimStart().length);
-      marcar(finNum, desde - finNum, 'estructura');
+      const desde = num.hasta + (cola.length - cola.trimStart().length);
+      marcar(num.hasta, desde - num.hasta, 'estructura');
       marcar(desde, cola.trim().length, 'estructura', { tipo: 'compas' });
     }
     return { tipo: 'tempo', bpm, tiempos, tk, errs };
   }
 
   // ---- la <parte> toca <pasos>[, <modificador>]*
-  const iVerbo = ws.findIndex(x => VERBO.test(x.w));
-  if (iVerbo < 0) {
+  if (r.clase !== 'parte') {
     error(0, texto.length, 'no entiendo la línea. Va «la bata toca pum - pa -» o «va a 92».');
-    return { tipo: 'mala', tk, errs };
+    return mala();
   }
   // el nombre entero es un solo token, para que el menú lo cambie de una; el artículo va aparte y pesa menos
-  const iNombre = ws.length - sinArticulo.length;
-  for (const x of ws.slice(0, iNombre)) marcar(x.i, x.w.length, 'articulo');
+  for (const x of r.articulo) marcar(x.i, x.w.length, 'articulo');
   let sujetoTk = null;
-  if (iNombre < iVerbo) {
-    const a = ws[iNombre], z = ws[iVerbo - 1];
-    sujetoTk = marcar(a.i, z.i + z.w.length - a.i, 'sujeto', { tipo: 'instrumento' });
-  }
-  marcar(ws[iVerbo].i, ws[iVerbo].w.length, 'verbo');
-
-  const desde = ws[iVerbo].i + ws[iVerbo].w.length;
-  const resto = texto.slice(desde);
-
-  const clausulas = [];
-  let pos = 0;
-  for (const trozo of resto.split(',')) {
-    clausulas.push({ txt: trozo, i: desde + pos });
-    pos += trozo.length + 1;
-  }
-
-  const nombre = ws.slice(iNombre, iVerbo).map(x => x.w).join(' ') || 'parte';
+  if (r.sujeto) sujetoTk = marcar(r.sujeto.desde, r.sujeto.hasta - r.sujeto.desde, 'sujeto', { tipo: 'instrumento' });
+  marcar(r.verbo.desde, r.verbo.hasta - r.verbo.desde, 'verbo');
+  const clausulas = r.clausulas;
+  const nombre = r.nombre;
 
   // ---- los pasos
   // la barra no es un paso: corta, y cada tramo reparte los suyos
   const pasos = [], lugares = [], pasoTk = [], cortes = [], acentos = [];
   let modo = null, primerGolpe = null, desconocidos = 0;
-  const pw = palabras(clausulas[0].txt, clausulas[0].i);
+  const pw = clausulas[0].palabras;
   // lo que puede seguir a una nota: qué campo llena, cuántas palabras ocupa, hasta dónde llega y si trae el «!»
   const sufijoDeNota = k => {
     const pelada = j => norm(pw[j].w).replace(/!$/, '');
@@ -177,7 +148,13 @@ function traducirLinea(texto, nro) {
     const acento = /!$/.test(pw[k].w);
     const w = norm(pw[k].w).replace(/!$/, '');
     const sufijo = sufijoDeNota(k);
-    if (acento && !(SONIDOS[w] || NOTAS[w] || sufijo)) { error(pw[k].i, pw[k].w.length, 'el «!» va pegado a un golpe o a una nota: «pum!».'); continue; }
+    // un «!» suelto es error, pero el paso sigue ahí: silencio, o el corte de compás
+    if (acento && !(SONIDOS[w] || NOTAS[w] || sufijo)) {
+      error(pw[k].i, pw[k].w.length, 'el «!» va pegado a un golpe o a una nota: «pum!».');
+      if (w === '|') cortes.push(pasos.length);
+      else { pasos.push('-'); lugares.push(null); desconocidos++; }
+      continue;
+    }
     if (w === '|') {
       marcar(pw[k].i, pw[k].w.length, 'estructura');
       cortes.push(pasos.length);
@@ -188,7 +165,7 @@ function traducirLinea(texto, nro) {
       pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'silencio', { tipo: 'paso' }));
       pasos.push('_'); lugares.push(null);
     } else if (SONIDOS[w]) {
-      pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'sonido', { tipo: 'paso', alto: ALTO_GOLPE[w] }));
+      pasoTk.push(marcar(pw[k].i, pw[k].w.length, 'sonido', { tipo: 'paso', alto: ALTO_GOLPE[w], golpe: w }));
       if (!primerGolpe) primerGolpe = w;
       if (modo === 'nota') { roto = true; error(pw[k].i, pw[k].w.length, MEZCLA); }
       pasos.push(SONIDOS[w][0]); lugares.push({ i: pw[k].i, len: pw[k].w.length }); acentos[pasos.length - 1] = acento;
@@ -196,8 +173,8 @@ function traducirLinea(texto, nro) {
     } else if (NOTAS[w]) {
       const d = { altN: '', octN: '', acorde: '' };
       let fin = pw[k].i + pw[k].w.length, k2 = k + 1, acentoNota = acento;
-      // cada campo una vez: el repetido cierra el grupo y se marca en la vuelta que sigue. «do mayor!» también lo cierra
-      for (let s; k2 < pw.length && (s = sufijoDeNota(k2)) && !d[s.campo]; k2 += s.largo) {
+      // cada campo una vez: el repetido cierra el grupo y se marca en la vuelta que sigue. El «!» también lo cierra
+      for (let s; !acentoNota && k2 < pw.length && (s = sufijoDeNota(k2)) && !d[s.campo]; k2 += s.largo) {
         d[s.campo] = s.valor;
         fin = s.fin;
         if (s.acento) { acentoNota = true; k2 += s.largo; break; }
@@ -218,6 +195,8 @@ function traducirLinea(texto, nro) {
       modo = 'nota';
       notaAntes = { hasta: k2, escrito: texto.slice(pw[k].i, fin) };
       k = k2 - 1;
+    } else if (w === 'muy') {
+      error(pw[k].i, pw[k].w.length, '«muy» va con la altura: «muy grave» o «muy agudo».');
     } else if (sufijo) {
       // «do sostenido bemol», «pum mayor»: va después de una nota, y de una que no lo tenga
       const escrito = texto.slice(pw[k].i, sufijo.fin);
@@ -241,15 +220,15 @@ function traducirLinea(texto, nro) {
   if (sujetoTk) sujetoTk.modo = modo;
   if (!pasos.length) {
     // el token no toma el espacio de después del verbo; si no el ▾ pega «tocapum»
-    const sobra = clausulas[0].txt.length - clausulas[0].txt.trimStart().length;
-    const desde = clausulas[0].i + sobra;
+    const sobra = clausulas[0].texto.length - clausulas[0].texto.trimStart().length;
+    const desde = clausulas[0].desde + sobra;
     // el ▾ ofrece lo que puede ir ahí, y para eso tiene que saber de quién es el renglón
-    error(desde, Math.max(1, clausulas[0].txt.trim().length), 'falta qué tocar: «' + nombre + ' toca pum - pa -».',
+    error(desde, Math.max(1, clausulas[0].texto.trim().length), 'falta qué tocar: «' + nombre + ' toca pum - pa -».',
       { falta: 'paso', quien: nombre });
-    return { tipo: 'mala', tk, errs };
+    return mala();
   }
   // sin ningún paso entendido no hay qué tocar
-  if (!modo && desconocidos) return { tipo: 'mala', tk, errs };
+  if (!modo && desconocidos) return mala();
 
   // ---- los modificadores
   // las que dicen quién: «en pizzicato», «en una 808»
@@ -261,17 +240,21 @@ function traducirLinea(texto, nro) {
   const dicho = new Map();
   const sePisan = (clave, c, rango) => {
     const antes = dicho.get(clave);
-    if (antes) error(rango[0], rango[1], '«' + c.txt.trim() + '» y «' + antes + '» se pisan: dejá una sola.');
-    else dicho.set(clave, c.txt.trim());
+    if (antes) error(rango[0], rango[1], '«' + c.texto.trim() + '» y «' + antes + '» se pisan: dejá una sola.');
+    else dicho.set(clave, c.texto.trim());
     return !!antes;
   };
   for (const c of clausulas.slice(1)) {
-    const n = norm(c.txt);
+    const n = norm(c.texto);
     if (!n) continue;
-    const cw = palabras(c.txt, c.i);
+    const cw = c.palabras;
     const rango = [cw[0].i, cw[cw.length-1].i + cw[cw.length-1].w.length - cw[0].i];
     const inst = n.match(/^en (?:un |una |el |la |los |las )?(.+)$/);
-    const caja = inst && modo === 'sonido' ? maquinaDe(inst[1]) : null;
+    const caja = inst && maquinaDe(inst[1]);
+    if (caja && modo !== 'sonido') {
+      error(rango[0], rango[1], 'una caja de ritmos sólo sirve con golpes: «' + c.texto.trim() + '» va en la bata.');
+      continue;
+    }
     if (caja) {
       if (sePisan('quien', c, rango)) continue;
       maquina = caja.banco;
@@ -285,7 +268,7 @@ function traducirLinea(texto, nro) {
       continue;
     }
     // el arreglo, el euclidiano y las que envuelven llevan algo adentro: van antes de la tabla
-    const arreglo = leerArreglo(c.txt);
+    const arreglo = leerArreglo(c.texto);
     if (!arreglo && /\bvueltas?\s+si\b/.test(n)) {
       error(rango[0], rango[1], 'el arreglo va «cuatro vueltas sí y cuatro no», ' +
         'con números de 1 a ' + (VUELTAS_MAX - 1) + ' que sumen ' + VUELTAS_MAX + ' o menos.');
@@ -298,21 +281,21 @@ function traducirLinea(texto, nro) {
       marcar(rango[0], rango[1], 'mod', { tipo: 'arreglo' });
       continue;
     }
-    const euclid = leerEuclides(c.txt);
+    const euclid = leerEuclides(c.texto);
     if (euclid) {
       if (sePisan('struct', c, rango)) continue;
       cola += euclid.codigo;
       marcar(rango[0], rango[1], 'mod', { tipo: 'euclides' });
       continue;
     }
-    const figura = leerFigura(c.txt);
+    const figura = leerFigura(c.texto);
     if (figura) {
       if (sePisan('struct', c, rango)) continue;
       cola += figura.codigo;
       marcar(rango[0], rango[1], 'mod', { tipo: 'figura' });
       continue;
     }
-    const envuelve = leerCada(c.txt) || leerVeces(c.txt);
+    const envuelve = leerCada(c.texto) || leerVeces(c.texto);
     if (envuelve) {
       if (envuelve.falla === 'numero') {
         error(rango[0], rango[1], 'el «cada» va «cada cuatro vueltas al doble», ' +
@@ -329,7 +312,7 @@ function traducirLinea(texto, nro) {
         const s = envuelve.dentro && parecida(envuelve.dentro);
         error(rango[0], rango[1], envuelve.dentro
           ? 'no conozco «' + envuelve.dentro + '»' + (s ? '. ¿Será «' + s + '»?' : '.')
-          : 'falta qué hacer: «' + c.txt.trim() + ' al doble».');
+          : 'falta qué hacer: «' + c.texto.trim() + ' al doble».');
         continue;
       }
       cola += envuelve.codigo;
@@ -338,13 +321,13 @@ function traducirLinea(texto, nro) {
       continue;
     }
     if (n in RETIRADOS) {
-      error(rango[0], rango[1], '«' + c.txt.trim() + '» ya no existe' + (RETIRADOS[n] ? ': ' + RETIRADOS[n] : '.'));
+      error(rango[0], rango[1], '«' + c.texto.trim() + '» ya no existe' + (RETIRADOS[n] ? ': ' + RETIRADOS[n] : '.'));
       continue;
     }
     const mod = modificadorDe(n);
     if (mod) {
       if (mod[1].startsWith('.transpose') && modo === 'sonido') {
-        error(rango[0], rango[1], '«' + c.txt.trim() + '» sólo sirve con notas: los golpes no tienen altura.');
+        error(rango[0], rango[1], '«' + c.texto.trim() + '» sólo sirve con notas: los golpes no tienen altura.');
         continue;
       }
       const pisa = mod[1].match(/^\.(\w+)/);
@@ -353,27 +336,29 @@ function traducirLinea(texto, nro) {
       else cola += mod[1];
       const frena = /^\.slow\((\d+)\)$/.exec(mod[1]);
       if (frena) lento *= +frena[1];
-      marcar(rango[0], rango[1], 'mod', { tipo: 'modificador' });
+      marcar(rango[0], rango[1], 'mod', { tipo: 'modificador', callado: mod[1] === 'mute' });
       continue;
     }
-    const s = parecida(c.txt);
-    error(rango[0], rango[1], 'no conozco «' + c.txt.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
+    const s = parecida(c.texto);
+    error(rango[0], rango[1], 'no conozco «' + c.texto.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
   }
 
   // un golpe que la caja no tiene sonaría mudo sin decir nada; el token se pinta, la línea sigue
   const caja = modo === 'sonido' && cajaDe(maquina), avisados = new Set();
   if (caja) for (const t of pasoTk) {
-    const w = norm(texto.substr(t.i, t.len));
-    if (SONIDOS[w] && !caja.piezas.has(SONIDOS[w][0])) {
+    if (t.golpe && !caja.piezas.has(SONIDOS[t.golpe][0])) {
       t.cls = 'mal';
-      if (!avisados.has(w)) errs.push({ nro, msg: 'la ' + caja.nombre + ' no tiene ' + SONIDOS[w][1] + ': «' + w + '» ahí no suena.' });
-      avisados.add(w);
+      if (!avisados.has(t.golpe)) errs.push({ nro, msg: 'la ' + caja.nombre + ' no tiene ' + SONIDOS[t.golpe][1] + ': «' + t.golpe + '» ahí no suena.' });
+      avisados.add(t.golpe);
     }
   }
-  if (modo === 'sonido' && instrumento)
+  if (modo === 'sonido' && instrumento) {
+    const t = quiénTk.find(x => !x.modo);
+    if (t) t.cls = 'mal';
     errs.push({ nro, msg: 'los golpes ya traen su sonido: «en ' + instrumento.nombre + '» sólo sirve con notas.' });
+  }
 
-  if (roto) return { tipo: 'mala', tk, errs };
+  if (roto) return mala();
   // un compás vacío es silencio
   // «_» no cruza la barra en strudel: el que abre un compás repite la nota que venía
   const porCompases = lista => {
@@ -498,7 +483,8 @@ function traducir(fuente) {
     : acotarVueltas(renglones.reduce((a, r) => mcm(a, r.vueltas), 1));
   const arranca = tempos.length ? tempos[0] : { bpm, tiempos };
   return { codigo: armarCodigo(partes, tramos, arranca.bpm, arranca.tiempos), errores, marcas, partes, renglones, calladas, enlaces,
-           bpm: arranca.bpm, tiempos: arranca.tiempos, vueltas, tramos, tempos: tempos.length > 1 ? tempos : [] };
+           bpm: arranca.bpm, tiempos: arranca.tiempos, vueltas, tramos, tempos: tempos.length > 1 ? tempos : [],
+           secciones: [...secciones.values()].map(s => ({ nombre: s.nombre, escrito: s.escrito, vueltas: s.vueltas })) };
 }
 
 // un arrange por línea y no uno con stacks adentro: la cinta dibuja una franja por línea
