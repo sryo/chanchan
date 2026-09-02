@@ -54,7 +54,7 @@
     <h1>chan<span>chán</span></h1>
     <span class="rayita"></span>
     <span class="nombre">
-      <input id="nombre" placeholder="sin título" spellcheck="false" autocomplete="off"
+      <input id="nombre" placeholder="sin título" spellcheck="false" autocomplete="off" autocorrect="off" enterkeyhint="done"
              maxlength="60" aria-label="nombre del tema">
       <button id="abrir" title="abrir otro tema" popovertarget="temas"><svg class="i chica"><use href="#i-chevron"/></svg></button>
     </span>
@@ -66,7 +66,7 @@
   <section class="editor">
     <div class="wrap">
       <pre id="hl" aria-hidden="true"></pre>
-      <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="el tema"></textarea>
+      <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="enter" aria-label="el tema"></textarea>
     </div>
     <div id="errores"></div>
   </section>

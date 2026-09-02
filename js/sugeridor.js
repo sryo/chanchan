@@ -347,3 +347,10 @@ atajo('ArrowUp', 'subir en la lista', moverMarca(false));
 for (const t of ['ArrowLeft', 'ArrowRight', 'Home', 'End']) atajo(t, 'cerrar la sugerencia', soltarSugerencia);
 src.addEventListener('input', () => abrirSugeridor(false));
 src.addEventListener('blur', cerrarSugeridor);
+
+// el teclado del teléfono aparece o se va: lo que está abierto se reubica en lo que se ve
+if (visualViewport) for (const ev of ['resize', 'scroll']) visualViewport.addEventListener(ev, () => {
+  if (sug) acomodar(sugeridor, rectDe(sug.desde));
+  const t = tokenDelMenu && tokenDelSpan(tokenDelMenu);
+  if (t) acomodar(menu, t.r);
+});

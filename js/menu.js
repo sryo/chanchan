@@ -266,16 +266,23 @@ function pintarPanel(panel, secs, t, dueño = t) {
   });
 }
 
+// lo que se ve: con el teclado del teléfono levantado la ventana mide lo mismo y se ve la mitad
+const loVisible = () => visualViewport
+  ? { arriba: visualViewport.offsetTop, abajo: visualViewport.offsetTop + visualViewport.height,
+      izq: visualViewport.offsetLeft, der: visualViewport.offsetLeft + visualViewport.width }
+  : { arriba: 0, abajo: innerHeight, izq: 0, der: innerWidth };
+
 // el lado con más aire, y nunca más alto que el aire: taparía la palabra
 function acomodar(el, r) {
   // se mide suelto: con el lugar de la vez anterior el ancho sale recortado
   el.style.left = el.style.top = el.style.maxHeight = '';
-  const debajo = innerHeight - r.bottom - 12, encima = r.top - 12;
+  const v = loVisible();
+  const debajo = v.abajo - r.bottom - 12, encima = r.top - v.arriba - 12;
   const abajo = el.offsetHeight <= debajo || debajo >= encima;
   const aire = abajo ? debajo : encima;
   if (el.offsetHeight > aire) el.style.maxHeight = aire + 'px';
   el.style.top = (abajo ? r.bottom + 4 : r.top - 4 - el.offsetHeight) + 'px';
-  el.style.left = Math.max(8, Math.min(r.left, innerWidth - el.offsetWidth - 8)) + 'px';
+  el.style.left = Math.max(v.izq + 8, Math.min(r.left, v.der - el.offsetWidth - 8)) + 'px';
 }
 
 // ------------------------------------------------- el triángulo de seguridad

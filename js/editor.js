@@ -323,6 +323,20 @@ function actualizar(reproducir) {
   return r;
 }
 
+// con el teclado del teléfono la ventana sigue midiendo entera y se ve menos: la hoja
+// mide lo que se ve, y la página no se corre
+if (visualViewport) visualViewport.addEventListener('resize', () => {
+  document.documentElement.style.setProperty('--alto', visualViewport.height + 'px');
+  scrollTo(0, 0);
+  reacomodar();
+});
+
+// tocar un control no se lleva el foco de la hoja: en el teléfono el teclado se queda
+document.addEventListener('click', e => {
+  if (document.activeElement === src || e.target.closest('input, textarea')) return;
+  if (e.target.closest('button, .panel, #puntos')) src.focus({ preventScroll: true });
+});
+
 // el espejo y los puntitos al momento; lo que necesita a strudel, a los 400 ms
 let relojActualizar;
 src.addEventListener('input', () => {

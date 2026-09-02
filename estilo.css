@@ -56,11 +56,15 @@
   * { box-sizing: border-box; }
   /* el [hidden] del navegador no alcanza a un <svg>, y cualquier display nuestro le gana */
   [hidden] { display: none !important; }
+  /* la hoja mide lo que se ve: con el teclado del teléfono la ventana no se achica, --alto sí */
   html, body { height: 100%; margin: 0; }
+  body { height: var(--alto, 100%); overflow: hidden; }
   body {
     background: var(--fondo); color: var(--texto);
     font: var(--letra)/1.55 var(--mono);
     display: flex; flex-direction: column;
+    /* en el teléfono, dos toques no agrandan la página; pellizcar sí */
+    touch-action: manipulation;
   }
   #cinta { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
   /* el blanco invisible de cada franja; sin cursor de mano porque no hay nada que apretar */
@@ -325,6 +329,8 @@
   #temas .op.puesto { color: var(--marca-tinta); }
   @media (max-width: 720px) {
     :root { --sangria: 52px; --marco: 40px; --letra-logo: 24px; }
+    /* iOS agranda la página al enfocar un campo con letra menor a 16 */
+    #nombre { font-size: 16px; }
     header { gap: 10px; padding-right: var(--marco); }
     #tocar { width: 48px; height: 48px; }
     .marca { gap: 8px; }
