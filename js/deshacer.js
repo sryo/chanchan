@@ -1,14 +1,22 @@
 // --------------------------------------------------------------- deshacer
 // instantáneas del texto entero, que un tema son unos cientos de caracteres; el
 // ctrl+Z nativo no sirve porque asignar src.value le borra el historial
-const historial = [];
-let puntero = -1, grupoTecla = 0, aplicando = false;
+let historial = [], puntero = -1, grupoTecla = 0, aplicando = false;
+
+// el historial es de la hoja, ver REGLAS.md: cambiar de tema guarda el de la que se deja y levanta el del que llega
+const historiales = new Map();
+function cambiarHistorial(deja, llega) {
+  historiales.set(claveTema(deja), { historial, puntero });
+  ({ historial, puntero } = historiales.get(claveTema(llega)) || { historial: [], puntero: -1 });
+}
 
 function registrar(txt, ancla, grupo) {
   if (aplicando) return;
   const arriba = historial[puntero];
   // un arrastre entero, o una ráfaga de tecleo, son un solo paso para atrás
   if (grupo && arriba && arriba.grupo === grupo) { arriba.txt = txt; arriba.ancla = ancla; return; }
+  // lo mismo que ya está arriba no es un paso
+  if (!grupo && arriba && arriba.txt === txt) return;
   historial.length = puntero + 1;          // al cambiar algo se pierde el rehacer
   historial.push({ txt, ancla, grupo });
   puntero = historial.length - 1;

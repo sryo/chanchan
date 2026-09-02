@@ -7,46 +7,92 @@ const GUARDADO_NOMBRE = CASA + ':nombre';
 function recordado(clave) {
   try { return localStorage.getItem(clave); } catch (e) { return null; }   // modo privado
 }
+// falla en modo privado o con el disco lleno, y el que escribe tiene que enterarse
+function recordar(clave, valor) {
+  try { localStorage.setItem(clave, valor); return true; } catch (e) { return false; }
+}
+const NO_SE_GUARDO = 'no se pudo guardar en este navegador: lo escrito se pierde al cerrar la pestaña. Copiá el enlace o bajá el archivo.';
+
+// dos nombres que se leen igual son el mismo tema, ver REGLAS.md
+const claveTema = nombre => norm(nombre || '');
+const mismoTema = (a, b) => claveTema(a) === claveTema(b);
 
 // -------------------------------------------------------------- mis temas
-// el nombre es el guardado, ver REGLAS.md; sin nombre la hoja restaurada es una sola, la última
+// el nombre es el guardado, ver REGLAS.md; la hoja sin nombre vive en su casillero
+// hasta que se deja, y ahí la casa la bautiza
 const GUARDADO_TEMAS = CASA + ':temas';
-const TOPE_TEMAS = 60;
+const TOPE_TEMAS = 500;
 
 function misTemas() {
   try { return JSON.parse(recordado(GUARDADO_TEMAS) || '[]'); } catch (e) { return []; }
 }
 
-function escribirTemas(lista) {
-  try { localStorage.setItem(GUARDADO_TEMAS, JSON.stringify(lista)); }
-  catch (e) { /* modo privado, o lleno */ }
-}
+const escribirTemas = lista => recordar(GUARDADO_TEMAS, JSON.stringify(lista));
 
 // abrir un ejemplo sin tocarlo no lo hace tuyo
 const esUnEjemplo = (nombre, txt) =>
-  EJEMPLOS.some(e => e.nombre === nombre && conRenglonFinal(e.txt) === conRenglonFinal(txt));
+  EJEMPLOS.some(e => mismoTema(e.nombre, nombre) && conRenglonFinal(e.txt) === conRenglonFinal(txt));
 
 // el nombre es la identidad, ver REGLAS.md: renombrar e irse a otro tema llegan igual, los separa nombreViejo
 function anotarTema(nombre, txt, nombreViejo) {
-  if (esUnEjemplo(nombre, txt)) return;
-  const queda = misTemas().filter(t => t.nombre !== nombre && t.nombre !== nombreViejo);
-  queda.unshift({ nombre, txt, t: Date.now() });
-  escribirTemas(queda.slice(0, TOPE_TEMAS));
+  if (!nombre || esUnEjemplo(nombre, txt)) return true;
+  const queda = misTemas().filter(t => !mismoTema(t.nombre, nombre) && !(nombreViejo && mismoTema(t.nombre, nombreViejo)));
+  // un tema vacío no está en la lista
+  if (txt.trim()) queda.unshift({ nombre, txt, t: Date.now() });
+  if (queda.length > TOPE_TEMAS) avisar('la lista llegó a ' + TOPE_TEMAS + ' temas: el más viejo se fue.');
+  return escribirTemas(queda.slice(0, TOPE_TEMAS));
 }
 
-const olvidarTema = nombre => escribirTemas(misTemas().filter(t => t.nombre !== nombre));
+const olvidarTema = nombre => escribirTemas(misTemas().filter(t => !mismoTema(t.nombre, nombre)));
+
+// un tema tuyo con ese nombre y otro texto: con el mismo texto es el mismo tema
+const chocaCon = (nombre, txt) =>
+  misTemas().find(t => mismoTema(t.nombre, nombre) && conRenglonFinal(t.txt) !== conRenglonFinal(txt));
+
+function nombreLibre(base) {
+  let nombre = base, k = 2;
+  while (temaLlamado(nombre)) nombre = base + ' ' + k++;
+  return nombre;
+}
+
+// una hoja que persiste tiene nombre, ver REGLAS.md: al dejarla sin nombre y con algo escrito, la bautiza la casa
+function bautizar() {
+  if (campoNombre.value.trim() || !src.value.trim()) return;
+  if (conRenglonFinal(src.value) === conRenglonFinal(PRIMERA_HOJA)) return;
+  campoNombre.value = nombreLibre('sin título');
+  acomodarNombre();
+}
+
+// lo que llega por enlace o archivo no pisa un tema tuyo distinto: queda como «nombre 2»
+function recibido(tema) {
+  const mio = tema.nombre && chocaCon(tema.nombre, tema.txt);
+  if (!mio) return tema;
+  const nombre = nombreLibre(tema.nombre);
+  return { ...tema, nombre, aviso: 'ya tenías un «' + mio.nombre + '» distinto: el que llegó quedó como «' + nombre + '».' };
+}
+
+// después de cargar: cargarTema() termina en actualizar(), que rehace el cajón
+function cargarRecibido(tema) {
+  const t = recibido(tema);
+  cargarTema(t);
+  if (t.aviso) avisar(t.aviso);
+}
 
 let relojGuardar, nombreAbierto = '';   // con qué nombre está la hoja en la lista
 
 function guardarYa() {
   clearTimeout(relojGuardar);
   const nombre = campoNombre.value.trim();
-  try {
-    localStorage.setItem(GUARDADO, src.value);
-    localStorage.setItem(GUARDADO_NOMBRE, campoNombre.value);
-  } catch (e) { /* modo privado */ }
-  if (nombre) anotarTema(nombre, src.value, nombreAbierto);
-  nombreAbierto = nombre;
+  const pudo = recordar(GUARDADO, src.value) && recordar(GUARDADO_NOMBRE, campoNombre.value);
+  // renombrar encima de otro no lo pisa: el campo se pone en rojo y la hoja sigue con el nombre de antes
+  const choca = nombre && !mismoTema(nombre, nombreAbierto) && chocaCon(nombre, src.value);
+  campoNombre.classList.toggle('choca', !!choca);
+  if (choca) avisar('ya hay un tema que se llama «' + choca.nombre + '»' + (nombreAbierto
+    ? ': éste sigue guardado como «' + nombreAbierto + '».'
+    : ': éste no entra en la lista hasta que el nombre sea otro.'));
+  const anotado = anotarTema(choca ? nombreAbierto : nombre, src.value, nombreAbierto);
+  if (!pudo || !anotado) avisar(NO_SE_GUARDO);
+  if (!choca) nombreAbierto = nombre;
 }
 
 // se guarda el de ahora y la hoja pasa a ser el otro: lo que se teclee renombra a ése
@@ -57,9 +103,13 @@ function cambiarDeTema(nombre) {
 
 // vaciar el guardado perezoso antes de pisar el texto
 function cargarTema(tema) {
+  bautizar();
+  const deja = campoNombre.value.trim();
   cambiarDeTema(tema.nombre);
+  cambiarHistorial(deja, tema.nombre);
   src.value = conRenglonFinal(tema.txt);
   campoNombre.value = tema.nombre;
+  campoNombre.classList.remove('choca');
   acomodarNombre();
   registrar(src.value, null);
   actualizar(true);
@@ -69,10 +119,10 @@ function cargarTema(tema) {
 // con el mismo nombre gana el tuyo, ver REGLAS.md
 function temasTodos() {
   const mios = misTemas();
-  return [...mios, ...EJEMPLOS.filter(e => !mios.some(m => norm(m.nombre) === norm(e.nombre)))];
+  return [...mios, ...EJEMPLOS.filter(e => !mios.some(m => mismoTema(m.nombre, e.nombre)))];
 }
 
-const temaLlamado = nombre => temasTodos().find(t => norm(t.nombre) === norm(nombre));
+const temaLlamado = nombre => temasTodos().find(t => mismoTema(t.nombre, nombre));
 
 function irAlTema(nombre) {
   cargarTema(temaLlamado(nombre) || { nombre, txt: '' });
@@ -88,7 +138,12 @@ function guardar() {
 addEventListener('pagehide', guardarYa);
 
 // comprimido porque en claro son miles de caracteres; la «z» lo marca
-const aBase64 = b => btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+// de a bloques: desparramar el arreglo entero como argumentos tiene tope
+function aBase64(b) {
+  let s = '';
+  for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 const deBase64 = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
 const hayZip = () => typeof CompressionStream === 'function';
 const noSePudo = () => hayZip() ? 'ese enlace no se pudo abrir.'
@@ -113,12 +168,12 @@ async function hashDe(nombre, txt) {
 
 // los temas que éste nombra con «@», y los que ésos nombran, una vez cada uno
 function nombrados(nombre, txt) {
-  const vistos = new Set([norm(nombre)]), lista = [], cola = [txt];
+  const vistos = new Set([claveTema(nombre)]), lista = [], cola = [txt];
   while (cola.length)
     for (const n of traducir(cola.shift()).enlaces) {
-      const t = !vistos.has(norm(n)) && temaLlamado(n);
+      const t = !vistos.has(claveTema(n)) && temaLlamado(n);
       if (!t) continue;
-      vistos.add(norm(n)); lista.push(t); cola.push(t.txt);
+      vistos.add(claveTema(n)); lista.push(t); cola.push(t.txt);
     }
   return lista;
 }
@@ -134,7 +189,7 @@ async function armarHash() {
 function guardarTraidos(traidos) {
   const mios = misTemas();
   for (const t of traidos || [])
-    if (!mios.some(m => norm(m.nombre) === norm(t.nombre))) anotarTema(t.nombre, t.txt, null);
+    if (!mios.some(m => mismoTema(m.nombre, t.nombre))) anotarTema(t.nombre, t.txt, null);
 }
 
 
@@ -168,6 +223,12 @@ function leerHash() {
   return location.hash.length < 2 ? null : abrirCarga(location.hash.slice(1));
 }
 
+// un tema es lo que el traductor entiende como tal: alguna parte, o algún enlace a otro tema
+function pareceUnTema(txt) {
+  const r = traducir(txt);
+  return r.renglones.length > 0 || r.enlaces.length > 0;
+}
+
 // un enlace pegado en la hoja es un tema, no un texto; vale la dirección entera o lo que sigue al numeral.
 // Se decide por la forma: inflar es asíncrono y el pegado se corta o no ahora mismo
 const pareceEnlace = txt => !!txt && !/\s/.test(txt) &&
@@ -178,9 +239,9 @@ src.addEventListener('paste', e => {
   if (!pareceEnlace(crudo)) return;                  // pegado común y corriente
   e.preventDefault();
   abrirCarga(crudo.slice(crudo.indexOf('#') + 1)).then(tema => {
-    if (!tema || !/\btocan?\b/i.test(tema.txt)) return avisar(noSePudo());
+    if (!tema || !pareceUnTema(tema.txt)) return avisar(noSePudo());
     guardarTraidos(tema.traidos);
-    cargarTema(tema);
+    cargarRecibido(tema);
   });
 });
 
@@ -195,7 +256,7 @@ async function temaInicial() {
     // el enlace se consume: si quedara en la barra, recargar abriría esa versión vieja encima de lo escrito
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
     guardarTraidos(delEnlace.traidos);
-    return delEnlace;
+    return recibido(delEnlace);
   }
   const guardado = recordado(GUARDADO);
   return guardado
@@ -224,7 +285,7 @@ addEventListener('hashchange', async () => {
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
   if (!tema) return avisar(noSePudo());
   guardarTraidos(tema.traidos);
-  cargarTema(tema);
+  cargarRecibido(tema);
 });
 
 btnEnlace.addEventListener('click', async () => {

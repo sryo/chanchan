@@ -5,9 +5,21 @@ const cajaErr = document.getElementById('errores');
 const btnEnlace = document.getElementById('enlace');
 const campoNombre = document.getElementById('nombre');
 
-// al cajón de los errores del idioma, que es donde ya se está mirando
-function avisar(msg) {
-  cajaErr.innerHTML += '<p>' + esc(msg) + '</p>';
+// al cajón de los errores del idioma, que es donde ya se está mirando. El mismo
+// aviso no se repite; y puede traer un botón que lo deshace: [rótulo, qué hacer]
+function avisar(msg, deshace) {
+  if ([...cajaErr.children].some(p => p.dataset.msg === msg)) return;
+  const p = document.createElement('p');
+  p.dataset.msg = msg;
+  p.textContent = msg;
+  if (deshace) {
+    const b = document.createElement('button');
+    b.className = 'volver';
+    b.textContent = deshace[0];
+    b.addEventListener('click', () => { deshace[1](); p.remove(); });
+    p.append(' ', b);
+  }
+  cajaErr.appendChild(p);
 }
 
 const icono = (n, clase) =>

@@ -131,6 +131,8 @@
     background: none; border: 0; padding: 0; outline: none; min-width: 0;
   }
   #nombre::placeholder { color: var(--suave); }
+  /* renombrar encima de otro tema: el nombre no vale, ver REGLAS.md */
+  #nombre.choca { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
   button {
     font: inherit; color: var(--texto);
     background: var(--panel); border: 1px solid var(--linea);
@@ -281,6 +283,11 @@
   }
   #errores p { margin: 0 0 4px; color: var(--mal); }
   #errores b { color: var(--texto); font-weight: 600; }
+  /* el que deshace un aviso es texto, no un botón con caja */
+  #errores .volver {
+    background: none; border: 0; padding: 0; color: var(--texto);
+    text-decoration: underline dotted currentColor; text-underline-offset: 4px;
+  }
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
   /* el botón mide lo mismo que el ▾; el color lo pone el js en currentColor */
   .punto {

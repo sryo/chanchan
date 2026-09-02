@@ -7,9 +7,6 @@ const nombreDeArchivo = f => f.name.replace(/\.[^.]*$/, '');
 // lo que ningún sistema acepta en un nombre de archivo
 const comoArchivo = nombre => (nombre.trim() || 'sin título').replace(/[\/:\\?%*|"<>]/g, '-') + EXT;
 
-// lo mismo que pide el pegado, en guardado.js
-const pareceUnTema = txt => /\btocan?\b/i.test(txt);
-
 // ------------------------------------------------------------------ el handle
 // guardar dos veces tiene que escribir el mismo archivo, así que el handle queda por
 // nombre de tema; no es serializable, dura lo que dura la pestaña
@@ -36,7 +33,7 @@ async function guardarArchivo() {
   const tema = campoNombre.value.trim();
   const archivo = comoArchivo(tema);
   const txt = src.value;
-  let h = handles.get(tema);
+  let h = handles.get(claveTema(tema));
   try {
     if (!h && window.showSaveFilePicker)
       h = await showSaveFilePicker({ suggestedName: archivo,
@@ -46,7 +43,7 @@ async function guardarArchivo() {
     const chorro = await h.createWritable();
     await chorro.write(txt);
     await chorro.close();
-    if (tema) handles.set(tema, h);
+    if (tema) handles.set(claveTema(tema), h);
     decirEnElEnlace('archivo guardado');
   } catch (e) {
     // cancelar el diálogo no es un error
@@ -69,13 +66,15 @@ async function abrirArchivos(entradas) {
   // después de cargar: cargarTema() termina en actualizar(), que rehace el cajón de errores
   const quejarse = () => {
     for (const n of sobran)
-      avisar('«' + n + '» no parece un tema: no tiene ninguna línea con «toca».');
+      avisar('«' + n + '» no parece un tema: no tiene ninguna parte ni ningún enlace a otro tema.');
   };
   if (!leidos.length) return quejarse();
-  for (const t of leidos.slice(1)) anotarTema(t.nombre, conRenglonFinal(t.txt), null);
-  for (const t of leidos) if (t.handle && t.nombre) handles.set(t.nombre, t.handle);
-  cargarTema(leidos[0]);
+  const traidos = leidos.map(t => recibido({ ...t, txt: conRenglonFinal(t.txt) }));
+  for (const t of traidos.slice(1)) anotarTema(t.nombre, t.txt, null);
+  for (const t of traidos) if (t.handle && t.nombre) handles.set(claveTema(t.nombre), t.handle);
+  cargarTema(traidos[0]);
   quejarse();
+  for (const t of traidos) if (t.aviso) avisar(t.aviso);
   src.focus();
 }
 

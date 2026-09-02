@@ -4,17 +4,11 @@
 // una barra por instrumento y no por renglón, y hasta cinco: más dicen «muchos».
 // traducirLinea() y no traducir(): la forma y las secciones acá no dicen nada
 const TIRAS_MAX = 5;
-const _voces = new Map();
 
-function vocesDe(txt) {
-  if (_voces.has(txt)) return _voces.get(txt);
-  const voces = [...new Set(txt.split('\n')
-    .map((l, n) => traducirLinea(l, n + 1))
-    .filter(r => r.tipo === 'parte')
-    .map(r => r.voz))].slice(0, TIRAS_MAX);
-  _voces.set(txt, voces);
-  return voces;
-}
+const vocesDe = txt => [...new Set(txt.split('\n')
+  .map((l, n) => traducirLinea(l, n + 1))
+  .filter(r => r.tipo === 'parte')
+  .map(r => r.voz))].slice(0, TIRAS_MAX);
 
 const tira = txt => '<span class="tira">' +
   vocesDe(txt).map(v => '<span style="background:' + tramaDe(v) + '"></span>').join('') + '</span>';
@@ -65,10 +59,10 @@ function armarTemas() {
   const mios = misTemas();
   const abierto = campoNombre.value.trim();
   // una sola marca y es la del tuyo, ver REGLAS.md
-  const míoAbierto = mios.some(t => t.nombre === abierto);
+  const míoAbierto = mios.some(t => mismoTema(t.nombre, abierto));
   // la fecha va sólo en los propios: la columna vacía distingue un ejemplo cuando el encabezado se fue con el scroll
   const fila = (nombre, txt, dato, cuando, borrable) =>
-    '<div class="op' + (nombre === abierto && (borrable || !míoAbierto) ? ' puesto' : '') +
+    '<div class="op' + (mismoTema(nombre, abierto) && (borrable || !míoAbierto) ? ' puesto' : '') +
     '" ' + dato + '>' +
     tira(txt) + esc(nombre || 'sin título') +
     '<span class="d">' + esc(cuando) + '</span>' +
@@ -85,14 +79,20 @@ function armarTemas() {
     ev.preventDefault();
     // la × deja el panel abierto: borrar de a uno es un gesto de lista
     if (ev.target.closest('.borrar')) {
-      const nombre = mios[+el.dataset.mio].nombre;
-      olvidarTema(nombre);
+      const tema = mios[+el.dataset.mio];
+      olvidarTema(tema.nombre);
       // si es el abierto, la tecla que sigue lo volvería a anotar: se queda sin nombre
-      if (nombre === campoNombre.value.trim()) {
+      const eraElAbierto = mismoTema(tema.nombre, campoNombre.value);
+      if (eraElAbierto) {
         campoNombre.value = '';
         acomodarNombre();
         guardarYa();
       }
+      // borrar se deshace, ver REGLAS.md: el aviso dura hasta la tecla que sigue
+      avisar('se fue «' + tema.nombre + '» de la lista.', ['volverlo', () => {
+        anotarTema(tema.nombre, tema.txt, null);
+        if (eraElAbierto && !campoNombre.value.trim()) { campoNombre.value = tema.nombre; acomodarNombre(); guardarYa(); }
+      }]);
       // abierto no se angosta: el puntero seguiría sobre otra fila
       panelTemas.style.minWidth = panelTemas.offsetWidth + 'px';
       return armarTemas();
