@@ -177,6 +177,19 @@ function seccionesDe(t) {
     return [{ titulo: 'compás', ops: como(ofrecerCompases()) }];
 
   if (t.tipo === 'mal') {
+    // «el piano toca» sin pasos: lo que puede ir ahí. Con un instrumento por nombre, notas
+    if (d.falta === 'paso') {
+      const ins = instrumentoDe(d.quien);
+      // sin espacio después del verbo, el paso lo trae
+      const linea = src.value.split('\n')[t.l];
+      const pega = t.i > 0 && !/\s/.test(linea[t.i - 1] || ' ') ? ' ' : '';
+      const conEspacio = ops => ops.map(o => ({ ...o, nuevo: pega + o.txt }));
+      return [
+        ...(ins ? [] : [{ titulo: 'golpes', ops: conEspacio(ofrecerGolpes()) }]),
+        { titulo: 'notas', ops: conEspacio(ofrecerNotas(ins && ins.nombre)) },
+        { ...alPie, ops: conEspacio(ofrecerSilencios()) },
+      ];
+    }
     const s = parecida(hoy);
     return s ? [{ titulo: '¿será…?', ops: [{ txt: s, nuevo: s }] }] : null;
   }

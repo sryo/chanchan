@@ -231,6 +231,11 @@ const MODIFICADORES = [
   ['medio tono abajo',    '.transpose(-1)',     'lo mismo, medio tono más grave'],
 ];
 
+// los que ponen un valor: dos en la misma línea se pisan y el traductor avisa.
+// fast, slow, ply, transpose, rev y mute se componen, o repetirlos no cambia nada
+const PISAN = new Set(['gain', 'clip', 'attack', 'release', 'lpf', 'hpf', 'distort', 'vib',
+                       'room', 'delay', 'pan', 'arp', 'swingBy']);
+
 // lo que se fue del idioma; el aviso dice con qué se escribe ahora, si hay con qué
 const RETIRADOS = {
   'una por vuelta': 'escribí «|» entre los pasos que van en vueltas distintas: «do mayor | fa mayor»',
@@ -416,6 +421,7 @@ const TODAS_LAS_PALABRAS = () => [
   ...MODIFICADORES.map(m => m[0]), ...Object.keys(FIGURAS).map(f => 'en ' + f),
 ];
 
+// nunca más cambios que letras: a nada no se le parece nada
 function parecida(palabra) {
   const p = norm(palabra);
   let mejor = null, min = Infinity;
@@ -423,5 +429,5 @@ function parecida(palabra) {
     const d = distancia(p, norm(c));
     if (d < min) { min = d; mejor = c; }
   }
-  return min <= Math.max(2, Math.floor(p.length / 3)) ? mejor : null;
+  return min <= Math.min(p.length, Math.max(2, Math.floor(p.length / 3))) ? mejor : null;
 }

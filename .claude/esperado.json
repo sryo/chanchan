@@ -153,7 +153,7 @@
   "enlaces": []
  },
  "el punto ya no es silencio": {
-  "codigo": "setcpm(90/4)\ns(\"bd sd\").bank(\"linndrum\").orbit(0)",
+  "codigo": "setcpm(90/4)\ns(\"bd - sd\").bank(\"linndrum\").orbit(0)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [
@@ -182,7 +182,7 @@
   "enlaces": []
  },
  "constructor no es un golpe": {
-  "codigo": "setcpm(90/4)\ns(\"bd\").bank(\"linndrum\").orbit(0)",
+  "codigo": "setcpm(90/4)\ns(\"bd -\").bank(\"linndrum\").orbit(0)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [
@@ -388,7 +388,7 @@
   "enlaces": []
  },
  "los golpes viejos avisan": {
-  "codigo": "setcpm(90/4)\ns(\"bd\").bank(\"linndrum\").orbit(0)",
+  "codigo": "setcpm(90/4)\ns(\"bd - -\").bank(\"linndrum\").orbit(0)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [
@@ -433,6 +433,81 @@
     "tiempos": 4
    }
   ],
+  "enlaces": []
+ },
+ "el acento cierra el grupo de la nota": {
+  "codigo": "setcpm(90/4)\nnote(\"[c4,e4,g4] d#4 e2 [f4,g#4,c5,d#5]\").sound(\"piano\").velocity(\"1.4 1.4 1.4 1.4\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "cada campo de la nota, una vez": {
+  "codigo": "setcpm(90/4)\nnote(\"<[c#4] [d3] [[e4,g#4,b4]] [[f4,g#4,c5,d#5]]>\").sound(\"piano\").orbit(0)",
+  "vueltas": 4,
+  "bpm": 90,
+  "errores": [
+   "1: «bemol» sobra: «do sostenido» ya dice si va sostenida o bemol.",
+   "1: «agudo» sobra: «re grave» ya dice la altura.",
+   "1: «menor» sobra: «mi mayor» ya dice el acorde.",
+   "1: «mayor» sobra: «fa menor séptima» ya dice el acorde."
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "un sufijo suelto va después de una nota": {
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd sd\").bank(\"linndrum\").orbit(0), // bata\n  note(\"c4\").sound(\"piano\").orbit(1), // piano\n)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: «mayor» va después de una nota: «do mayor».",
+   "2: «sostenido» va después de una nota: «do sostenido»."
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "las cláusulas que se pisan avisan": {
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4\").sound(\"bajo\").gain(.45).orbit(0), // bajo\n  note(\"d4\").sound(\"viola\").struct(\"x*8\").orbit(1), // viola\n  note(\"e4\").sound(\"piano\").orbit(2), // piano\n  s(\"bd\").bank(\"linndrum\").mask(\"<1 0>\").orbit(3), // bata\n)",
+  "vueltas": 2,
+  "bpm": 90,
+  "errores": [
+   "1: «fuerte» y «bajito» se pisan: dejá una sola.",
+   "2: «en negras» y «en corcheas» se pisan: dejá una sola.",
+   "2: «tres en ocho» y «en corcheas» se pisan: dejá una sola.",
+   "3: «en una viola» y «en un piano» se pisan: dejá una sola.",
+   "4: no conozco «en una 808». Pasá el mouse por encima y tocá el ▾.",
+   "4: no conozco «en una 909». Pasá el mouse por encima y tocá el ▾.",
+   "4: «dos vueltas sí y dos no» y «una vuelta sí y una no» se pisan: dejá una sola."
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "las relativas se componen": {
+  "codigo": "setcpm(90/4)\nnote(\"c4\").sound(\"bajo\").fast(2).fast(2).transpose(2).transpose(1).ply(2).ply(2).orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "un paso desconocido es un silencio": {
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd - sd\").bank(\"linndrum\").orbit(0), // bata\n  note(\"c4 - d4\").sound(\"bajo\").orbit(1), // bajo\n)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: no conozco «xx». ¿Será «pa»?",
+   "2: el silencio es «-».",
+   "3: no conozco «xx». ¿Será «pa»?",
+   "3: no conozco «yy». ¿Será «pa»?"
+  ],
+  "tramos": [],
+  "tempos": [],
   "enlaces": []
  }
 }

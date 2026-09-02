@@ -51,6 +51,12 @@ const CASOS = [
   ['los golpes viejos avisan',           'la bata toca pum tas chas'],
   ['acento por paso',                    'la bata toca pum! pa - pa!, bajito\nel bajo toca do! _ re | - mi!\nla viola toca do -!'],
   ['compás por sección, y lo que no es compás', 'la estrofa:\nva a 120 en tres\nla bata toca pum - -\nel final:\nva a 120\nla bata toca pum pa\nva a 120 por minuto'],
+  ['el acento cierra el grupo de la nota',  'el piano toca do mayor! re sostenido! mi muy grave! fa! menor séptima'],
+  ['cada campo de la nota, una vez',        'el piano toca do sostenido bemol | re grave agudo | mi mayor menor | fa menor séptima mayor'],
+  ['un sufijo suelto va después de una nota', 'la bata toca pum mayor pa\nel piano toca sostenido do'],
+  ['las cláusulas que se pisan avisan',      'el bajo toca do, bajito, fuerte\nla viola toca re, en corcheas, en negras, tres en ocho\nel piano toca mi, en un piano, en una viola\nla bata toca pum, en una 808, en una 909, una vuelta sí y una no, dos vueltas sí y dos no'],
+  ['las relativas se componen',              'el bajo toca do, al doble, al doble, un tono arriba, medio tono arriba, cada golpe dos veces, cada golpe dos veces'],
+  ['un paso desconocido es un silencio',     'la bata toca pum xx pa\nel bajo toca do . re\nla bata toca xx yy'],
 ];
 
 const foto = txt => {

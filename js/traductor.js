@@ -16,7 +16,7 @@ function traducirLinea(texto, nro) {
   const tk = [], errs = [];
   let roto = false;
   const marcar = (i, len, cls, dato) => { const t = { i, len, cls, ...dato }; tk.push(t); return t; };
-  const error = (i, len, msg) => { marcar(i, len, 'mal', { tipo: 'mal' }); errs.push({ nro, msg }); };
+  const error = (i, len, msg, dato) => { marcar(i, len, 'mal', { tipo: 'mal', ...dato }); errs.push({ nro, msg }); };
 
   if (!texto.trim()) return { tipo: 'vacia', tk, errs };
 
@@ -154,13 +154,30 @@ function traducirLinea(texto, nro) {
   // ---- los pasos
   // la barra no es un paso: corta, y cada tramo reparte los suyos
   const pasos = [], lugares = [], pasoTk = [], cortes = [], acentos = [];
-  let modo = null, primerGolpe = null;
+  let modo = null, primerGolpe = null, desconocidos = 0;
   const pw = palabras(clausulas[0].txt, clausulas[0].i);
+  // lo que puede seguir a una nota: qué campo llena, cuántas palabras ocupa, hasta dónde llega y si trae el «!»
+  const sufijoDeNota = k => {
+    const pelada = j => norm(pw[j].w).replace(/!$/, '');
+    const una = pelada(k), dos = k + 1 < pw.length ? una + ' ' + pelada(k + 1) : '';
+    const con = (campo, valor, largo) => ({ campo, valor, largo,
+      fin: pw[k + largo - 1].i + pw[k + largo - 1].w.length,
+      acento: pw.slice(k, k + largo).some(x => /!$/.test(x.w)) });
+    if (dos && ACORDE[dos]) return con('acorde', dos, 2);
+    if (dos && OCTAVAS[dos]) return con('octN', dos, 2);
+    if (ALTERACIONES[una]) return con('altN', una, 1);
+    if (ACORDE[una]) return con('acorde', una, 1);
+    if (OCTAVAS[una]) return con('octN', una, 1);
+    return null;
+  };
+  const DICE = { altN: 'si va sostenida o bemol', octN: 'la altura', acorde: 'el acorde' };
+  let notaAntes = null;    // la última nota leída y dónde terminó, para el sufijo que sobra
   for (let k = 0; k < pw.length; k++) {
     // «pum!»: el paso va acentuado; el signo es parte de la palabra
     const acento = /!$/.test(pw[k].w);
     const w = norm(pw[k].w).replace(/!$/, '');
-    if (acento && !(SONIDOS[w] || NOTAS[w])) { error(pw[k].i, pw[k].w.length, 'el «!» va pegado a un golpe o a una nota: «pum!».'); continue; }
+    const sufijo = sufijoDeNota(k);
+    if (acento && !(SONIDOS[w] || NOTAS[w] || sufijo)) { error(pw[k].i, pw[k].w.length, 'el «!» va pegado a un golpe o a una nota: «pum!».'); continue; }
     if (w === '|') {
       marcar(pw[k].i, pw[k].w.length, 'estructura');
       cortes.push(pasos.length);
@@ -177,44 +194,46 @@ function traducirLinea(texto, nro) {
       pasos.push(SONIDOS[w][0]); lugares.push({ i: pw[k].i, len: pw[k].w.length }); acentos[pasos.length - 1] = acento;
       modo = 'sonido';
     } else if (NOTAS[w]) {
-      let oct = OCTAVA_BASE, alt = '', acorde = '', fin = pw[k].i + pw[k].w.length;
-      let altN = '', octN = '';
-      let k2 = k + 1;
-      while (k2 < pw.length) {
-        const n2 = norm(pw[k2].w);
-        // «menor séptima» antes que «menor»: el par de palabras le gana a la suelta
-        const n3 = k2 + 1 < pw.length ? n2 + ' ' + norm(pw[k2 + 1].w) : '';
-        if (n3 && ACORDE[n3]) { acorde = n3; k2++; }
-        else if (ALTERACIONES[n2]) { alt = ALTERACIONES[n2]; altN = n2; }
-        else if (ACORDE[n2]) { acorde = n2; }
-        else if (OCTAVAS[n2]) { oct = OCTAVAS[n2]; octN = n2; }
-        else if (n2 === 'muy' && k2 + 1 < pw.length && OCTAVAS['muy ' + norm(pw[k2+1].w)]) {
-          octN = 'muy ' + norm(pw[k2+1].w); oct = OCTAVAS[octN]; k2++;
-        } else break;
-        fin = pw[k2].i + pw[k2].w.length;
-        k2++;
+      const d = { altN: '', octN: '', acorde: '' };
+      let fin = pw[k].i + pw[k].w.length, k2 = k + 1, acentoNota = acento;
+      // cada campo una vez: el repetido cierra el grupo y se marca en la vuelta que sigue. «do mayor!» también lo cierra
+      for (let s; k2 < pw.length && (s = sufijoDeNota(k2)) && !d[s.campo]; k2 += s.largo) {
+        d[s.campo] = s.valor;
+        fin = s.fin;
+        if (s.acento) { acentoNota = true; k2 += s.largo; break; }
       }
+      const oct = d.octN ? OCTAVAS[d.octN] : OCTAVA_BASE, alt = ALTERACIONES[d.altN] || '';
       // raizLen parte el token para pintar la nota distinto de lo que la acompaña
       pasoTk.push(marcar(pw[k].i, fin - pw[k].i, 'nota',
-        { tipo: 'nota', raiz: w, altN, octN, acorde, alto: altoDeOctava(oct), raizLen: pw[k].w.length }));
+        { tipo: 'nota', raiz: w, ...d, alto: altoDeOctava(oct), raizLen: pw[k].w.length }));
       lugares.push({ i: pw[k].i, len: fin - pw[k].i });
-      if (acorde) {
+      if (d.acorde) {
         const raiz = GRADOS[NOTAS[w]] + (alt === '#' ? 1 : alt === 'b' ? -1 : 0);
-        pasos.push('[' + ACORDE[acorde].map(iv => nombreNota(raiz + iv, oct)).join(',') + ']');
+        pasos.push('[' + ACORDE[d.acorde].map(iv => nombreNota(raiz + iv, oct)).join(',') + ']');
       } else {
         pasos.push(NOTAS[w] + alt + oct);
       }
       if (modo === 'sonido') { roto = true; error(pw[k].i, fin - pw[k].i, MEZCLA); }
-      acentos[pasos.length - 1] = acento;
+      acentos[pasos.length - 1] = acentoNota;
       modo = 'nota';
+      notaAntes = { hasta: k2, escrito: texto.slice(pw[k].i, fin) };
       k = k2 - 1;
-    } else if (w === '.') {
-      error(pw[k].i, pw[k].w.length, 'el silencio es «-».');
-    } else if (GOLPES_VIEJOS[w]) {
-      error(pw[k].i, pw[k].w.length, '«' + w + '» ahora se escribe «' + GOLPES_VIEJOS[w] + '».');
+    } else if (sufijo) {
+      // «do sostenido bemol», «pum mayor»: va después de una nota, y de una que no lo tenga
+      const escrito = texto.slice(pw[k].i, sufijo.fin);
+      error(pw[k].i, sufijo.fin - pw[k].i, notaAntes && notaAntes.hasta === k
+        ? '«' + escrito + '» sobra: «' + notaAntes.escrito + '» ya dice ' + DICE[sufijo.campo] + '.'
+        : '«' + escrito + '» va después de una nota: «do ' + escrito + '».');
+      k += sufijo.largo - 1;
     } else {
-      const s = parecida(pw[k].w);
-      error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
+      // lo que no se entiende suena como silencio: el error ya está, y los otros pasos no se corren
+      if (w === '.') error(pw[k].i, pw[k].w.length, 'el silencio es «-».');
+      else if (GOLPES_VIEJOS[w]) error(pw[k].i, pw[k].w.length, '«' + w + '» ahora se escribe «' + GOLPES_VIEJOS[w] + '».');
+      else {
+        const s = parecida(pw[k].w);
+        error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'));
+      }
+      pasos.push('-'); lugares.push(null); desconocidos++;
     }
   }
   // recién acá se sabe si la línea es de golpes o de notas
@@ -224,9 +243,13 @@ function traducirLinea(texto, nro) {
     // el token no toma el espacio de después del verbo; si no el ▾ pega «tocapum»
     const sobra = clausulas[0].txt.length - clausulas[0].txt.trimStart().length;
     const desde = clausulas[0].i + sobra;
-    error(desde, Math.max(1, clausulas[0].txt.trim().length), 'falta qué tocar: «' + nombre + ' toca pum - pa -».');
+    // el ▾ ofrece lo que puede ir ahí, y para eso tiene que saber de quién es el renglón
+    error(desde, Math.max(1, clausulas[0].txt.trim().length), 'falta qué tocar: «' + nombre + ' toca pum - pa -».',
+      { falta: 'paso', quien: nombre });
     return { tipo: 'mala', tk, errs };
   }
+  // sin ningún paso entendido no hay qué tocar
+  if (!modo && desconocidos) return { tipo: 'mala', tk, errs };
 
   // ---- los modificadores
   // las que dicen quién: «en pizzicato», «en una 808»
@@ -234,6 +257,14 @@ function traducirLinea(texto, nro) {
   let cola = '', instrumento = null, callado = false, maquina = MAQUINA;
   // los tres períodos que forman el de la línea; «al doble» no cuenta
   let lento = 1, vueltasMascara = 1, vueltasMod = 1;
+  // dos cláusulas sobre el mismo parámetro: la segunda no pisa a la primera en silencio
+  const dicho = new Map();
+  const sePisan = (clave, c, rango) => {
+    const antes = dicho.get(clave);
+    if (antes) error(rango[0], rango[1], '«' + c.txt.trim() + '» y «' + antes + '» se pisan: dejá una sola.');
+    else dicho.set(clave, c.txt.trim());
+    return !!antes;
+  };
   for (const c of clausulas.slice(1)) {
     const n = norm(c.txt);
     if (!n) continue;
@@ -242,11 +273,13 @@ function traducirLinea(texto, nro) {
     const inst = n.match(/^en (?:un |una |el |la |los |las )?(.+)$/);
     const caja = inst && modo === 'sonido' ? maquinaDe(inst[1]) : null;
     if (caja) {
+      if (sePisan('quien', c, rango)) continue;
       maquina = caja.banco;
       quiénTk.push(marcar(rango[0], rango[1], 'mod', { tipo: 'instrumento', conEn: true, modo: 'sonido' }));
       continue;
     }
     if (inst && instrumentoDe(inst[1])) {
+      if (sePisan('quien', c, rango)) continue;
       instrumento = instrumentoDe(inst[1]);
       quiénTk.push(marcar(rango[0], rango[1], 'mod', { tipo: 'instrumento', conEn: true }));
       continue;
@@ -259,6 +292,7 @@ function traducirLinea(texto, nro) {
       continue;
     }
     if (arreglo) {
+      if (sePisan('mask', c, rango)) continue;
       cola += mascaraDe(arreglo.n, arreglo.q);
       vueltasMascara = arreglo.n + arreglo.q;
       marcar(rango[0], rango[1], 'mod', { tipo: 'arreglo' });
@@ -266,12 +300,14 @@ function traducirLinea(texto, nro) {
     }
     const euclid = leerEuclides(c.txt);
     if (euclid) {
+      if (sePisan('struct', c, rango)) continue;
       cola += euclid.codigo;
       marcar(rango[0], rango[1], 'mod', { tipo: 'euclides' });
       continue;
     }
     const figura = leerFigura(c.txt);
     if (figura) {
+      if (sePisan('struct', c, rango)) continue;
       cola += figura.codigo;
       marcar(rango[0], rango[1], 'mod', { tipo: 'figura' });
       continue;
@@ -311,6 +347,8 @@ function traducirLinea(texto, nro) {
         error(rango[0], rango[1], '«' + c.txt.trim() + '» sólo sirve con notas: los golpes no tienen altura.');
         continue;
       }
+      const pisa = mod[1].match(/^\.(\w+)/);
+      if (pisa && PISAN.has(pisa[1]) && sePisan(pisa[1], c, rango)) continue;
       if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
       else cola += mod[1];
       const frena = /^\.slow\((\d+)\)$/.exec(mod[1]);
