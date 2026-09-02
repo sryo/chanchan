@@ -43,7 +43,7 @@ function ranuraEn(linea, col) {
   const { verbo, clausulas, modo } = r;
   // pegado al verbo ya escrito y sin pasos, lo que sigue es el primero, con su espacio adelante
   if (col === verbo.hasta && !clausulas[0].palabras.length)
-    return { ranura: 'paso', arranque: true, pega: ' ', modo: modoDelNombre(r.nombre), trasNota: false, ...trozo(col, col) };
+    return { ranura: 'paso', arranque: true, pega: ' ', modo: modoDelNombre(r.nombre), nota: null, ...trozo(col, col) };
   if (col < verbo.hasta) {
     // del nombre, si hay, al verbo
     const a = r.sujeto ? r.sujeto.desde : verbo.desde;
@@ -65,10 +65,12 @@ function ranuraEn(linea, col) {
 
   const pw = clausulas[0].palabras;
   const previa = pw.filter(x => x.i + x.w.length < col).pop();
-  const n = previa && norm(previa.w);
-  const trasNota = !!n && !!(NOTAS[n] || ALTERACIONES[n] || ACORDE[n] || OCTAVAS[n] || n === 'muy');
-  // sin ningún paso escrito, el nombre dice el modo
-  return { ranura: 'paso', modo: modo || modoDelNombre(r.nombre), trasNota, arranque: !pw.length, ...palabraEn() };
+  // la nota que termina justo antes del cursor, con lo que ya tiene: el traductor lo sabe
+  const nota = previa && traducirLinea(linea, 1).tk.find(t => t.tipo === 'nota' && t.i + t.len === previa.i + previa.w.length) || null;
+  // sin ningún paso escrito, el nombre dice el modo; después de un paso y un espacio
+  // tampoco se sabe qué sigue: se ofrece solo, como tras el verbo
+  const palabra = palabraEn();
+  return { ranura: 'paso', modo: modo || modoDelNombre(r.nombre), nota, arranque: !palabra.prefijo, ...palabra };
 }
 
 const sugeridor = document.createElement('div');
@@ -208,8 +210,15 @@ function armarSecciones(r, soloPega) {
   if (r.ranura === 'paso') {
     const secs = [];
     const voz = vozDeLinea(r.l);
-    const sufijos = comoOps([...ofrecerAlteraciones(voz), ...ofrecerOctavas(voz), ...ofrecerAcordes(voz)]);
-    if (r.modo !== 'sonido' && r.trasNota) secs.push(...sec('seguir la nota', filtrar(sufijos)));
+    // lo que a la nota le falta, en su orden: alteración, altura, acorde
+    if (r.modo !== 'sonido' && r.nota) {
+      const n = r.nota, sufijos = comoOps([
+        ...(!n.altN && !n.octN && !n.acorde ? ofrecerAlteraciones(voz) : []),
+        ...(!n.octN && !n.acorde ? ofrecerOctavas(voz) : []),
+        ...(!n.acorde ? ofrecerAcordes(voz) : []),
+      ]);
+      if (sufijos.length) secs.push(...sec('seguir la nota', filtrar(sufijos)));
+    }
     if (r.modo !== 'nota') secs.push(...sec('golpes', filtrar(comoOps(ofrecerGolpes()))));
     if (r.modo !== 'sonido') secs.push(...sec('notas', filtrar(comoOps(ofrecerNotas(voz)))));
     secs.push(...sec('o', filtrar(comoOps(ofrecerSilencios()))));
