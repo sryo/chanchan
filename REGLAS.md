@@ -86,7 +86,7 @@ Ningún gesto pisa un texto distinto con el mismo nombre. Renombrar encima de ot
 
 Un tema vacío no está en la lista. Seguir un `@` a un tema que no existe abre la hoja con ese nombre, y recién se guarda cuando hay algo escrito.
 
-Borrar se deshace. El aviso del cajón trae el botón para volverlo, y dura hasta la tecla que sigue.
+Borrar se deshace. El aviso del cajón trae el botón para recuperarlo, y dura hasta la tecla que sigue.
 
 De ahí sale algo que parece un error y no lo es. Si abriste un ejemplo y lo tocaste, el guardado te dejó una copia con ese nombre, y la lista muestra las dos filas. Son el mismo tema. La marca de abierto va en la tuya, que es la que se escribe en cada tecla. La del ejemplo queda limpia, porque es la manera de volver a cómo venía.
 

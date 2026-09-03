@@ -82,7 +82,7 @@ function armarTemas() {
         guardarYa();
       }
       // borrar se deshace, ver REGLAS.md: el aviso dura hasta la tecla que sigue
-      avisar('se fue «' + tema.nombre + '» de la lista.', ['volverlo', () => {
+      avisar('«' + tema.nombre + '» fue borrado.', ['recuperar', () => {
         anotarTema(tema.nombre, eraElAbierto ? src.value : tema.txt, null);
         if (eraElAbierto && !campoNombre.value.trim()) { campoNombre.value = tema.nombre; acomodarNombre(); guardarYa(); }
       }]);
