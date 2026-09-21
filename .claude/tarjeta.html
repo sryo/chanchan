@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<title>la tarjeta</title>
+<!-- la imagen de los enlaces pegados: tarjeta.png es esta página capturada a 1200×630 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@600&display=swap">
+<style>
+  :root {
+    --fondo: #efe6d2; --texto: #123540; --andamio: #aba493; --silencio: #978f7b;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --titular: 'Antonio', 'Arial Narrow', system-ui, sans-serif;
+    --marco: 84px;
+  }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: var(--fondo); }
+  #cinta { position: absolute; inset: 0; }
+  #cinta path { fill: none; }
+
+  .hoja { position: absolute; left: calc(var(--marco) + 62px); top: calc(var(--marco) + 50px); }
+  .marca { display: flex; align-items: center; gap: 30px; }
+  .tocar {
+    width: 136px; height: 136px; border-radius: 50%; background: var(--marca);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tocar svg { width: 48px; height: 48px; fill: var(--fondo); }
+  h1 {
+    font-family: var(--titular); font-size: 106px; line-height: .8;
+    text-box: trim-both cap alphabetic;
+    margin: 0; font-weight: 600; letter-spacing: -.02em; color: var(--marca);
+  }
+  h1 span { display: block; color: var(--marca-fin); }
+
+  pre {
+    margin: 54px 0 0; font: 42px/1.75 var(--mono); color: var(--texto);
+    padding-left: 64px; position: relative;
+  }
+  .punto {
+    position: absolute; left: 10px; width: 34px; height: 34px; border-radius: 50%;
+    margin-top: calc((1.75em - 34px) / 2);
+  }
+  .t-articulo, .t-verbo, .t-estructura { color: var(--andamio); }
+  .t-sonido, .t-nota { font-weight: 600; }
+  .t-silencio { color: var(--silencio); }
+</style>
+<body>
+<svg id="cinta" viewBox="0 0 1200 630"></svg>
+<div class="hoja">
+  <div class="marca">
+    <div class="tocar"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg></div>
+    <h1>chan<span>chán</span></h1>
+  </div>
+  <pre id="tema"></pre>
+</div>
+<script>
+  // las tres partes del README, con lo que color.js les da de día: una sola por familia va al medio de la banda
+  const trama = tono => `oklch(0.51 0.135 ${tono})`;
+  const tinta = tono => `oklch(0.48 0.135 ${tono})`;
+  const PARTES = [
+    { tono: 0,   pasos: [1, 1, 1, 1], renglon: [['articulo', 'la'], ['sujeto', 'bata'], ['verbo', 'toca'],
+        ['sonido', 'pum'], ['sonido agudo', 'pa'], ['sonido', 'pum'], ['sonido agudo', 'pa']] },
+    { tono: 40,  pasos: [1, 0, 1, 0], renglon: [['articulo', 'el'], ['sujeto', 'bajo'], ['verbo', 'toca'],
+        ['nota', 'do'], ['silencio', '-'], ['nota', 'sol'], ['silencio', '-']] },
+    { tono: 320, pasos: [1],          renglon: [['articulo', 'el'], ['sujeto', 'piano'], ['verbo', 'toca'],
+        ['nota', 'do'], ['cola', ' mayor'], ['estructura', '|'], ['nota', 'fa'], ['cola', ' mayor']] },
+  ];
+  document.documentElement.style.setProperty('--marca', trama(PARTES[0].tono));
+  document.documentElement.style.setProperty('--marca-fin', trama(PARTES.at(-1).tono));
+
+  // los que el editor pinta según la altura: ver editor.js
+  const ALTURA = {
+    'sonido agudo': 'oklab(0.36929 -0.0330245 -0.0293709)',
+    nota: 'oklab(0.429751 -0.0329957 -0.0291906)',
+    cola: 'oklab(0.618593 -0.0198123 -0.00735696)',
+  };
+
+  const ANCHO = 1200, ALTO = 630, MARCO = 84, VUELTAS = 2, HUECO = 5;
+  const banda = MARCO / PARTES.length;
+  // el centro de la esquina, como en cinta.js: el marco por 1,846
+  const centro = Math.round(MARCO * 1.846);
+  const arranque = centro + 2;
+  const vuelta = (ANCHO - arranque) / VUELTAS;
+
+  const cinta = document.getElementById('cinta');
+  const trazo = (d, color) => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d); p.setAttribute('stroke', color); p.setAttribute('stroke-width', banda + 0.6);
+    cinta.append(p);
+  };
+  PARTES.forEach((parte, i) => {
+    const eje = banda / 2 + i * banda, radio = centro - eje, color = trama(parte.tono);
+    trazo(`M ${eje} ${ALTO} L ${eje} ${centro} A ${radio} ${radio} 0 0 1 ${centro} ${eje}`, color);
+    const paso = vuelta / parte.pasos.length;
+    for (let v = 0; v < VUELTAS; v++) parte.pasos.forEach((suena, j) => {
+      if (!suena) return;
+      const x = arranque + v * vuelta + j * paso;
+      trazo(`M ${x} ${eje} L ${x + paso - HUECO} ${eje}`, color);
+    });
+  });
+
+  const tema = document.getElementById('tema');
+  PARTES.forEach(parte => {
+    const punto = document.createElement('span');
+    punto.className = 'punto'; punto.style.background = tinta(parte.tono);
+    tema.append(punto);
+    parte.renglon.forEach(([clase, palabra], k) => {
+      const s = document.createElement('span');
+      s.className = 't-' + clase.split(' ')[0]; s.textContent = palabra;
+      if (clase === 'sujeto') s.style.color = tinta(parte.tono);
+      if (ALTURA[clase]) s.style.color = ALTURA[clase];
+      // la cola trae su espacio
+      if (k && clase !== 'cola') tema.append(' ');
+      tema.append(s);
+    });
+    tema.append('\n');
+  });
+</script>

@@ -130,6 +130,10 @@ Una sección es posicional: un renglón es de la última sección abierta arriba
 
 Los íconos son el logo en tinta sobre papel, dibujado por el mismo canvas que pinta la pestaña y guardado en png porque iOS no toma otra cosa. `manifest.webmanifest` es lo que hace que el teléfono ofrezca ponerlo en la pantalla de inicio.
 
+**El enlace pegado**
+
+Un enlace pegado en un chat muestra una tarjeta, y la arma el que lo recibe leyendo los `og:` de `index.html` sin correr nada: por eso van escritos a mano y con la dirección entera. El tema viaja en el hash y el hash no llega al servidor, así que la tarjeta es una sola para todos los enlaces. `tarjeta.png` es la primera hoja vista de día: el marco, la cabecera y los tres renglones, con los colores que `color.js` les da. La aguja no entra, por lo mismo que en la pestaña. Sale de `.claude/tarjeta.html` abierta a 1200×630; si cambia la rueda o el papel, se captura de nuevo. La frase es la del manifest, y no va en la imagen porque el que arma la tarjeta ya la escribe al lado.
+
 **El error trae su arreglo cuando lo hay**
 
 Un error que se arregla de una sola manera lleva el arreglo puesto: qué tramo del renglón se cambia por qué. Lo pone el traductor, que es el que sabe; el cajón lo ofrece como un botón al lado del mensaje, y el ▾ de la palabra en rojo ofrece el mismo. Tocarlo es un paso como cualquier otro, con su deshacer. Los que se arreglan de más de una manera, «muy» sin altura, una nota que falta, un tempo fuera de rango, no traen botón: el mensaje es la respuesta.
