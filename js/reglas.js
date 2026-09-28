@@ -1,14 +1,9 @@
 // ------------------------------------------------------------- las reglas
 // lo que se transforma al vuelo mientras se tipea, y el Backspace que lo devuelve.
 // Ver REGLAS.md
-// la última: dónde quedó lo puesto, y lo que había tipeado quien escribe
-let ultimaRegla = null;
-const recordarRegla = (desde, largo, tipeado) => { ultimaRegla = { desde, hasta: desde + largo, tipeado }; };
-// cualquier otro cambio la olvida; la regla se recuerda después de aplicarse
-alCambiar.push(() => { ultimaRegla = null; });
-// moverse también, salvo que el cursor esté donde la regla lo dejó
+// moverse olvida la última regla, salvo que el cursor esté donde la regla lo dejó
 document.addEventListener('selectionchange', () => {
-  if (ultimaRegla && (src.selectionStart !== ultimaRegla.hasta || src.selectionEnd !== ultimaRegla.hasta)) ultimaRegla = null;
+  if (ultimaRegla && (src.selectionStart !== ultimaRegla.hasta || src.selectionEnd !== ultimaRegla.hasta)) olvidarRegla();
 });
 
 const volverALoTipeado = hacer => {
@@ -25,9 +20,9 @@ const REGLAS_DE_ENTRADA = [
   [/\b(do|re|mi|fa|sol|la|si)#$/i, m => m[1] + ' sostenido'],
 ];
 
-// sólo al tipear texto, y no en medio de una composición: la tilde muerta no es texto
+// sólo al tipear, y no en medio de una composición: la tilde muerta no es texto, y lo pegado queda como vino
 src.addEventListener('input', e => {
-  if (e.isComposing || (e.inputType && !e.inputType.startsWith('insert'))) return;
+  if (e.isComposing || (e.inputType && e.inputType !== 'insertText')) return;
   if (src.selectionStart !== src.selectionEnd) return;
   const pos = src.selectionStart, base = inicioDeRenglon(src.value, pos);
   const linea = src.value.slice(base, src.value.indexOf('\n', pos));

@@ -1,16 +1,19 @@
 // ---------------------------------------------------------------- el editor
 const src = document.getElementById('src');
 const hl = document.getElementById('hl');
-const cajaErr = document.getElementById('errores');
+const cajaAvisos = document.getElementById('avisos'), cajaFallas = document.getElementById('fallas');
 const btnEnlace = document.getElementById('enlace');
 const campoNombre = document.getElementById('nombre');
 
 // al cajón de los errores del idioma, que es donde ya se está mirando. El mismo
-// aviso no se repite; y puede traer un botón que lo deshace: [rótulo, qué hacer]
-function avisar(msg, deshace) {
-  if ([...cajaErr.children].some(p => p.dataset.msg === msg)) return;
+// aviso no se repite; y puede traer un botón que lo deshace: [rótulo, qué hacer].
+// Dura hasta la tecla que sigue; uno con clave es de quien lo puso, que lo cambia o lo calla
+function avisar(msg, deshace, clave) {
+  if (clave) callarAviso(clave);
+  if ([...cajaAvisos.children].some(p => p.dataset.msg === msg)) return;
   const p = document.createElement('p');
   p.dataset.msg = msg;
+  if (clave) p.dataset.clave = clave;
   p.textContent = msg;
   if (deshace) {
     const b = document.createElement('button');
@@ -19,8 +22,9 @@ function avisar(msg, deshace) {
     b.addEventListener('click', () => { deshace[1](); p.remove(); });
     p.append(' ', b);
   }
-  cajaErr.appendChild(p);
+  cajaAvisos.appendChild(p);
 }
+const callarAviso = clave => { for (const p of cajaAvisos.querySelectorAll('[data-clave="' + clave + '"]')) p.remove(); };
 
 const icono = (n, clase) =>
   '<svg class="i' + (clase ? ' ' + clase : '') + '"><use href="#i-' + n + '"/></svg>';
@@ -34,16 +38,17 @@ const invocaPanel = (boton, panel) => {
   boton.addEventListener('click', e => e.preventDefault());
 };
 
-let relojDicho;
-// el botón es un signo: la palabra aparece sólo cuando tiene algo que decir
-function decirEnElEnlace(txt) {
-  btnEnlace.textContent = txt;
-  btnEnlace.classList.add('dicho');
-  clearTimeout(relojDicho);
-  relojDicho = setTimeout(() => {
-    btnEnlace.innerHTML = icono('enlace');
-    btnEnlace.classList.remove('dicho');
-  }, 1800);
+const relojesDichos = new Map();
+// el botón es un signo: la palabra aparece sólo cuando tiene algo que decir, en el botón que se apretó
+function decirEn(boton, txt) {
+  if (!boton.dataset.signo) boton.dataset.signo = boton.innerHTML;
+  boton.textContent = txt;
+  boton.classList.add('dicho');
+  clearTimeout(relojesDichos.get(boton));
+  relojesDichos.set(boton, setTimeout(() => {
+    boton.innerHTML = boton.dataset.signo;
+    boton.classList.remove('dicho');
+  }, 1800));
 }
 const btnTocar = document.getElementById('tocar');
 
@@ -51,6 +56,10 @@ let marcasActuales = [], calladasActuales = new Set();
 // lo último que dijo traducir(); lo escribe sólo actualizar()
 let actual = { renglones: [], vueltas: 1, tramos: [], tempos: [], espejos: [] };
 
+// los encabezados, en orden, con su renglón
+const encabezados = () => marcasActuales
+  .map((tks, l) => { const s = (tks || []).find(t => t.tipo === 'seccion'); return s && { nombre: s.nombre, escrito: s.escrito, l }; })
+  .filter(Boolean);
 // de los encabezados y no de la forma, que una sección recién abierta no está en
 // ninguna; se queda con la primera grafía
 const seccionesEscritas = () => new Map(encabezados().reverse().map(e => [e.nombre, e.escrito]));
@@ -99,6 +108,9 @@ function acomodarColgantes() {
     // el último trozo de una palabra partida — ver REGLAS.md
     const cajas = sp.getClientRects();
     const r = cajas[cajas.length - 1] || sp.getBoundingClientRect();
+    // la palabra se fue con el scroll: el botón no se queda flotando sobre la cabecera
+    const hoja = hl.getBoundingClientRect();
+    el.classList.toggle('afuera', r.bottom < hoja.top || r.top > hoja.bottom);
     const clave = el.colgadoDe.l + ':' + el.colgadoDe.i;
     const antes = fila.get(clave);
     if (antes) { antes.el.classList.add('junta'); el.classList.add('juntado'); }
@@ -304,7 +316,7 @@ function actualizar(reproducir) {
     const vivas = r.partes.filter(p => {
       try { eval(p.codigo).queryArc(0, 1); return true; }
       catch (e) {
-        r.errores.push({ nro: p.nro, msg: 'strudel no pudo con esta línea, la salteo: ' + String(e.message || e) });
+        r.errores.push({ nro: p.nro, msg: 'strudel no pudo con este renglón, lo salteo: ' + String(e.message || e) });
         return false;
       }
     });
@@ -339,10 +351,15 @@ document.addEventListener('click', e => {
 // cada error con su línea, y el botón del arreglo cuando el traductor dejó uno
 // si el mensaje ya nombra el arreglo, «¿será «pa»?», ése es el botón; si no, va uno al final
 function pintarErrores(errores) {
-  cajaErr.innerHTML = '';
+  cajaFallas.innerHTML = '';
   for (const e of errores) {
     const p = document.createElement('p');
-    p.innerHTML = '<b>línea ' + e.nro + ':</b> ';
+    // «renglón 7» lleva a la palabra en rojo: el cajón puede estar lejos de ella, y ahí la espera su ▾
+    const ir = document.createElement('button');
+    ir.className = 'renglon';
+    ir.textContent = 'renglón ' + e.nro + ':';
+    ir.addEventListener('click', () => irAlError(e.nro - 1));
+    p.append(ir, ' ');
     const boton = txt => {
       const b = document.createElement('button');
       b.className = 'accion';
@@ -354,21 +371,43 @@ function pintarErrores(errores) {
     const donde = nombrado ? e.msg.lastIndexOf(nombrado) : -1;
     if (donde >= 0) p.append(e.msg.slice(0, donde), boton(nombrado), e.msg.slice(donde + nombrado.length));
     else p.append(e.msg, ...(e.arreglo ? [' ', boton(e.arreglo.texto ? '«' + e.arreglo.texto + '»' : 'sacar')] : []));
-    cajaErr.appendChild(p);
+    cajaFallas.appendChild(p);
   }
+}
+
+function irAlError(l) {
+  const lineas = src.value.split('\n');
+  if (l >= lineas.length) return;
+  const mal = (marcasActuales[l] || []).find(t => t.cls === 'mal');
+  const desde = baseDe(lineas, l) + (mal ? mal.i : 0);
+  src.focus();
+  src.setSelectionRange(desde, desde + (mal ? mal.len : lineas[l].length));
+  // el textarea no siempre lleva la selección a la vista: se la trae a un tercio de la hoja
+  const r = rectDe(desde), caja = src.getBoundingClientRect();
+  if (r.top < caja.top || r.bottom > caja.bottom) {
+    src.scrollTop += r.top - caja.top - caja.height / 3;
+    hl.scrollTop = src.scrollTop;
+  }
+}
+
+// un tramo por otro: el cursor queda al final, y el de deshacer cuelga de lo puesto y no del espacio que lo precede
+function ponerEn(desde, sacado, puesto, grupo) {
+  aplicar(paso(desde, sacado, puesto), { cursor: desde + puesto.length, grupo });
+  const sangria = puesto.length - puesto.trimStart().length;
+  if (puesto.trim()) mostrarDeshacer(anclaDe(desde + sangria, puesto.trim().length), false);
 }
 
 // el arreglo es un paso más; si el texto ya no es el que el traductor vio, se rehace el cajón y nada más
 function aplicarArreglo(nro, a) {
   const pos = baseDe(src.value.split('\n'), nro - 1) + a.i;
   if (src.value.substr(pos, a.len) !== a.sacado) return actualizar(false);
-  aplicar(paso(pos, a.sacado, a.texto), { cursor: pos + a.texto.length });
-  if (a.texto) mostrarDeshacer(anclaDe(pos, a.texto.length), false);
+  ponerEn(pos, a.sacado, a.texto);
 }
 
 // el espejo y los puntitos al momento; lo que necesita a strudel, a los 400 ms
 let relojActualizar;
 src.addEventListener('input', () => {
+  for (const p of cajaAvisos.querySelectorAll('p:not([data-clave])')) p.remove();
   asegurarRenglonFinal();
   clearTimeout(relojActualizar);
   relojActualizar = setTimeout(() => actualizar(true), 400);

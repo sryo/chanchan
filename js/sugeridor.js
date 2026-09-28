@@ -1,4 +1,11 @@
 // --------------------------------------------------------------- el sugeridor
+// la última regla de entrada, ver reglas.js: dónde quedó lo puesto, y lo que había tipeado quien escribe.
+// Aceptar una sugerencia también es una; cualquier otro cambio la olvida
+let ultimaRegla = null;
+const recordarRegla = (desde, largo, tipeado) => { ultimaRegla = { desde, hasta: desde + largo, tipeado }; };
+const olvidarRegla = () => { ultimaRegla = null; };
+alCambiar.push(olvidarRegla);
+
 // autocompletar y «sugerir siguiente» son lo mismo con el prefijo vacío: cada
 // ranura tiene vocabulario cerrado
 
@@ -47,7 +54,8 @@ function ranuraEn(linea, col) {
   if (col < verbo.hasta) {
     // del nombre, si hay, al verbo
     const a = r.sujeto ? r.sujeto.desde : verbo.desde;
-    return { ranura: 'nombre', ...trozo(a, r.sujeto ? r.sujeto.hasta : a) };
+    // sin nombre escrito se inserta pegado al verbo: la opción lleva el espacio de después
+    return { ranura: 'nombre', sigue: r.sujeto ? '' : ' ', ...trozo(a, r.sujeto ? r.sujeto.hasta : a) };
   }
 
   const cual = clausulas.findIndex(c => col >= c.desde && col <= c.hasta);
@@ -67,10 +75,10 @@ function ranuraEn(linea, col) {
   const previa = pw.filter(x => x.i + x.w.length < col).pop();
   // la nota que termina justo antes del cursor, con lo que ya tiene: el traductor lo sabe
   const nota = previa && traducirLinea(linea, 1).tk.find(t => t.tipo === 'nota' && t.i + t.len === previa.i + previa.w.length) || null;
-  // sin ningún paso escrito, el nombre dice el modo; después de un paso y un espacio
-  // tampoco se sabe qué sigue: se ofrece solo, como tras el verbo
+  // sin ningún paso escrito, el nombre dice el modo y se ofrece solo, como tras el verbo; con pasos
+  // ya escritos, abrirse en cada espacio taparía lo que se escribe: espera una letra, o el Tab
   const palabra = palabraEn();
-  return { ranura: 'paso', modo: modo || modoDelNombre(r.nombre), nota, arranque: !palabra.prefijo, ...palabra };
+  return { ranura: 'paso', modo: modo || modoDelNombre(r.nombre), nota, arranque: !palabra.prefijo && !previa, ...palabra };
 }
 
 const sugeridor = document.createElement('div');
@@ -187,13 +195,13 @@ function armarSecciones(r, soloPega) {
     if (!hoja.tempo && !hoja.abierta) primero.push(tempo);
     const yaOfrecida = n => hoja.faltan.some(f => norm(f.txt) === norm(plantilla(n).txt));
     despues.push(...partes.filter(n => !yaOfrecida(n)).map(plantilla), seccion);
-    (hoja.secciones.length && !hoja.forma ? primero : despues).push(forma);
+    if (hoja.secciones.length) (hoja.forma ? despues : primero).push(forma);
     if (hoja.tempo || hoja.abierta) despues.push(tempo);
     despues.push(compas);
     return [
       ...sec('en las otras secciones', filtrarPega(hoja.faltan.map(f =>
         ({ ...op(f.txt, null, 'como en ' + f.seccion), buscar: f.txt })), pelado, o => o.buscar)),
-      ...sec('empezar una línea', filtrarPega([...primero, ...despues], pelado, o => o.buscar)),
+      ...sec('empezar un renglón', filtrarPega([...primero, ...despues], pelado, o => o.buscar)),
     ];
   }
 
@@ -217,25 +225,33 @@ function armarSecciones(r, soloPega) {
         ...(!n.octN && !n.acorde ? ofrecerOctavas(voz) : []),
         ...(!n.acorde ? ofrecerAcordes(voz) : []),
       ]);
-      if (sufijos.length) secs.push(...sec('seguir la nota', filtrar(sufijos)));
+      if (sufijos.length) secs.push(...sec('completar la nota', filtrar(sufijos)));
     }
-    if (r.modo !== 'nota') secs.push(...sec('golpes', filtrar(comoOps(ofrecerGolpes()))));
+    if (r.modo !== 'nota')
+      for (const g of golpesEnGrupos(comoOps(ofrecerGolpes()))) secs.push(...sec(g.titulo, filtrar(g.ops)));
     if (r.modo !== 'sonido') secs.push(...sec('notas', filtrar(comoOps(ofrecerNotas(voz)))));
-    secs.push(...sec('o', filtrar(comoOps(ofrecerSilencios()))));
+    secs.push(...sec('', filtrar(comoOps(ofrecerSilencios()))));
     return secs;
   }
 
   if (r.ranura === 'clausula') {
     // las no envolvibles arman el patrón o sacan la línea del stack: no son código
     if (r.envuelve)
-      return sec('y ahí, qué', filtrar(ofrecerEnvolvibles().map(o => op(o.txt, ' ' + o.txt, o.desc))));
-    const mods = comoOps(ofrecerModificadores());
+      return sec('y ahí, qué', filtrar(ofrecerEnvolvibles(r.modo).map(o => op(o.txt, ' ' + o.txt, o.desc))));
+    // recién puesta la coma, las preguntas y no las doscientas respuestas: se entra a una con → o Tab,
+    // y se sale con ←. Con una letra ya es buscar, y va todo junto
+    if (!r.prefijo) {
+      const arbol = arbolDeLaComa(r.modo, vozDeLinea(r.l)), g = arbol.find(x => x.nombre === grupoSug);
+      return g ? sec(g.nombre, comoOps(g.ops))
+        : sec('qué más hace', arbol.map(x => ({ ...op(x.nombre, null, '›'), entra: x.nombre, aparte: x.aparte })));
+    }
+    const mods = comoOps(ofrecerModificadores(r.modo, vozDeLinea(r.l)));
     const figuras = comoOps(ofrecerFiguras());
     // se matchea contra el nombre pelado: el artículo exige espacio o fin, y «una» antes que «un»
-    const m = norm(r.prefijo).match(/^en\s*(?:(?:una|un|los|las|el|la)(?:\s+|$))?\s*(.*)$/);
+    const m = norm(r.prefijo).match(/^en\s*(?:(?:unas|unos|una|un|los|las|el|la)(?:\s+|$))?\s*(.*)$/);
     const pelado = m ? m[1] : r.prefijo;
     const conEn = r.modo === 'sonido'
-      ? ofrecerMaquinas().map(m2 => ({ ...op('en una ' + m2.txt, null, m2.desc, m2.receta),
+      ? ofrecerMaquinas().map(m2 => ({ ...op('en ' + (m2.un || 'una') + ' ' + m2.txt, null, m2.desc, m2.receta),
                                        buscar: m2.txt + ' ' + (APODOS_MAQUINA[m2.banco] || []).join(' ') }))
       : instrumentos().map(o => ({ ...op(unDe(o.txt) + o.txt, null, o.desc, o.receta), buscar: o.txt }));
     const arreglos = comoOps(ofrecerArreglos());
@@ -254,17 +270,18 @@ function armarSecciones(r, soloPega) {
 }
 
 function reemplazarRango(desde, hasta, txt) {
-  aplicar(paso(desde, src.value.slice(desde, hasta), txt), { cursor: desde + txt.length });
+  ponerEn(desde, src.value.slice(desde, hasta), txt);
   src.focus();
-  // el botón cuelga de la palabra, no del espacio que la precede
-  const sangria = txt.length - txt.trimStart().length;
-  mostrarDeshacer(anclaDe(desde + sangria, txt.trim().length), false);
 }
+
+// la pregunta del árbol en la que se entró; se olvida al cerrar
+let grupoSug = null;
 
 function aceptarSugerencia(o) {
   if (!sug || !o) return;
+  if (o.entra) { grupoSug = o.entra; abrirSugeridor(true); return; }
   const { desde, hasta } = sug, tipeado = src.value.slice(desde, hasta);
-  let txt = (sug.pega || '') + o.pone;
+  let txt = (sug.pega || '') + o.pone + (sug.sigue || '');
   const finLinea = hasta >= src.value.length || src.value[hasta] === '\n';
   if (finLinea && !/\s$/.test(txt)) txt += ' ';
   cerrarSugeridor();
@@ -278,10 +295,13 @@ function aceptarSugerencia(o) {
 function marcarElegido() {
   const ops = sugeridor.querySelectorAll('.op');
   ops.forEach((el, k) => el.classList.toggle('elegido', k === sug.elegido));
+  // la que el Tab acepta lleva la tecla: es la única manera de saber que el Tab está
+  ops.forEach((el, k) => el.classList.toggle('conTab', k === Math.max(0, sug.elegido)));
   if (ops[sug.elegido]) ops[sug.elegido].scrollIntoView({ block: 'nearest' });
 }
 
 function cerrarSugeridor() {
+  grupoSug = null;
   if (!sug) return;
   sug = null;
   mostrarPanel(sugeridor, false);
@@ -307,7 +327,7 @@ function abrirSugeridor(aPedido) {
     return cerrarSugeridor();
   ops.forEach(o => { o.hacer = () => aceptarSugerencia(o); });
   // abierto solo y sin nada tipeado no marca nada: Enter sigue siendo Enter, Tab acepta la primera
-  sug = { desde: base + r.desde, hasta: base + r.hasta, ops, elegido: aPedido || r.prefijo ? 0 : -1, pega: r.pega };
+  sug = { desde: base + r.desde, hasta: base + r.hasta, ops, elegido: aPedido || r.prefijo ? 0 : -1, pega: r.pega, sigue: r.sigue };
   pintarPanel(sugeridor, secs, null, [{ l }]);
   mostrarPanel(sugeridor, true);
   acomodar(sugeridor, rectDe(base + r.desde));
@@ -320,7 +340,8 @@ const aceptarPrimera = hacer => {
   if (hacer) aceptarSugerencia(sug.ops[Math.max(0, sug.elegido)]);
   return true;
 };
-const pedirSugerencias = hacer => { if (hacer) abrirSugeridor(true); return true; };
+// sin nada que ofrecer el Tab no es suyo: sigue su camino y saca el foco de la hoja
+const pedirSugerencias = hacer => { if (hacer) abrirSugeridor(true); return !!sug; };
 // sin nada marcado, Enter cierra el panel y sigue siendo Enter: la orden no aplica
 const aceptarMarcada = hacer => {
   if (!sug) return false;
@@ -339,12 +360,26 @@ const moverMarca = abajo => hacer => {
 };
 // irse del lugar cierra el panel, y la tecla sigue su camino
 const soltarSugerencia = hacer => { if (hacer) cerrarSugeridor(); return false; };
+// adentro de una pregunta del árbol, ← vuelve a las preguntas; → entra a la marcada
+const salirDelGrupo = hacer => {
+  if (!sug || !grupoSug) return false;
+  if (hacer) { grupoSug = null; abrirSugeridor(true); }
+  return true;
+};
+const entrarAlGrupo = hacer => {
+  const o = sug && sug.ops[Math.max(0, sug.elegido)];
+  if (!o || !o.entra) return false;
+  if (hacer) aceptarSugerencia(o);
+  return true;
+};
 
 atajo('Tab', 'aceptar la sugerencia, o pedirla', encadenar(aceptarPrimera, pedirSugerencias));
 atajo('Enter', 'aceptar la sugerencia marcada', aceptarMarcada);
 atajo('ArrowDown', 'bajar en la lista', moverMarca(true));
 atajo('ArrowUp', 'subir en la lista', moverMarca(false));
-for (const t of ['ArrowLeft', 'ArrowRight', 'Home', 'End']) atajo(t, 'cerrar la sugerencia', soltarSugerencia);
+atajo('ArrowLeft', 'volver a las preguntas', encadenar(salirDelGrupo, soltarSugerencia));
+atajo('ArrowRight', 'entrar a la pregunta', encadenar(entrarAlGrupo, soltarSugerencia));
+for (const t of ['Home', 'End']) atajo(t, 'cerrar la sugerencia', soltarSugerencia);
 src.addEventListener('input', () => abrirSugeridor(false));
 src.addEventListener('blur', cerrarSugeridor);
 

@@ -64,7 +64,10 @@ function aplicarAVarios(fn) {
     const nuevo = fn(t);
     if (nuevo != null) pasos.push(paso(t.abs, src.value.substr(t.abs, t.len), nuevo));
   }
-  if (pasos.length) aplicar(pasos);
+  if (!pasos.length) return;
+  aplicar(pasos);
+  const p = primeroEnLaHoja(pasos);
+  mostrarDeshacer(anclaDe(p.desde, p.puesto.length), false);
 }
 
 // una orden: sin «hacer» sólo dice si entra, y el menú lo pinta en gris cuando no
@@ -76,7 +79,7 @@ const transponer = delta => hacer => {
   const d = delta > 0 ? Math.min(delta, SEMI_MAX - Math.max(...semis))
                       : Math.max(delta, SEMI_MIN - Math.min(...semis));
   if (!d) return false;
-  if (hacer) aplicarAVarios(t => t.raiz ? notaDesdeSemi(semiDe(t) + d, t.acorde || '') : null);
+  if (hacer) aplicarAVarios(t => t.raiz ? notaDesdeSemi(semiDe(t) + d, t.acorde || '', t.acento) : null);
   return true;
 };
 
@@ -86,19 +89,19 @@ function seccionesSeleccion() {
   const campo = (ops, clave, vacio) =>
     aTodos([{ txt: vacio }].concat(ops), o => aplicarAVarios(t => armarNota({ ...t, [clave]: o.txt === vacio ? '' : o.txt })));
   if (que === 'nota') return [
-    { titulo: 'transponer', ops: [['+1 octava',12],['+1 tono',2],['+1 semitono',1],
-        ['−1 semitono',-1],['−1 tono',-2],['−1 octava',-12]]
+    { titulo: 'subir o bajar', ops: [['+ una octava',12],['+ un tono',2],['+ medio tono',1],
+        ['− medio tono',-1],['− un tono',-2],['− una octava',-12]]
         .map(([txt, d]) => ({ txt, orden: transponer(d) })) },
     ...CAMPOS_NOTA(vozDeLinea(tokensSel[0].l)).map(([titulo, clave, vacio, ofertas]) => ({ titulo, ops: campo(ofertas, clave, vacio) })),
   ];
   if (que === 'paso') return [
-    { titulo: 'golpes', ops: aTodos(ofrecerGolpes(), o => aplicarAVarios(() => o.txt)) },
+    ...golpesEnGrupos(aTodos(ofrecerGolpes(), o => aplicarAVarios(() => o.txt))),
     { titulo: '', pie: true, ops: aTodos(ofrecerSilencios(), o => aplicarAVarios(() => o.txt)) },
   ];
   return [{ titulo: 'cómo', ops: aTodos(ofrecerModificadores(), o => aplicarAVarios(() => o.txt)) }];
 }
 
-botonSel.addEventListener('mousedown', e => {
+const abrirSeleccion = e => {
   e.preventDefault();
   const secs = seccionesSeleccion();
   const r = botonSel.getBoundingClientRect();
@@ -106,7 +109,10 @@ botonSel.addEventListener('mousedown', e => {
   pintarPanel(menu, secs, null, tokensSel);
   mostrarPanel(menu, true);
   acomodar(menu, r);
-});
+};
+botonSel.addEventListener('mousedown', abrirSeleccion);
+// desde el teclado no hay mousedown: Enter y espacio llegan como click
+botonSel.addEventListener('click', e => { if (!e.detail) abrirSeleccion(e); });
 invocaPanel(botonSel, menu);
 
 document.addEventListener('selectionchange', () => { if (document.activeElement === src) mirarSeleccion(); });

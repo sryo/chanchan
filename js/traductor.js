@@ -9,7 +9,7 @@ function acotarVueltas(v) {
   return 1;
 }
 
-const MEZCLA = 'no mezclés golpes con notas en la misma línea: hacé dos líneas.';
+const MEZCLA = 'no mezclés golpes con notas en el mismo renglón: hacé dos.';
 
 // los tokens pintan el editor y arman el código
 function traducirLinea(texto, nro) {
@@ -115,21 +115,30 @@ function traducirLinea(texto, nro) {
 
   // ---- la <parte> toca <pasos>[, <modificador>]*
   if (r.clase !== 'parte') {
-    error(0, texto.length, 'no entiendo la línea. Va «la bata toca pum - pa -» o «va a 92».');
+    error(0, texto.length, 'no entiendo el renglón. Va «la bata toca pum - pa -» o «va a 92».');
     return mala();
   }
   // el nombre entero es un solo token, para que el menú lo cambie de una; el artículo va aparte y pesa menos
   for (const x of r.articulo) marcar(x.i, x.w.length, 'articulo');
   let sujetoTk = null;
   if (r.sujeto) sujetoTk = marcar(r.sujeto.desde, r.sujeto.hasta - r.sujeto.desde, 'sujeto', { tipo: 'instrumento' });
-  marcar(r.verbo.desde, r.verbo.hasta - r.verbo.desde, 'verbo');
+  marcar(r.verbo.desde, r.verbo.hasta - r.verbo.desde, 'verbo', { tipo: 'verbo' });
   const clausulas = r.clausulas;
   const nombre = r.nombre;
+  const nuevoNombre = RENOMBRADOS.instrumento[norm(nombre)];
+  if (sujetoTk && nuevoNombre) {
+    sujetoTk.cls = 'mal';
+    sujetoTk.arreglo = arreglar(r.sujeto.desde, r.sujeto.texto.length, nuevoNombre);
+    errs.push({ nro, msg: '«' + r.sujeto.texto + '» ahora se escribe «' + nuevoNombre + '».', arreglo: sujetoTk.arreglo });
+  }
+  // la altura es del instrumento, y hay que saberlo antes de leer la primera nota: el de «en X», o el del nombre
+  const enX = clausulas.slice(1).map(c => norm(c.texto).match(EN_QUIEN)).find(m => m && instrumentoDe(m[1]));
+  const casa = casaDe((enX && instrumentoDe(enX[1])) || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO]);
 
   // ---- los pasos
   // la barra no es un paso: corta, y cada tramo reparte los suyos
-  const pasos = [], lugares = [], pasoTk = [], cortes = [], acentos = [];
-  let modo = null, primerGolpe = null, desconocidos = 0;
+  const pasos = [], lugares = [], pasoTk = [], cortes = [], acentos = [], acordes = [];
+  let modo = null, primerGolpe = null, desconocidos = 0, voces = 1;
   const pw = clausulas[0].palabras;
   // lo que puede seguir a una nota: qué campo llena, cuántas palabras ocupa, hasta dónde llega y si trae el «!»
   const sufijoDeNota = k => {
@@ -184,27 +193,46 @@ function traducirLinea(texto, nro) {
         fin = s.fin;
         if (s.acento) { acentoNota = true; k2 += s.largo; break; }
       }
-      const oct = d.octN ? OCTAVAS[d.octN] : OCTAVA_BASE, alt = ALTERACIONES[d.altN] || '';
-      // raizLen parte el token para pintar la nota distinto de lo que la acompaña
+      const oct = octavaQueSuena(d.octN, casa), alt = ALTERACIONES[d.altN] || '';
+      // raizLen parte el token para pintar la nota distinto de lo que la acompaña; el color va por la altura escrita
       pasoTk.push(marcar(pw[k].i, fin - pw[k].i, 'nota',
-        { tipo: 'nota', raiz: w, ...d, alto: altoDeOctava(oct), raizLen: pw[k].w.length }));
+        { tipo: 'nota', raiz: w, ...d, acento: acentoNota, alto: altoDeOctava(d.octN ? OCTAVAS[d.octN] : OCTAVA_BASE), raizLen: pw[k].w.length }));
       lugares.push({ i: pw[k].i, len: fin - pw[k].i });
       if (d.acorde) {
         const raiz = GRADOS[NOTAS[w]] + (alt === '#' ? 1 : alt === 'b' ? -1 : 0);
-        pasos.push('[' + ACORDE[d.acorde].map(iv => nombreNota(raiz + iv, oct)).join(',') + ']');
+        // el acorde se escribe después, cuando se sabe cuál venía antes: ver enlazarAcordes
+        acordes.push({ k: pasos.length, semis: ACORDE[d.acorde].map(iv => raiz + iv + 12 * oct) });
+        pasos.push(null);
       } else {
         pasos.push(NOTAS[w] + alt + oct);
       }
       if (modo === 'sonido') { roto = true; error(pw[k].i, fin - pw[k].i, MEZCLA); }
       acentos[pasos.length - 1] = acentoNota;
+      if (d.acorde) voces = Math.max(voces, ACORDE[d.acorde].length);
       modo = 'nota';
-      notaAntes = { hasta: k2, escrito: texto.slice(pw[k].i, fin) };
+      notaAntes = { desde: pw[k].i, hasta: k2, escrito: texto.slice(pw[k].i, fin), d, acento: acentoNota };
       k = k2 - 1;
-    } else if (w === 'muy') {
+    } else if (w === 'muy' && !sufijo) {
       error(pw[k].i, pw[k].w.length, '«muy» va con la altura: «muy grave» o «muy agudo».');
     } else if (sufijo) {
       // «do sostenido bemol», «pum mayor»: va después de una nota, y de una que no lo tenga
-      const escrito = texto.slice(pw[k].i, sufijo.fin), sobra = notaAntes && notaAntes.hasta === k;
+      const escrito = texto.slice(pw[k].i, sufijo.fin), pegado = notaAntes && notaAntes.hasta === k ? notaAntes : null;
+      // «do! mayor»: el «!» cerró la nota antes de tiempo
+      if (pegado && pegado.acento && !pegado.d[sufijo.campo]) {
+        let fin = sufijo.fin, k2 = k;
+        for (let s = sufijo; s && !pegado.d[s.campo]; s = k2 < pw.length && sufijoDeNota(k2)) {
+          pegado.d[s.campo] = s.valor;
+          fin = s.fin;
+          k2 += s.largo;
+        }
+        const entera = texto.slice(pegado.desde, fin), bien = entera.replace(/!/g, '') + '!';
+        error(pw[k].i, fin - pw[k].i, 'el «!» va al final de la nota: «' + bien + '».',
+          { arreglo: arreglar(pegado.desde, entera.length, bien) });
+        notaAntes = { ...pegado, hasta: k2, escrito: entera };
+        k = k2 - 1;
+        continue;
+      }
+      const sobra = !!pegado;
       error(pw[k].i, sufijo.fin - pw[k].i, sobra
         ? '«' + escrito + '» sobra: «' + notaAntes.escrito + '» ya dice ' + DICE[sufijo.campo] + '.'
         : '«' + escrito + '» va después de una nota: «do ' + escrito + '».',
@@ -215,11 +243,11 @@ function traducirLinea(texto, nro) {
       // lo que no se entiende suena como silencio: el error ya está, y los otros pasos no se corren
       const signo = acento ? '!' : '';
       if (w === '.') error(pw[k].i, pw[k].w.length, 'el silencio es «-».', { arreglo: arreglar(pw[k].i, pw[k].w.length, '-') });
-      else if (GOLPES_VIEJOS[w]) error(pw[k].i, pw[k].w.length, '«' + w + '» ahora se escribe «' + GOLPES_VIEJOS[w] + '».',
-        { arreglo: arreglar(pw[k].i, pw[k].w.length, GOLPES_VIEJOS[w] + signo) });
+      else if (RENOMBRADOS.golpe[w]) error(pw[k].i, pw[k].w.length, '«' + w + '» ahora se escribe «' + RENOMBRADOS.golpe[w] + '».',
+        { arreglo: arreglar(pw[k].i, pw[k].w.length, RENOMBRADOS.golpe[w] + signo) });
       else {
         const s = parecida(pw[k].w);
-        error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'),
+        error(pw[k].i, pw[k].w.length, 'no conozco «' + pw[k].w + '»' + (s ? '. ¿Será «' + s + '»?' : '. Tocá la palabra y elegí en el ▾.'),
           s ? { arreglo: arreglar(pw[k].i, pw[k].w.length, s + signo) } : null);
       }
       pasos.push('-'); lugares.push(null); desconocidos++;
@@ -233,7 +261,8 @@ function traducirLinea(texto, nro) {
     const sobra = clausulas[0].texto.length - clausulas[0].texto.trimStart().length;
     const desde = clausulas[0].desde + sobra;
     // el ▾ ofrece lo que puede ir ahí, y para eso tiene que saber de quién es el renglón
-    error(desde, Math.max(1, clausulas[0].texto.trim().length), 'falta qué tocar: «' + nombre + ' toca pum - pa -».',
+    const ejemplo = modoDelNombre(nombre) === 'nota' ? 'do - sol -' : 'pum - pa -';
+    error(desde, Math.max(1, clausulas[0].texto.trim().length), 'falta qué tocar: «' + texto.slice(0, r.verbo.hasta).trim() + ' ' + ejemplo + '».',
       { falta: 'paso', quien: nombre });
     return mala();
   }
@@ -245,21 +274,26 @@ function traducirLinea(texto, nro) {
   const quiénTk = [];
   let cola = '', instrumento = null, callado = false, maquina = MAQUINA;
   // los tres períodos que forman el de la línea; «al doble» no cuenta
-  let lento = 1, vueltasMascara = 1, vueltasMod = 1;
+  let lento = 1, vueltasMascara = 1, vueltasMod = 1, mitades = null;
   // dos cláusulas sobre el mismo parámetro: la segunda no pisa a la primera en silencio
   const dicho = new Map();
-  const sePisan = (clave, c, rango) => {
-    const antes = dicho.get(clave);
+  const noVa = mod => mod[1].startsWith('.transpose') && modo === 'sonido'
+    ? 'sólo sirve con notas: los golpes no tienen altura.'
+    : mod[1].startsWith('.arp') && voces < 2 ? 'va con acordes: «do mayor | fa mayor, ' + mod[0] + '».' : null;
+  const sePisan = (claves, c, rango) => {
+    const antes = [].concat(claves).map(k => dicho.get(k)).find(Boolean);
     if (antes) error(rango[0], rango[1], '«' + c.texto.trim() + '» y «' + antes + '» se pisan: dejá una sola.', { arreglo: sinClausula(c) });
-    else dicho.set(clave, c.texto.trim());
+    else for (const k of [].concat(claves)) dicho.set(k, c.texto.trim());
     return !!antes;
   };
+  // lo que crece va al final: «al doble» o «al revés» no lo tienen que estirar ni dar vuelta
+  let crece = '';
   for (const c of clausulas.slice(1)) {
     const n = norm(c.texto);
     if (!n) continue;
     const cw = c.palabras;
     const rango = [cw[0].i, cw[cw.length-1].i + cw[cw.length-1].w.length - cw[0].i];
-    const inst = n.match(/^en (?:un |una |el |la |los |las )?(.+)$/);
+    const inst = n.match(EN_QUIEN);
     const caja = inst && maquinaDe(inst[1]);
     if (caja && modo !== 'sonido') {
       error(rango[0], rango[1], 'una caja de ritmos sólo sirve con golpes: «' + c.texto.trim() + '» va en la bata.', { arreglo: sinClausula(c) });
@@ -269,6 +303,12 @@ function traducirLinea(texto, nro) {
       if (sePisan('quien', c, rango)) continue;
       maquina = caja.banco;
       quiénTk.push(marcar(rango[0], rango[1], 'mod', { tipo: 'instrumento', conEn: true, modo: 'sonido' }));
+      continue;
+    }
+    if (inst && RENOMBRADOS.instrumento[inst[1]]) {
+      const dicho = c.texto.trim(), nuevo = RENOMBRADOS.instrumento[inst[1]];
+      error(rango[0], rango[1], '«' + dicho.slice(dicho.length - inst[1].length) + '» ahora se escribe «' + nuevo + '».',
+        { arreglo: arreglar(rango[0] + rango[1] - inst[1].length, inst[1].length, nuevo) });
       continue;
     }
     if (inst && instrumentoDe(inst[1])) {
@@ -302,6 +342,7 @@ function traducirLinea(texto, nro) {
     if (figura) {
       if (sePisan('struct', c, rango)) continue;
       cola += figura.codigo;
+      if (FIGURAS[figura.figura] % 1) mitades = c.texto.trim();
       marcar(rango[0], rango[1], 'mod', { tipo: 'figura' });
       continue;
     }
@@ -314,8 +355,15 @@ function traducirLinea(texto, nro) {
       }
       // «callado» existe pero no es código: el error lo dice
       if (envuelve.falla === 'centinela') {
-        error(rango[0], rango[1], '«' + envuelve.dentro + '» no puede ir adentro de ' +
-          'una frase que la aplique de a ratos: va sola, en su propia cláusula.');
+        error(rango[0], rango[1], '«' + modificadorDe(envuelve.dentro)[0] + '» no puede ir adentro de ' +
+          'una frase que la aplique de a ratos: va sola, separada con una coma.');
+        continue;
+      }
+      const renombrada = envuelve.falla === 'dentro' && RENOMBRADOS.clausula[envuelve.dentro];
+      if (renombrada) {
+        const largo = envuelve.dentro.length;
+        error(rango[0], rango[1], '«' + envuelve.dentro + '» ahora se escribe «' + renombrada + '».',
+          { arreglo: arreglar(rango[0] + rango[1] - largo, largo, renombrada) });
         continue;
       }
       if (envuelve.falla === 'dentro') {
@@ -325,9 +373,19 @@ function traducirLinea(texto, nro) {
           : 'falta qué hacer: «' + c.texto.trim() + ' al doble».');
         continue;
       }
-      cola += envuelve.codigo;
+      const falla = noVa(envuelve.mod);
+      if (falla) {
+        error(rango[0], rango[1], '«' + envuelve.mod[0] + '» ' + falla, { arreglo: sinClausula(c) });
+        continue;
+      }
+      cola += arpegiar(envuelve.codigo, voces);
       vueltasMod = mcm(vueltasMod, envuelve.vueltas);
       marcar(rango[0], rango[1], 'mod', { tipo: 'veces' });
+      continue;
+    }
+    if (RENOMBRADOS.clausula[n]) {
+      error(rango[0], rango[1], '«' + c.texto.trim() + '» ahora se escribe «' + RENOMBRADOS.clausula[n] + '».',
+        { arreglo: arreglar(rango[0], rango[1], RENOMBRADOS.clausula[n]) });
       continue;
     }
     if (n in RETIRADOS) {
@@ -336,30 +394,36 @@ function traducirLinea(texto, nro) {
     }
     const mod = modificadorDe(n);
     if (mod) {
-      if (mod[1].startsWith('.transpose') && modo === 'sonido') {
-        error(rango[0], rango[1], '«' + c.texto.trim() + '» sólo sirve con notas: los golpes no tienen altura.');
+      const falla = noVa(mod);
+      if (falla) {
+        error(rango[0], rango[1], '«' + c.texto.trim() + '» ' + falla, { arreglo: sinClausula(c) });
         continue;
       }
-      const pisa = mod[1].match(/^\.(\w+)/);
-      if (pisa && PISAN.has(pisa[1]) && sePisan(pisa[1], c, rango)) continue;
+      const claves = clavesDe(mod);
+      if (claves.length && sePisan(claves, c, rango)) continue;
       if (mod[1] === 'mute') callado = true;   // se saca del stack, no gasta CPU
-      else cola += mod[1];
+      else if (mod[1].includes('§v§')) { crece += mod[1]; vueltasMod = mcm(vueltasMod, 4); }
+      else cola += arpegiar(mod[1], voces);
       const frena = /^\.slow\((\d+)\)$/.exec(mod[1]);
       if (frena) lento *= +frena[1];
       marcar(rango[0], rango[1], 'mod', { tipo: 'modificador', callado: mod[1] === 'mute' });
       continue;
     }
-    const s = parecida(c.texto);
-    error(rango[0], rango[1], 'no conozco «' + c.texto.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Pasá el mouse por encima y tocá el ▾.'),
+    // un instrumento va después de la coma con su «en»
+    const parece = parecida(c.texto), s = parece && instrumentoDe(parece) ? 'en ' + parece : parece;
+    error(rango[0], rango[1], 'no conozco «' + c.texto.trim() + '»' + (s ? '. ¿Será «' + s + '»?' : '. Tocá la palabra y elegí en el ▾.'),
       s ? { arreglo: arreglar(rango[0], rango[1], s) } : null);
   }
+
+  cola += crece;
 
   // un golpe que la caja no tiene sonaría mudo sin decir nada; el token se pinta, la línea sigue
   const caja = modo === 'sonido' && cajaDe(maquina), avisados = new Set();
   if (caja) for (const t of pasoTk) {
-    if (t.golpe && !caja.piezas.has(SONIDOS[t.golpe][0])) {
+    const pieza = t.golpe && SONIDOS[t.golpe][0];
+    if (pieza && !(pieza in DE_MANO) && !caja.piezas.has(pieza)) {
       t.cls = 'mal';
-      if (!avisados.has(t.golpe)) errs.push({ nro, msg: 'la ' + caja.nombre + ' no tiene ' + SONIDOS[t.golpe][1] + ': «' + t.golpe + '» ahí no suena.' });
+      if (!avisados.has(t.golpe)) errs.push({ nro, msg: (caja.art || 'la') + ' ' + caja.nombre + ' no tiene ' + SONIDOS[t.golpe][1] + ': «' + t.golpe + '» ahí no suena.' });
       avisados.add(t.golpe);
     }
   }
@@ -371,6 +435,8 @@ function traducirLinea(texto, nro) {
   }
 
   if (roto) return mala();
+  enlazarAcordes(acordes.map(a => a.semis)).forEach((semis, i) =>
+    pasos[acordes[i].k] = '[' + semis.map(s => nombreNota(s, 0)).join(',') + ']');
   // un compás vacío es silencio
   // «_» no cruza la barra en strudel: el que abre un compás repite la nota que venía
   const porCompases = lista => {
@@ -391,9 +457,12 @@ function traducirLinea(texto, nro) {
   if (acentos.some(Boolean))
     cola = '.velocity("' + juntar(pasos.map((x, k) => (x === '-' || x === '_') ? x : acentos[k] ? '1.4' : '1')) + '")' + cola;
   const ins = instrumento || instrumentoDe(nombre) || INSTRUMENTOS[INSTRUMENTO_POR_DEFECTO];
+  // los golpes de mano van a su banco, paso por paso; si no hay ninguno, la caja entera
+  const bancos = pasos.some(x => x in DE_MANO)
+    ? juntar(pasos.map(x => (x === '-' || x === '_') ? x : x in DE_MANO ? MANO : maquina)) : maquina;
   const codigo = modo === 'nota'
     ? 'note("' + patron + '").sound("' + ins.sonido + '")' + ins.cola + cola
-    : 's("' + patron + '").bank("' + maquina + '")' + cola;
+    : 's("' + patron + '").bank("' + bancos + '")' + cola;
   // el mismo patrón con el número de paso, para preguntarle a strudel cuál suena
   const espejo = pasos.map((x, k) => (x === '-' || x === '_') ? x : String(k));
   const cotejo = 'n("' + juntar(espejo) + '")' + cola;
@@ -403,7 +472,7 @@ function traducirLinea(texto, nro) {
   for (const t of quiénTk) t.voz = voz;
   const largo = cortes.length ? cortes.length + 1 : 1;
   const vueltas = mcm(mcm(largo * lento, vueltasMascara), vueltasMod);
-  return { tipo: 'parte', nro, nombre, voz, codigo, cotejo, lugares, callado, vueltas, tk, errs };
+  return { tipo: 'parte', nro, nombre, voz, modo, codigo, cotejo, lugares, callado, vueltas, mitades, tk, errs };
 }
 
 function traducir(fuente) {
@@ -443,7 +512,7 @@ function traducir(fuente) {
   // sin secciones el error es uno solo, no uno por nombre
   if (forma && !escritas.length)
     errores.push({ nro: nroForma, msg: 'no hay ninguna sección escrita. ' +
-      'Una sección se abre con una línea que termina en dos puntos: «la estrofa:».' });
+      'Una sección se abre con un renglón que termina en dos puntos: «la estrofa:».' });
   else {
     const comoSeEscribe = n => secciones.get(n).escrito;
     const cuálesHay = escritas.length === 1
@@ -456,8 +525,8 @@ function traducir(fuente) {
           msg: 'no hay ninguna sección que se llame «' + nom + '». ' + cuálesHay });
       // una sección sin líneas se queda afuera de la forma, y se avisa una vez por nombre
       else if (!sec.suyas.length)
-        errores.push({ nro: nroForma, msg: '«' + sec.escrito + '» no tiene ninguna ' +
-          'línea escrita, así que no suena. Las líneas de una sección van debajo de sus dos puntos.' });
+        errores.push({ nro: nroForma, msg: '«' + sec.escrito + '» no tiene ningún ' +
+          'renglón escrito, así que no suena. Los renglones de una sección van debajo de sus dos puntos.' });
     }
   }
   // recién con la hoja entera se sabe qué secciones hay; cambia el color y no el
@@ -489,13 +558,31 @@ function traducir(fuente) {
     cae += t.largo;
   }
 
-  for (const r of renglones) r.cotejo = enLaForma(r.cotejo, r.seccion, tramos);
-  // con forma no se acota: el divisor de una canción es media canción
+  // el compás de cada sección entra en lo que se cuenta por tiempo; lo de antes de la primera sección
+  // suena en todas, y si no comparten compás va una versión por tramo
+  const tiemposDe = nom => (nom && secciones.get(nom).tiempos) || tiempos;
+  const compases = new Set(tramos.map(t => tiemposDe(t.nom)));
+  // lo que crece dura la sección, o el tema entero sin secciones; con forma no se acota: el divisor
+  // de una canción es media canción
   const vueltas = tramos.length ? Math.max(1, total)
     : acotarVueltas(renglones.reduce((a, r) => mcm(a, r.vueltas), 1));
+  const llenar = (cod, seccion) => !cod.includes('§') ? cod
+    : seccion ? conTramo(cod, tiemposDe(seccion), largoDe(secciones.get(seccion)))
+    : !tramos.length ? conTramo(cod, tiempos, vueltas)
+    : compases.size < 2 && !cod.includes('§v§') ? conTiempos(cod, [...compases][0])
+    : 'arrange(' + tramos.map(t => '[' + t.largo + ', ' + conTramo(cod, tiemposDe(t.nom), t.largo) + ']').join(', ') + ')';
+  for (const r of renglones) {
+    const t = r.seccion ? tiemposDe(r.seccion) : null;
+    if (r.mitades && [...(t ? [t] : compases.size ? compases : [tiempos])].some(x => x % 2))
+      errores.push({ nro: r.nro, msg: '«' + r.mitades + '» es una nota cada dos tiempos: con un compás impar no cierra. Probá «en negras».' });
+    r.codigo = llenar(r.codigo, r.seccion);
+    r.cotejo = llenar(r.cotejo, r.seccion);
+  }
+  for (const r of renglones) r.cotejo = enLaForma(r.cotejo, r.seccion, tramos);
   const arranca = tempos.length ? tempos[0] : { bpm, tiempos };
   return { codigo: armarCodigo(partes, tramos, arranca.bpm, arranca.tiempos), errores, marcas, partes, renglones, calladas, enlaces,
-           bpm: arranca.bpm, tiempos: arranca.tiempos, vueltas, tramos, tempos: tempos.length > 1 ? tempos : [],
+           // con secciones va aunque sea uno: si no, borrar el tempo de una sección que suena no volvería al otro
+           bpm: arranca.bpm, tiempos: arranca.tiempos, vueltas, tramos, tempos: tramos.length ? tempos : [],
            secciones: [...secciones.values()].map(s => ({ nombre: s.nombre, escrito: s.escrito, vueltas: s.vueltas })) };
 }
 

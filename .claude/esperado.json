@@ -1,6 +1,6 @@
 {
  "tema: ricotero": {
-  "codigo": "setcpm(85/4)\nstack(\n  arrange([1, s(\"bd bd bd bd bd bd bd bd\").bank(\"linndrum\")], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence]).orbit(0), // bata · entrada\n  arrange([1, note(\"d2 d2 d2 d2 d2 - - -\").sound(\"bajo\")], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence]).orbit(1), // bajo · entrada\n  arrange([1, silence], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")], [4, silence], [4, silence], [4, silence]).orbit(0), // bata · estrofa\n  arrange([1, silence], [4, note(\"<[d2 _ - a2 d2 _ - a2] [e2 _ - a2 e2 _ - a2] [c#2 _ - a2 c#2 _ - a2] [d2 _ - a2 d2 _ - a2]>\").sound(\"bajo\")], [4, note(\"<[d2 _ - a2 d2 _ - a2] [e2 _ - a2 e2 _ - a2] [c#2 _ - a2 c#2 _ - a2] [d2 _ - a2 d2 _ - a2]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, silence]).orbit(1), // bajo · estrofa\n  arrange([1, silence], [4, note(\"<[a4 a4 a4 g4 e4 d4 _ d4] [d4 c#4 d4 e4 _ - g4 f4] [g4 g4 f4 g4 g4 f4 g4 e4] [c#4 e4 f4 d4 d4 a3 e4 g4]>\").sound(\"violaelectrica\")], [4, note(\"<[a4 a4 a4 g4 e4 d4 _ d4] [d4 c#4 d4 e4 _ - g4 f4] [g4 g4 f4 g4 g4 f4 g4 e4] [c#4 e4 f4 d4 d4 a3 e4 g4]>\").sound(\"violaelectrica\")], [4, silence], [4, silence], [4, silence]).orbit(2), // viola eléctrica · estrofa\n  arrange([1, silence], [4, note(\"<[[d4,f4,a4]] [[e4,g4,b4]] [[c#4,e4,g4]] [[d4,f4,a4]]>\").sound(\"violadistorsionada\").gain(.45)], [4, note(\"<[[d4,f4,a4]] [[e4,g4,b4]] [[c#4,e4,g4]] [[d4,f4,a4]]>\").sound(\"violadistorsionada\").gain(.45)], [4, silence], [4, silence], [4, silence]).orbit(3), // viola distorsionada · estrofa\n  arrange([1, silence], [4, silence], [4, silence], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")], [4, silence]).orbit(0), // bata · estribillo\n  arrange([1, silence], [4, silence], [4, silence], [4, note(\"<[f2] [c2] [bb2] [d2]>\").sound(\"bajo\").struct(\"x*8\")], [4, note(\"<[f2] [c2] [bb2] [d2]>\").sound(\"bajo\").struct(\"x*8\")], [4, silence]).orbit(1), // bajo · estribillo\n  arrange([1, silence], [4, silence], [4, silence], [4, note(\"<[[f4,c5]] [[c4,g4]] [[a#4,f5]] [[d4,a4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")], [4, note(\"<[[f4,c5]] [[c4,g4]] [[a#4,f5]] [[d4,a4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")], [4, silence]).orbit(3), // viola distorsionada · estribillo\n  arrange([1, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")]).orbit(0), // bata · final\n  arrange([1, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[bb2] [f2] [g2] [a2]>\").sound(\"bajo\").struct(\"x*8\")]).orbit(1), // bajo · final\n  arrange([1, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[[a#4,f5]] [[f4,c5]] [[g4,d5]] [[a4,e5]]>\").sound(\"violadistorsionada\").struct(\"x*8\")]).orbit(3), // viola distorsionada · final\n)",
+  "codigo": "setcpm(85/4)\nstack(\n  arrange([1, s(\"bd bd bd bd bd bd bd bd\").bank(\"linndrum\")], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence]).orbit(0), // bata · entrada\n  arrange([1, note(\"d2 d2 d2 d2 d2 - - -\").sound(\"bajo\")], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence]).orbit(1), // bajo · entrada\n  arrange([1, silence], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")], [4, silence], [4, silence], [4, silence]).orbit(0), // bata · estrofa\n  arrange([1, silence], [4, note(\"<[d2 _ - a2 d2 _ - a2] [e2 _ - a2 e2 _ - a2] [c#2 _ - a2 c#2 _ - a2] [d2 _ - a2 d2 _ - a2]>\").sound(\"bajo\")], [4, note(\"<[d2 _ - a2 d2 _ - a2] [e2 _ - a2 e2 _ - a2] [c#2 _ - a2 c#2 _ - a2] [d2 _ - a2 d2 _ - a2]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, silence]).orbit(1), // bajo · estrofa\n  arrange([1, silence], [4, note(\"<[a4 a4 a4 g4 e4 d4 _ d4] [d4 c#4 d4 e4 _ - g4 f4] [g4 g4 f4 g4 g4 f4 g4 e4] [c#4 e4 f4 d4 d4 a3 e4 g4]>\").sound(\"violaelectrica\")], [4, note(\"<[a4 a4 a4 g4 e4 d4 _ d4] [d4 c#4 d4 e4 _ - g4 f4] [g4 g4 f4 g4 g4 f4 g4 e4] [c#4 e4 f4 d4 d4 a3 e4 g4]>\").sound(\"violaelectrica\")], [4, silence], [4, silence], [4, silence]).orbit(2), // viola eléctrica · estrofa\n  arrange([1, silence], [4, note(\"<[[d4,f4,a4]] [[e4,g4,b4]] [[e4,g4,a#4,c#5]] [[f4,a4,d5]]>\").sound(\"violadistorsionada\").gain(.45)], [4, note(\"<[[d4,f4,a4]] [[e4,g4,b4]] [[e4,g4,a#4,c#5]] [[f4,a4,d5]]>\").sound(\"violadistorsionada\").gain(.45)], [4, silence], [4, silence], [4, silence]).orbit(3), // viola distorsionada · estrofa\n  arrange([1, silence], [4, silence], [4, silence], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")], [4, silence]).orbit(0), // bata · estribillo\n  arrange([1, silence], [4, silence], [4, silence], [4, note(\"<[f2] [c2] [bb2] [d2]>\").sound(\"bajo\").struct(\"x*8\")], [4, note(\"<[f2] [c2] [bb2] [d2]>\").sound(\"bajo\").struct(\"x*8\")], [4, silence]).orbit(1), // bajo · estribillo\n  arrange([1, silence], [4, silence], [4, silence], [4, note(\"<[[f4,c5]] [[c4,g4]] [[a#4,f5]] [[d4,a4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")], [4, note(\"<[[f4,c5]] [[c4,g4]] [[a#4,f5]] [[d4,a4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")], [4, silence]).orbit(3), // viola distorsionada · estribillo\n  arrange([1, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, s(\"bd sd bd sd bd sd bd sd\").bank(\"linndrum\")]).orbit(0), // bata · final\n  arrange([1, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[bb2] [f2] [g2] [a2]>\").sound(\"bajo\").struct(\"x*8\")]).orbit(1), // bajo · final\n  arrange([1, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[[a#4,f5]] [[f4,c5]] [[g4,d5]] [[a4,e5]]>\").sound(\"violadistorsionada\").struct(\"x*8\")]).orbit(3), // viola distorsionada · final\n)",
   "vueltas": 21,
   "bpm": 85,
   "errores": [],
@@ -12,11 +12,17 @@
    "estribillo×4",
    "final×4"
   ],
-  "tempos": [],
+  "tempos": [
+   {
+    "desde": 0,
+    "bpm": 85,
+    "tiempos": 4
+   }
+  ],
   "enlaces": []
  },
  "tema: floydiano": {
-  "codigo": "setcpm(62/4)\nstack(\n  arrange([8, note(\"<[e3 d4 g4 g4 g3 g4 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 d4 g4 g4 g4 e3 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 g4 - g4 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 a2 g4 e3 d4 d4]>\").sound(\"violacriolla\")], [8, silence], [8, silence], [8, note(\"<[e3 d4 g4 g4 g3 g4 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 d4 g4 g4 g4 e3 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 g4 - g4 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 a2 g4 e3 d4 d4]>\").sound(\"violacriolla\")], [8, silence], [8, note(\"<[e3 d4 g4 g4 g3 g4 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 d4 g4 g4 g4 e3 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 g4 - g4 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 a2 g4 e3 d4 d4]>\").sound(\"violacriolla\")]).orbit(0), // viola criolla · entrada\n  arrange([8, silence], [8, note(\"<[c3] [f#2] [a2 e2 e2 a2] [g2] [f#2 f#2 f#2 a2] [c3] [a2] [g2]>\").sound(\"violacriolla\")], [8, note(\"<[c3] [f#2] [a2 e2 e2 a2] [g2] [f#2 f#2 f#2 a2] [c3] [a2] [g2]>\").sound(\"violacriolla\")], [8, silence], [8, note(\"<[c3] [f#2] [a2 e2 e2 a2] [g2] [f#2 f#2 f#2 a2] [c3] [a2] [g2]>\").sound(\"violacriolla\")], [8, silence]).orbit(0), // viola criolla · estrofa\n  arrange([8, silence], [8, note(\"<[- c4 g3 - - c4 c4 a3] [f3 _ - - - - d4 d#4] [e4 b3 - - - e4 e4 d4] [d4 _ - - - c4 c4 g3] [a3 d3 - - d4 d4 d4 b3] [c4 g3 e3 - - d4 d4 c4] [c4 - - - - c4 c4 g3] [g3 - - - - c4 d4 e4]>\").sound(\"solistavoz\").room(.6)], [8, note(\"<[- c4 g3 - - c4 c4 a3] [f3 _ - - - - d4 d#4] [e4 b3 - - - e4 e4 d4] [d4 _ - - - c4 c4 g3] [a3 d3 - - d4 d4 d4 b3] [c4 g3 e3 - - d4 d4 c4] [c4 - - - - c4 c4 g3] [g3 - - - - c4 d4 e4]>\").sound(\"solistavoz\").room(.6)], [8, silence], [8, note(\"<[- c4 g3 - - c4 c4 a3] [f3 _ - - - - d4 d#4] [e4 b3 - - - e4 e4 d4] [d4 _ - - - c4 c4 g3] [a3 d3 - - d4 d4 d4 b3] [c4 g3 e3 - - d4 d4 c4] [c4 - - - - c4 c4 g3] [g3 - - - - c4 d4 e4]>\").sound(\"solistavoz\").room(.6)], [8, silence]).orbit(1), // voz · estrofa\n  arrange([8, silence], [8, note(\"<[[c4,e4,g4]] [[f#4,a4,c#5]] [[e4,g#4,b4,d5]] [[g4,b4,d5]] [[f#4,a4,c#5]] [[c4,e4,g4]] [[a4,c5,e5]] [[g4,b4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [8, note(\"<[[c4,e4,g4]] [[f#4,a4,c#5]] [[e4,g#4,b4,d5]] [[g4,b4,d5]] [[f#4,a4,c#5]] [[c4,e4,g4]] [[a4,c5,e5]] [[g4,b4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [8, silence], [8, note(\"<[[c4,e4,g4]] [[f#4,a4,c#5]] [[e4,g#4,b4,d5]] [[g4,b4,d5]] [[f#4,a4,c#5]] [[c4,e4,g4]] [[a4,c5,e5]] [[g4,b4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [8, silence]).orbit(2), // piano · estrofa\n)",
+  "codigo": "setcpm(62/4)\nstack(\n  arrange([8, note(\"<[e3 d4 g4 g4 g3 g4 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 d4 g4 g4 g4 e3 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 g4 - g4 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 a2 g4 e3 d4 d4]>\").sound(\"violacriolla\")], [8, silence], [8, silence], [8, note(\"<[e3 d4 g4 g4 g3 g4 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 d4 g4 g4 g4 e3 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 g4 - g4 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 a2 g4 e3 d4 d4]>\").sound(\"violacriolla\")], [8, silence], [8, note(\"<[e3 d4 g4 g4 g3 g4 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 d4 g4 g4 g4 e3 g3 e3] [d3 g4 g3 g4 g4 g2 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 g4 - g4 b2 d3] [e3 g4 g4 g4 g4 e3 d3 b2] [a2 e3 g4 a2 g4 e3 d4 d4]>\").sound(\"violacriolla\")]).orbit(0), // viola criolla · entrada\n  arrange([8, silence], [8, note(\"<[c3] [f#2] [a2 e2 e2 a2] [g2] [f#2 f#2 f#2 a2] [c3] [a2] [g2]>\").sound(\"violacriolla\")], [8, note(\"<[c3] [f#2] [a2 e2 e2 a2] [g2] [f#2 f#2 f#2 a2] [c3] [a2] [g2]>\").sound(\"violacriolla\")], [8, silence], [8, note(\"<[c3] [f#2] [a2 e2 e2 a2] [g2] [f#2 f#2 f#2 a2] [c3] [a2] [g2]>\").sound(\"violacriolla\")], [8, silence]).orbit(0), // viola criolla · estrofa\n  arrange([8, silence], [8, note(\"<[- c4 g3 - - c4 c4 a3] [f3 _ - - - - d4 d#4] [e4 b3 - - - e4 e4 d4] [d4 _ - - - c4 c4 g3] [a3 d3 - - d4 d4 d4 b3] [c4 g3 e3 - - d4 d4 c4] [c4 - - - - c4 c4 g3] [g3 - - - - c4 d4 e4]>\").sound(\"sintetizadordevoz\").room(.6)], [8, note(\"<[- c4 g3 - - c4 c4 a3] [f3 _ - - - - d4 d#4] [e4 b3 - - - e4 e4 d4] [d4 _ - - - c4 c4 g3] [a3 d3 - - d4 d4 d4 b3] [c4 g3 e3 - - d4 d4 c4] [c4 - - - - c4 c4 g3] [g3 - - - - c4 d4 e4]>\").sound(\"sintetizadordevoz\").room(.6)], [8, silence], [8, note(\"<[- c4 g3 - - c4 c4 a3] [f3 _ - - - - d4 d#4] [e4 b3 - - - e4 e4 d4] [d4 _ - - - c4 c4 g3] [a3 d3 - - d4 d4 d4 b3] [c4 g3 e3 - - d4 d4 c4] [c4 - - - - c4 c4 g3] [g3 - - - - c4 d4 e4]>\").sound(\"sintetizadordevoz\").room(.6)], [8, silence]).orbit(1), // voz · estrofa\n  arrange([8, silence], [8, note(\"<[[c4,e4,g4]] [[c#4,f#4,a4]] [[d4,e4,g#4,b4]] [[d4,g4,b4]] [[c#4,f#4,a4]] [[c4,e4,g4]] [[e4,a4,c5]] [[d4,g4,b4]]>\").sound(\"piano\").gain(.45).room(.6)], [8, note(\"<[[c4,e4,g4]] [[c#4,f#4,a4]] [[d4,e4,g#4,b4]] [[d4,g4,b4]] [[c#4,f#4,a4]] [[c4,e4,g4]] [[e4,a4,c5]] [[d4,g4,b4]]>\").sound(\"piano\").gain(.45).room(.6)], [8, silence], [8, note(\"<[[c4,e4,g4]] [[c#4,f#4,a4]] [[d4,e4,g#4,b4]] [[d4,g4,b4]] [[c#4,f#4,a4]] [[c4,e4,g4]] [[e4,a4,c5]] [[d4,g4,b4]]>\").sound(\"piano\").gain(.45).room(.6)], [8, silence]).orbit(2), // piano · estrofa\n)",
   "vueltas": 48,
   "bpm": 62,
   "errores": [],
@@ -28,11 +34,17 @@
    "estrofa×8",
    "entrada×8"
   ],
-  "tempos": [],
+  "tempos": [
+   {
+    "desde": 0,
+    "bpm": 62,
+    "tiempos": 4
+   }
+  ],
   "enlaces": []
  },
  "tema: babasónico": {
-  "codigo": "setcpm(110/4)\nstack(\n  s(\"bd - hh hh sd hh bd - - - sd - hh hh hh -\").bank(\"linndrum\").orbit(0), // bata\n  arrange([4, note(\"<[f2 _ - f2 _ _ _ f2] [d2 _ _ _ _ _ - d2] [c2 _ _ _ _ _ - c2] [c2 _ _ _ - - c2 _]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence]).orbit(1), // bajo · entrada\n  arrange([4, note(\"<[[f4,a4,c5,d#5]] [[a4,c5,e5]] [[g4,b4,d5]] [[g4,a#4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence]).orbit(2), // piano · entrada\n  arrange([4, silence], [4, note(\"<[a2 _ _ _ _ _ - -] [c2 c2 _ _ _ _ _ -] [f2] [c2 _ _ _ _ _ b2 _]>\").sound(\"bajo\")], [4, note(\"<[a2 _ _ _ _ _ - -] [c2 c2 _ _ _ _ _ -] [f2] [c2 _ _ _ _ _ b2 _]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, note(\"<[a2 _ _ _ _ _ - -] [c2 c2 _ _ _ _ _ -] [f2] [c2 _ _ _ _ _ b2 _]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, silence]).orbit(1), // bajo · estrofa\n  arrange([4, silence], [4, note(\"<[-] [-] [e4 _ a4 e5 _ _ a4 _] [g4 _ _ _ c4 _ b3 _]>\").sound(\"violaelectrica\")], [4, note(\"<[-] [-] [e4 _ a4 e5 _ _ a4 _] [g4 _ _ _ c4 _ b3 _]>\").sound(\"violaelectrica\")], [4, silence], [4, silence], [4, note(\"<[-] [-] [e4 _ a4 e5 _ _ a4 _] [g4 _ _ _ c4 _ b3 _]>\").sound(\"violaelectrica\")], [4, silence], [4, silence], [4, silence]).orbit(3), // viola eléctrica · estrofa\n  arrange([4, silence], [4, note(\"<[[a4,c5,e5]] [[g4,b4,d5]] [[f4,a4,c5]] [[g4,b4,d5,f5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, note(\"<[[a4,c5,e5]] [[g4,b4,d5]] [[f4,a4,c5]] [[g4,b4,d5,f5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, note(\"<[[a4,c5,e5]] [[g4,b4,d5]] [[f4,a4,c5]] [[g4,b4,d5,f5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, silence]).orbit(2), // piano · estrofa\n  arrange([4, silence], [4, silence], [4, silence], [4, note(\"<[f2 f2 - f2 _ _ _ -] [e2 e2 - e2 _ _ _ -] [a2 a2 - a2 _ _ _ -] [c2 c2 - c2 _ _ _ -]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, note(\"<[f2 f2 - f2 _ _ _ -] [e2 e2 - e2 _ _ _ -] [a2 a2 - a2 _ _ _ -] [c2 c2 - c2 _ _ _ -]>\").sound(\"bajo\")], [4, silence], [4, silence]).orbit(1), // bajo · puente\n  arrange([4, silence], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5]] [[e4,g#4,b4]] [[a4,c5,e5]] [[g4,b4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5]] [[e4,g#4,b4]] [[a4,c5,e5]] [[g4,b4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence]).orbit(2), // piano · puente\n  arrange([4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[f2 f2 f2 f2 f2 g2 g2 c2] [f2 f2 f2 f2 f2 g2 g2 c2] [c2 c2 c2 c3 c3 g2 c2 c2] [c2 c2 c2 c3 c3 g2 c2 _]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, note(\"<[f2 f2 f2 f2 f2 g2 g2 c2] [f2 f2 f2 f2 f2 g2 g2 c2] [c2 c2 c2 c3 c3 g2 c2 c2] [c2 c2 c2 c3 c3 g2 c2 _]>\").sound(\"bajo\")], [4, note(\"<[f2 f2 f2 f2 f2 g2 g2 c2] [f2 f2 f2 f2 f2 g2 g2 c2] [c2 c2 c2 c3 c3 g2 c2 c2] [c2 c2 c2 c3 c3 g2 c2 _]>\").sound(\"bajo\")]).orbit(1), // bajo · estribillo\n  arrange([4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,g4]] [[c4,g4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,g4]] [[c4,g4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,g4]] [[c4,g4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")]).orbit(4), // viola distorsionada · estribillo\n  arrange([4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,e4,g4]] [[c4,e4,g4]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,e4,g4]] [[c4,e4,g4]]>\").sound(\"piano\").gain(.45).room(.6)], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,e4,g4]] [[c4,e4,g4]]>\").sound(\"piano\").gain(.45).room(.6)]).orbit(2), // piano · estribillo\n)",
+  "codigo": "setcpm(110/4)\nstack(\n  s(\"bd - hh hh sd hh bd - - - sd - hh hh hh -\").bank(\"linndrum\").orbit(0), // bata\n  arrange([4, note(\"<[f2 _ - f2 _ _ _ f2] [d2 _ _ _ _ _ - d2] [c2 _ _ _ _ _ - c2] [c2 _ _ _ - - c2 _]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence]).orbit(1), // bajo · entrada\n  arrange([4, note(\"<[[f4,a4,c5,d#5]] [[e4,a4,c5]] [[d4,g4,b4]] [[d4,g4,a#4]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence], [4, silence]).orbit(2), // piano · entrada\n  arrange([4, silence], [4, note(\"<[a2 _ _ _ _ _ - -] [c2 c2 _ _ _ _ _ -] [f2] [c2 _ _ _ _ _ b2 _]>\").sound(\"bajo\")], [4, note(\"<[a2 _ _ _ _ _ - -] [c2 c2 _ _ _ _ _ -] [f2] [c2 _ _ _ _ _ b2 _]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, note(\"<[a2 _ _ _ _ _ - -] [c2 c2 _ _ _ _ _ -] [f2] [c2 _ _ _ _ _ b2 _]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, silence]).orbit(1), // bajo · estrofa\n  arrange([4, silence], [4, note(\"<[-] [-] [e4 _ a4 e5 _ _ a4 _] [g4 _ _ _ c4 _ b3 _]>\").sound(\"violaelectrica\")], [4, note(\"<[-] [-] [e4 _ a4 e5 _ _ a4 _] [g4 _ _ _ c4 _ b3 _]>\").sound(\"violaelectrica\")], [4, silence], [4, silence], [4, note(\"<[-] [-] [e4 _ a4 e5 _ _ a4 _] [g4 _ _ _ c4 _ b3 _]>\").sound(\"violaelectrica\")], [4, silence], [4, silence], [4, silence]).orbit(3), // viola eléctrica · estrofa\n  arrange([4, silence], [4, note(\"<[[a4,c5,e5]] [[g4,b4,d5]] [[f4,a4,c5]] [[f4,g4,b4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, note(\"<[[a4,c5,e5]] [[g4,b4,d5]] [[f4,a4,c5]] [[f4,g4,b4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, note(\"<[[a4,c5,e5]] [[g4,b4,d5]] [[f4,a4,c5]] [[f4,g4,b4,d5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, silence]).orbit(2), // piano · estrofa\n  arrange([4, silence], [4, silence], [4, silence], [4, note(\"<[f2 f2 - f2 _ _ _ -] [e2 e2 - e2 _ _ _ -] [a2 a2 - a2 _ _ _ -] [c2 c2 - c2 _ _ _ -]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, note(\"<[f2 f2 - f2 _ _ _ -] [e2 e2 - e2 _ _ _ -] [a2 a2 - a2 _ _ _ -] [c2 c2 - c2 _ _ _ -]>\").sound(\"bajo\")], [4, silence], [4, silence]).orbit(1), // bajo · puente\n  arrange([4, silence], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5]] [[e4,g#4,b4]] [[e4,a4,c5]] [[d4,g4,b4]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5]] [[e4,g#4,b4]] [[e4,a4,c5]] [[d4,g4,b4]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence]).orbit(2), // piano · puente\n  arrange([4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[f2 f2 f2 f2 f2 g2 g2 c2] [f2 f2 f2 f2 f2 g2 g2 c2] [c2 c2 c2 c3 c3 g2 c2 c2] [c2 c2 c2 c3 c3 g2 c2 _]>\").sound(\"bajo\")], [4, silence], [4, silence], [4, note(\"<[f2 f2 f2 f2 f2 g2 g2 c2] [f2 f2 f2 f2 f2 g2 g2 c2] [c2 c2 c2 c3 c3 g2 c2 c2] [c2 c2 c2 c3 c3 g2 c2 _]>\").sound(\"bajo\")], [4, note(\"<[f2 f2 f2 f2 f2 g2 g2 c2] [f2 f2 f2 f2 f2 g2 g2 c2] [c2 c2 c2 c3 c3 g2 c2 c2] [c2 c2 c2 c3 c3 g2 c2 _]>\").sound(\"bajo\")]).orbit(1), // bajo · estribillo\n  arrange([4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,g4]] [[c4,g4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,g4]] [[c4,g4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[c4,g4]] [[c4,g4]]>\").sound(\"violadistorsionada\").struct(\"x*8\")]).orbit(4), // viola distorsionada · estribillo\n  arrange([4, silence], [4, silence], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[e4,g4,c5]] [[e4,g4,c5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, silence], [4, silence], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[e4,g4,c5]] [[e4,g4,c5]]>\").sound(\"piano\").gain(.45).room(.6)], [4, note(\"<[[f4,a4,c5,d#5]] [[f4,a4,c5,d#5]] [[e4,g4,c5]] [[e4,g4,c5]]>\").sound(\"piano\").gain(.45).room(.6)]).orbit(2), // piano · estribillo\n)",
   "vueltas": 36,
   "bpm": 110,
   "errores": [],
@@ -47,11 +59,17 @@
    "estribillo×4",
    "estribillo×4"
   ],
-  "tempos": [],
+  "tempos": [
+   {
+    "desde": 0,
+    "bpm": 110,
+    "tiempos": 4
+   }
+  ],
   "enlaces": []
  },
  "tema: o fortuna": {
-  "codigo": "setcpm(130/4)\nstack(\n  arrange([12, note(\"<[- e5] [e5 f5] [d5 d5] [- e5] [e5 f5] [d5 d5] [- a5] [a5 g5] [a5 g5] [g5 f5] [e5 _] [- -]>\").sound(\"coro\").gain(1.3)], [12, silence], [12, silence], [12, silence]).orbit(0), // coro · entrada\n  arrange([12, note(\"<[d2] [c2] [bb2] [d2] [c2] [bb2] [a2] [a2] [-] [-] [-] [-]>\").sound(\"tuba\").gain(1.3)], [12, silence], [12, silence], [12, silence]).orbit(1), // tuba · entrada\n  arrange([12, note(\"<[d3 _ d3 _] [d3 _ d3 _] [d3 _ d3 _] [d3 _ d3 _] [d3 _ d3 _] [d3 _ d3 _] [a2 - - -] [a2 a2 a2 a2] [a2 a2 a2 a2] [a2 a2 a2 a2] [a2 a2 a2 a2] [a2 a2 a2 a2]>\").sound(\"timbal\")], [12, silence], [12, silence], [12, silence]).orbit(2), // timbales · entrada\n  arrange([12, note(\"<[[d4,f4,a4]] [[c4,e4,g4]] [[a#4,d5,f5]] [[d4,f4,a4]] [[c4,e4,g4]] [[a#4,d5,f5]] [[a4,c#5,e5]] [[a4,c#5,e5]] [[a4,c#5,e5]] [[a4,c#5,e5]] [[a4,c#5,e5]] [-]>\").sound(\"cuerdas\").gain(.45)], [12, silence], [12, silence], [12, silence]).orbit(3), // cuerdas · entrada\n  arrange([12, silence], [12, note(\"<[- f4] [f4 e4] [e4 -] [- f4] [f4 e4] [e4 -] [- f4] [f4 e4] [f4 _] [g4 _] [f4 e4] [e4 _]>\").sound(\"coro\").gain(.45)], [12, silence], [12, silence]).orbit(0), // coro · susurro\n  arrange([12, silence], [12, note(\"<[[f4,c5]] [[e4,b4]] [[e4,b4]] [[f4,c5]] [[e4,b4]] [[e4,b4]] [[f4,c5]] [[e4,b4]] [[f4,c5]] [[g4,d5]] [[e4,b4]] [-]>\").sound(\"cuerdas\").gain(.45)], [12, silence], [12, silence]).orbit(3), // cuerdas · susurro\n  arrange([12, silence], [12, note(\"<[d3 - - -] [- - - -] [- - - -] [d3 - - -] [- - - -] [- - - -] [d3 - - -] [- - - -] [d3 - - -] [g3 - - -] [e3 - - -] [- - - -]>\").sound(\"timbal\").gain(.45)], [12, silence], [12, silence]).orbit(2), // timbales · susurro\n  arrange([12, silence], [12, silence], [12, note(\"<[- f5] [f5 e5] [e5 -] [- f5] [f5 e5] [e5 -] [- f5] [f5 e5] [f5 _] [g5 _] [f5 e5] [e5 _]>\").sound(\"coro\").gain(1.3)], [12, silence]).orbit(0), // coro · crece\n  arrange([12, silence], [12, silence], [12, note(\"<[[f4,c5]] [[e4,b4]] [[e4,b4]] [[f4,c5]] [[e4,b4]] [[e4,b4]] [[f4,c5]] [[e4,b4]] [[f4,c5]] [[g4,d5]] [[e4,b4]] [-]>\").sound(\"cuerdas\")], [12, silence]).orbit(3), // cuerdas · crece\n  arrange([12, silence], [12, silence], [12, note(\"<[d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [g3 - g3 -] [e3 - e3 -] [- - - -]>\").sound(\"timbal\")], [12, silence]).orbit(2), // timbales · crece\n  arrange([12, silence], [12, silence], [12, silence], [12, note(\"<[d3 f3] [e3 d3] [g3 f3] [e3 a3] [g3 g3] [g3 e3] [d3 d3] [f3 e3] [d3 g3] [- -] [- -] [- -]>\").sound(\"coro\").gain(1.3)]).orbit(0), // coro · final\n  arrange([12, silence], [12, silence], [12, silence], [12, note(\"<[d2] [c2] [bb2] [a2] [g2] [e2] [d2] [a2] [d2] [-] [-] [-]>\").sound(\"tuba\").gain(1.3)]).orbit(1), // tuba · final\n  arrange([12, silence], [12, silence], [12, silence], [12, note(\"<[d3 d3 d3 d3] [d3 d3 d3 d3] [d3 d3 d3 d3] [a2 a2 a2 a2] [a2 a2 a2 a2] [a2 a2 a2 a2] [d3 d3 d3 d3] [a2 a2 a2 a2] [d3 - - -] [- - - -] [- - - -] [- - - -]>\").sound(\"timbal\")]).orbit(2), // timbales · final\n  arrange([12, silence], [12, silence], [12, silence], [12, note(\"<[[d4,f4,a4]] [[c4,e4,g4]] [[a#4,d5,f5]] [[a4,c#5,e5]] [[g4,a#4,d5]] [[e4,g4,a#4]] [[d4,f4,a4]] [[a4,c#5,e5]] [[d4,f4,a4]] [-] [-] [-]>\").sound(\"cuerdas\").gain(1.3)]).orbit(3), // cuerdas · final\n)",
+  "codigo": "setcpm(130/4)\nstack(\n  arrange([12, note(\"<[- e5] [e5 f5] [d5 d5] [- e5] [e5 f5] [d5 d5] [- a5] [a5 g5] [a5 g5] [g5 f5] [e5 _] [- -]>\").sound(\"coro\").gain(1.3)], [12, silence], [12, silence], [12, silence]).orbit(0), // coro · entrada\n  arrange([12, note(\"<[d2] [c2] [bb2] [d2] [c2] [bb2] [a2] [a2] [-] [-] [-] [-]>\").sound(\"tuba\").gain(1.3)], [12, silence], [12, silence], [12, silence]).orbit(1), // tuba · entrada\n  arrange([12, note(\"<[d3 _ d3 _] [d3 _ d3 _] [d3 _ d3 _] [d3 _ d3 _] [d3 _ d3 _] [d3 _ d3 _] [a2 - - -] [a2 a2 a2 a2] [a2 a2 a2 a2] [a2 a2 a2 a2] [a2 a2 a2 a2] [a2 a2 a2 a2]>\").sound(\"timbal\")], [12, silence], [12, silence], [12, silence]).orbit(2), // timbales · entrada\n  arrange([12, note(\"<[[d4,f4,a4]] [[c4,e4,g4]] [[f4,a#4,d5]] [[f4,a4,d5]] [[e4,g4,c5]] [[f4,a#4,d5]] [[e4,a4,c#5]] [[e4,a4,c#5]] [[e4,a4,c#5]] [[e4,a4,c#5]] [[e4,a4,c#5]] [-]>\").sound(\"cuerdas\").gain(.45)], [12, silence], [12, silence], [12, silence]).orbit(3), // cuerdas · entrada\n  arrange([12, silence], [12, note(\"<[- f4] [f4 e4] [e4 -] [- f4] [f4 e4] [e4 -] [- f4] [f4 e4] [f4 _] [g4 _] [f4 e4] [e4 _]>\").sound(\"coro\").gain(.45)], [12, silence], [12, silence]).orbit(0), // coro · susurro\n  arrange([12, silence], [12, note(\"<[[f4,c5]] [[e4,b4]] [[e4,b4]] [[f4,c5]] [[e4,b4]] [[e4,b4]] [[f4,c5]] [[e4,b4]] [[f4,c5]] [[g4,d5]] [[e4,b4]] [-]>\").sound(\"cuerdas\").gain(.45)], [12, silence], [12, silence]).orbit(3), // cuerdas · susurro\n  arrange([12, silence], [12, note(\"<[d3 - - -] [- - - -] [- - - -] [d3 - - -] [- - - -] [- - - -] [d3 - - -] [- - - -] [d3 - - -] [g3 - - -] [e3 - - -] [- - - -]>\").sound(\"timbal\").gain(.45)], [12, silence], [12, silence]).orbit(2), // timbales · susurro\n  arrange([12, silence], [12, silence], [12, note(\"<[- f5] [f5 e5] [e5 -] [- f5] [f5 e5] [e5 -] [- f5] [f5 e5] [f5 _] [g5 _] [f5 e5] [e5 _]>\").sound(\"coro\").gain(1.3)], [12, silence]).orbit(0), // coro · crece\n  arrange([12, silence], [12, silence], [12, note(\"<[[f4,c5]] [[e4,b4]] [[e4,b4]] [[f4,c5]] [[e4,b4]] [[e4,b4]] [[f4,c5]] [[e4,b4]] [[f4,c5]] [[g4,d5]] [[e4,b4]] [-]>\").sound(\"cuerdas\")], [12, silence]).orbit(3), // cuerdas · crece\n  arrange([12, silence], [12, silence], [12, note(\"<[d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [d3 - d3 -] [g3 - g3 -] [e3 - e3 -] [- - - -]>\").sound(\"timbal\")], [12, silence]).orbit(2), // timbales · crece\n  arrange([12, silence], [12, silence], [12, silence], [12, note(\"<[d3 f3] [e3 d3] [g3 f3] [e3 a3] [g3 g3] [g3 e3] [d3 d3] [f3 e3] [d3 g3] [- -] [- -] [- -]>\").sound(\"coro\").gain(1.3)]).orbit(0), // coro · final\n  arrange([12, silence], [12, silence], [12, silence], [12, note(\"<[d2] [c2] [bb2] [a2] [g2] [e2] [d2] [a2] [d2] [-] [-] [-]>\").sound(\"tuba\").gain(1.3)]).orbit(1), // tuba · final\n  arrange([12, silence], [12, silence], [12, silence], [12, note(\"<[d3 d3 d3 d3] [d3 d3 d3 d3] [d3 d3 d3 d3] [a2 a2 a2 a2] [a2 a2 a2 a2] [a2 a2 a2 a2] [d3 d3 d3 d3] [a2 a2 a2 a2] [d3 - - -] [- - - -] [- - - -] [- - - -]>\").sound(\"timbal\")]).orbit(2), // timbales · final\n  arrange([12, silence], [12, silence], [12, silence], [12, note(\"<[[d4,f4,a4]] [[c4,e4,g4]] [[f4,a#4,d5]] [[e4,a4,c#5]] [[g4,a#4,d5]] [[g4,a#4,c#5,e5]] [[f4,a4,d5]] [[e4,a4,c#5]] [[f4,a4,d5]] [-] [-] [-]>\").sound(\"cuerdas\").gain(1.3)]).orbit(3), // cuerdas · final\n)",
   "vueltas": 48,
   "bpm": 130,
   "errores": [],
@@ -86,7 +104,7 @@
   "enlaces": []
  },
  "tema: la gruta": {
-  "codigo": "setcpm(130/4)\nstack(\n  arrange([8, note(\"<[e4 f#4 g4 a4] [b4 g4 b4 _] [a#4 f#4 a#4 -] [a4 f4 a4 _] [e4 f#4 g4 a4] [b4 g4 b4 e5] [d5 b4 g4 b4] [d5 _ - -]>\").sound(\"pizzicato\")], [8, note(\"<[e4 f#4 g4 a4] [b4 g4 b4 _] [a#4 f#4 a#4 -] [a4 f4 a4 _] [e4 f#4 g4 a4] [b4 g4 b4 e5] [d5 b4 g4 b4] [d5 _ - -]>\").sound(\"pizzicato\")], [8, silence], [8, silence], [8, silence]).orbit(0), // melodía · tema\n  arrange([8, note(\"<[e3] [b2] [a#2] [a2] [e3] [b2] [d3] [d3]>\").sound(\"contrabajo\").gain(.45)], [8, note(\"<[e3] [b2] [a#2] [a2] [e3] [b2] [d3] [d3]>\").sound(\"contrabajo\").gain(.45)], [8, silence], [8, silence], [8, silence]).orbit(1), // contrabajo · tema\n  arrange([8, note(\"e2 - - -\").sound(\"timbal\").gain(.45)], [8, note(\"e2 - - -\").sound(\"timbal\").gain(.45)], [8, silence], [8, silence], [8, silence]).orbit(2), // timbales · tema\n  arrange([8, silence], [8, silence], [8, note(\"<[c#4 d#4 e4 f#4] [d#4 f#4 _ g4] [d#4 g4 _ f#4] [d#4 f#4 _ b3] [c#4 d#4 e4 f#4] [d#4 f#4 _ g4] [d#4 g4 _ f#4] [- b3 c#5 d#5]>\").sound(\"pizzicato\")], [8, silence], [8, silence]).orbit(0), // melodía · arriba\n  arrange([8, silence], [8, silence], [8, note(\"<[c#3] [d#3] [d#3] [b2] [c#3] [d#3] [d#3] [b2]>\").sound(\"contrabajo\").gain(.45)], [8, silence], [8, silence]).orbit(1), // contrabajo · arriba\n  arrange([8, silence], [8, silence], [8, note(\"e2 - - -\").sound(\"timbal\").gain(.45)], [8, silence], [8, silence]).orbit(2), // timbales · arriba\n  arrange([8, silence], [8, silence], [8, silence], [8, note(\"<[e5 f#5 d#5 f#5] [- g5 d#5 g5] [- f#5 d#5 f#5] [- b4 c#5 d#5] [e5 f#5 d#5 f#5] [- g5 d#5 g5] [- f#5 - -] [- - - -]>\").sound(\"pizzicato\").gain(1.3)], [8, silence]).orbit(0), // melodía · cumbre\n  arrange([8, silence], [8, silence], [8, silence], [8, note(\"<[e3] [g3] [d#3] [b2] [e3] [g3] [d#3] [b2]>\").sound(\"contrabajo\")], [8, silence]).orbit(1), // contrabajo · cumbre\n  arrange([8, silence], [8, silence], [8, silence], [8, note(\"e2 - e2 -\").sound(\"timbal\")], [8, silence]).orbit(2), // timbales · cumbre\n  arrange([8, silence], [8, silence], [8, silence], [8, silence], [8, note(\"<[g4 b4 - a#4] [f#4 a#4 - a4] [f4 a4 - e4] [f#4 g4 b4 g4] [b4 e5 d5 b4] [g4 b4 d5 d4] [b4 _ - -] [b4 e5 f#5 g5]>\").sound(\"piano\").gain(1.3)]).orbit(0), // melodía · final\n  arrange([8, silence], [8, silence], [8, silence], [8, silence], [8, note(\"<[g3] [f#3] [f3] [e3] [e3] [g3] [b2] [e3]>\").sound(\"contrabajo\").gain(1.3)]).orbit(1), // contrabajo · final\n  arrange([8, silence], [8, silence], [8, silence], [8, silence], [8, note(\"e2 e2 e2 e2\").sound(\"timbal\")]).orbit(2), // timbales · final\n)",
+  "codigo": "setcpm(130/4)\nstack(\n  arrange([8, note(\"<[e4 f#4 g4 a4] [b4 g4 b4 _] [a#4 f#4 a#4 -] [a4 f4 a4 _] [e4 f#4 g4 a4] [b4 g4 b4 e5] [d5 b4 g4 b4] [d5 _ - -]>\").sound(\"pizzicato\")], [8, note(\"<[e4 f#4 g4 a4] [b4 g4 b4 _] [a#4 f#4 a#4 -] [a4 f4 a4 _] [e4 f#4 g4 a4] [b4 g4 b4 e5] [d5 b4 g4 b4] [d5 _ - -]>\").sound(\"pizzicato\")], [8, silence], [8, silence], [8, silence]).orbit(0), // melodía · tema\n  arrange([8, note(\"<[e3] [b2] [a#2] [a2] [e3] [b2] [d3] [d3]>\").sound(\"contrabajoconarco\").gain(.45)], [8, note(\"<[e3] [b2] [a#2] [a2] [e3] [b2] [d3] [d3]>\").sound(\"contrabajoconarco\").gain(.45)], [8, silence], [8, silence], [8, silence]).orbit(1), // contrabajo con arco · tema\n  arrange([8, note(\"e2 - - -\").sound(\"timbal\").gain(.45)], [8, note(\"e2 - - -\").sound(\"timbal\").gain(.45)], [8, silence], [8, silence], [8, silence]).orbit(2), // timbales · tema\n  arrange([8, silence], [8, silence], [8, note(\"<[c#4 d#4 e4 f#4] [d#4 f#4 _ g4] [d#4 g4 _ f#4] [d#4 f#4 _ b3] [c#4 d#4 e4 f#4] [d#4 f#4 _ g4] [d#4 g4 _ f#4] [- b3 c#5 d#5]>\").sound(\"pizzicato\")], [8, silence], [8, silence]).orbit(0), // melodía · arriba\n  arrange([8, silence], [8, silence], [8, note(\"<[c#3] [d#3] [d#3] [b2] [c#3] [d#3] [d#3] [b2]>\").sound(\"contrabajoconarco\").gain(.45)], [8, silence], [8, silence]).orbit(1), // contrabajo con arco · arriba\n  arrange([8, silence], [8, silence], [8, note(\"e2 - - -\").sound(\"timbal\").gain(.45)], [8, silence], [8, silence]).orbit(2), // timbales · arriba\n  arrange([8, silence], [8, silence], [8, silence], [8, note(\"<[e5 f#5 d#5 f#5] [- g5 d#5 g5] [- f#5 d#5 f#5] [- b4 c#5 d#5] [e5 f#5 d#5 f#5] [- g5 d#5 g5] [- f#5 - -] [- - - -]>\").sound(\"pizzicato\").gain(1.3)], [8, silence]).orbit(0), // melodía · cumbre\n  arrange([8, silence], [8, silence], [8, silence], [8, note(\"<[e3] [g3] [d#3] [b2] [e3] [g3] [d#3] [b2]>\").sound(\"contrabajoconarco\")], [8, silence]).orbit(1), // contrabajo con arco · cumbre\n  arrange([8, silence], [8, silence], [8, silence], [8, note(\"e2 - e2 -\").sound(\"timbal\")], [8, silence]).orbit(2), // timbales · cumbre\n  arrange([8, silence], [8, silence], [8, silence], [8, silence], [8, note(\"<[g4 b4 - a#4] [f#4 a#4 - a4] [f4 a4 - e4] [f#4 g4 b4 g4] [b4 e5 d5 b4] [g4 b4 d5 d4] [b4 _ - -] [b4 e5 f#5 g5]>\").sound(\"piano\").gain(1.3)]).orbit(0), // melodía · final\n  arrange([8, silence], [8, silence], [8, silence], [8, silence], [8, note(\"<[g3] [f#3] [f3] [e3] [e3] [g3] [b2] [e3]>\").sound(\"contrabajoconarco\").gain(1.3)]).orbit(1), // contrabajo con arco · final\n  arrange([8, silence], [8, silence], [8, silence], [8, silence], [8, note(\"e2 e2 e2 e2\").sound(\"timbal\")]).orbit(2), // timbales · final\n)",
   "vueltas": 40,
   "bpm": 130,
   "errores": [],
@@ -131,7 +149,7 @@
   "enlaces": []
  },
  "lo que se fue avisa": {
-  "codigo": "setcpm(90/4)\nnote(\"c4 - - -\").sound(\"bajo\").orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"c2 - - -\").sound(\"bajo\").orbit(0)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [
@@ -142,7 +160,7 @@
   "enlaces": []
  },
  "una por vuelta avisa con la barra": {
-  "codigo": "setcpm(90/4)\nnote(\"[c4,e4,g4] [f4,a4,c5]\").sound(\"piano\").orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"[c4,e4,g4] [c4,f4,a4]\").sound(\"piano\").orbit(0)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [
@@ -164,7 +182,7 @@
   "enlaces": []
  },
  "las figuras": {
-  "codigo": "setcpm(90/4)\nstack(\n  note(\"<[[c4,e4,g4]] [[f4,a4,c5]]>\").sound(\"piano\").struct(\"x*16\").orbit(0), // piano\n  note(\"c4\").sound(\"viola\").struct(\"x*12\").orbit(1), // viola\n  note(\"c4\").sound(\"bajo\").struct(\"x*2\").orbit(2), // bajo\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"<[[c4,e4,g4]] [[c4,f4,a4]]>\").sound(\"piano\").struct(\"x*16\").orbit(0), // piano\n  note(\"c4\").sound(\"viola\").struct(\"x*12\").orbit(1), // viola\n  note(\"c2\").sound(\"bajo\").struct(\"x*2\").orbit(2), // bajo\n)",
   "vueltas": 2,
   "bpm": 90,
   "errores": [],
@@ -173,7 +191,7 @@
   "enlaces": []
  },
  "a la mitad sí la estira": {
-  "codigo": "setcpm(90/4)\nnote(\"c4 - - -\").sound(\"bajo\").slow(2).orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"c2 - - -\").sound(\"bajo\").slow(2).orbit(0)",
   "vueltas": 2,
   "bpm": 90,
   "errores": [],
@@ -186,7 +204,7 @@
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "1: no conozco «constructor». Pasá el mouse por encima y tocá el ▾."
+   "1: no conozco «constructor». Tocá la palabra y elegí en el ▾."
   ],
   "tramos": [],
   "tempos": [],
@@ -231,7 +249,7 @@
   "enlaces": []
  },
  "secciones, forma y tempo por sección": {
-  "codigo": "setcpm(90/4)\nstack(\n  arrange([1, s(\"bd sd\").bank(\"linndrum\")], [2, silence], [1, s(\"bd sd\").bank(\"linndrum\")]).orbit(0), // bata · estrofa\n  arrange([1, silence], [2, note(\"c4 d4\").sound(\"bajo\")], [1, silence]).orbit(1), // bajo · estribillo\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  arrange([1, s(\"bd sd\").bank(\"linndrum\")], [2, silence], [1, s(\"bd sd\").bank(\"linndrum\")]).orbit(0), // bata · estrofa\n  arrange([1, silence], [2, note(\"c2 d2\").sound(\"bajo\")], [1, silence]).orbit(1), // bajo · estribillo\n)",
   "vueltas": 4,
   "bpm": 90,
   "errores": [],
@@ -260,7 +278,7 @@
   "enlaces": []
  },
  "una parte callada no suena pero está": {
-  "codigo": "setcpm(90/4)\nnote(\"c4\").sound(\"bajo\").orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"c2\").sound(\"bajo\").orbit(0)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [],
@@ -269,7 +287,7 @@
   "enlaces": []
  },
  "acorde con altura": {
-  "codigo": "setcpm(90/4)\nnote(\"<[[c3,e3,g3]] [[f5,g#5,c6]]>\").sound(\"piano\").orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"<[[c3,e3,g3]] [[c5,f5,g#5]]>\").sound(\"piano\").orbit(0)",
   "vueltas": 2,
   "bpm": 90,
   "errores": [],
@@ -278,7 +296,7 @@
   "enlaces": []
  },
  "acordes de dos palabras": {
-  "codigo": "setcpm(90/4)\nnote(\"<[[c4,d#4,g4,a#4]] [[d5,f#5,a5,c#6]] [[e4,a4,b4]] [[f4,a4,c#5]]>\").sound(\"piano\").orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"<[[c4,d#4,g4,a#4]] [[a4,c#5,d5,f#5]] [[a4,b4,e5]] [[a4,c#5,f5]]>\").sound(\"piano\").orbit(0)",
   "vueltas": 4,
   "bpm": 90,
   "errores": [],
@@ -287,11 +305,11 @@
   "enlaces": []
  },
  "transponer, sólo con notas": {
-  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4 d4\").sound(\"bajo\").transpose(-12).orbit(0), // bajo\n  s(\"bd\").bank(\"linndrum\").orbit(1), // bata\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c2 d2\").sound(\"bajo\").transpose(-12).orbit(0), // bajo\n  s(\"bd\").bank(\"linndrum\").orbit(1), // bata\n)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "2: «un tono arriba» sólo sirve con notas: los golpes no tienen altura."
+   "2: «un tono arriba» sólo sirve con notas: los golpes no tienen altura. → «»"
   ],
   "tramos": [],
   "tempos": [],
@@ -361,7 +379,7 @@
   ]
  },
  "compás de tres": {
-  "codigo": "setcpm(150/3)\nnote(\"c4 - -\").sound(\"bajo\").orbit(0)",
+  "codigo": "setcpm(150/3)\nnote(\"c2 - -\").sound(\"bajo\").orbit(0)",
   "vueltas": 1,
   "bpm": 150,
   "errores": [],
@@ -370,7 +388,7 @@
   "enlaces": []
  },
  "volumen y lugar": {
-  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4\").sound(\"bajo\").gain(.25).pan(.2).orbit(0), // bajo\n  note(\"d4\").sound(\"viola\").gain(1.6).pan(.8).orbit(1), // viola\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c2\").sound(\"bajo\").gain(.25).pan(.2).orbit(0), // bajo\n  note(\"d4\").sound(\"viola\").gain(1.6).pan(.8).orbit(1), // viola\n)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [],
@@ -400,7 +418,7 @@
   "enlaces": []
  },
  "acento por paso": {
-  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd sd - sd\").bank(\"linndrum\").velocity(\"1.4 1 - 1.4\").gain(.45).orbit(0), // bata\n  note(\"<[c4 _ d4] [- e4]>\").sound(\"bajo\").velocity(\"<[1.4 _ 1] [- 1.4]>\").orbit(1), // bajo\n  note(\"c4 -\").sound(\"viola\").orbit(2), // viola\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd sd - sd\").bank(\"linndrum\").velocity(\"1.4 1 - 1.4\").gain(.45).orbit(0), // bata\n  note(\"<[c2 _ d2] [- e2]>\").sound(\"bajo\").velocity(\"<[1.4 _ 1] [- 1.4]>\").orbit(1), // bajo\n  note(\"c4 -\").sound(\"viola\").orbit(2), // viola\n)",
   "vueltas": 2,
   "bpm": 90,
   "errores": [
@@ -440,14 +458,14 @@
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "1: «menor séptima» sobra: «fa!» ya dice el acorde. → «»"
+   "1: el «!» va al final de la nota: «fa menor séptima!». → «fa menor séptima!»"
   ],
   "tramos": [],
   "tempos": [],
   "enlaces": []
  },
  "cada campo de la nota, una vez": {
-  "codigo": "setcpm(90/4)\nnote(\"<[c#4] [d3] [[e4,g#4,b4]] [[f4,g#4,c5,d#5]]>\").sound(\"piano\").orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"<[c#4] [d3] [[e4,g#4,b4]] [[d#4,f4,g#4,c5]]>\").sound(\"piano\").orbit(0)",
   "vueltas": 4,
   "bpm": 90,
   "errores": [
@@ -473,7 +491,7 @@
   "enlaces": []
  },
  "las cláusulas que se pisan avisan": {
-  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4\").sound(\"bajo\").gain(.45).orbit(0), // bajo\n  note(\"d4\").sound(\"viola\").struct(\"x*8\").orbit(1), // viola\n  note(\"e4\").sound(\"piano\").orbit(2), // piano\n  s(\"bd\").bank(\"linndrum\").mask(\"<1 0>\").orbit(3), // bata\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c2\").sound(\"bajo\").gain(.45).orbit(0), // bajo\n  note(\"d4\").sound(\"viola\").struct(\"x*8\").orbit(1), // viola\n  note(\"e4\").sound(\"piano\").orbit(2), // piano\n  s(\"bd\").bank(\"linndrum\").mask(\"<1 0>\").orbit(3), // bata\n)",
   "vueltas": 2,
   "bpm": 90,
   "errores": [
@@ -481,8 +499,8 @@
    "2: «en negras» y «en corcheas» se pisan: dejá una sola. → «»",
    "2: «tres en ocho» y «en corcheas» se pisan: dejá una sola. → «»",
    "3: «en una viola» y «en un piano» se pisan: dejá una sola. → «»",
-   "4: no conozco «en una 808». Pasá el mouse por encima y tocá el ▾.",
-   "4: no conozco «en una 909». Pasá el mouse por encima y tocá el ▾.",
+   "4: no conozco «en una 808». Tocá la palabra y elegí en el ▾.",
+   "4: no conozco «en una 909». Tocá la palabra y elegí en el ▾.",
    "4: «dos vueltas sí y dos no» y «una vuelta sí y una no» se pisan: dejá una sola. → «»"
   ],
   "tramos": [],
@@ -490,7 +508,7 @@
   "enlaces": []
  },
  "las relativas se componen": {
-  "codigo": "setcpm(90/4)\nnote(\"c4\").sound(\"bajo\").fast(2).fast(2).transpose(2).transpose(1).ply(2).ply(2).orbit(0)",
+  "codigo": "setcpm(90/4)\nnote(\"c2\").sound(\"bajo\").fast(2).fast(2).transpose(2).transpose(1).ply(2).ply(2).orbit(0)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [],
@@ -499,7 +517,7 @@
   "enlaces": []
  },
  "un paso desconocido es un silencio": {
-  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd - sd\").bank(\"linndrum\").orbit(0), // bata\n  note(\"c4 - d4\").sound(\"bajo\").orbit(1), // bajo\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd - sd\").bank(\"linndrum\").orbit(0), // bata\n  note(\"c2 - d2\").sound(\"bajo\").orbit(1), // bajo\n)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [
@@ -513,7 +531,7 @@
   "enlaces": []
  },
  "un «!» suelto deja el paso o el corte": {
-  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4 - d4\").sound(\"bajo\").orbit(0), // bajo\n  note(\"<[c4] [d4]>\").sound(\"bajo\").orbit(0), // bajo\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c2 - d2\").sound(\"bajo\").orbit(0), // bajo\n  note(\"<[c2] [d2]>\").sound(\"bajo\").orbit(0), // bajo\n)",
   "vueltas": 2,
   "bpm": 90,
   "errores": [
@@ -530,19 +548,19 @@
   "bpm": 90,
   "errores": [
    "1: «muy» va con la altura: «muy grave» o «muy agudo».",
-   "2: «sostenido» sobra: «do!» ya dice si va sostenida o bemol. → «»",
-   "2: «menor» sobra: «mi!» ya dice el acorde. → «»"
+   "2: el «!» va al final de la nota: «do sostenido!». → «do sostenido!»",
+   "2: el «!» va al final de la nota: «mi menor!». → «mi menor!»"
   ],
   "tramos": [],
   "tempos": [],
   "enlaces": []
  },
  "una caja en las notas, y un instrumento en los golpes": {
-  "codigo": "setcpm(90/4)\nstack(\n  note(\"c4 d4\").sound(\"bajo\").orbit(0), // bajo\n  s(\"bd sd\").bank(\"linndrum\").orbit(1), // bata\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c2 d2\").sound(\"bajo\").orbit(0), // bajo\n  s(\"bd sd\").bank(\"linndrum\").orbit(1), // bata\n)",
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "1: no conozco «en una 808». Pasá el mouse por encima y tocá el ▾.",
+   "1: no conozco «en una 808». Tocá la palabra y elegí en el ▾.",
    "2: los golpes ya traen su sonido: «en piano» sólo sirve con notas. → «»"
   ],
   "tramos": [],
@@ -550,7 +568,7 @@
   "enlaces": []
  },
  "la forma con comas": {
-  "codigo": "setcpm(90/4)\nstack(\n  arrange([1, s(\"bd\").bank(\"linndrum\")], [1, silence], [1, s(\"bd\").bank(\"linndrum\")]).orbit(0), // bata · estrofa\n  arrange([1, silence], [1, note(\"c4\").sound(\"bajo\")], [1, silence]).orbit(1), // bajo · estribillo\n)",
+  "codigo": "setcpm(90/4)\nstack(\n  arrange([1, s(\"bd\").bank(\"linndrum\")], [1, silence], [1, s(\"bd\").bank(\"linndrum\")]).orbit(0), // bata · estrofa\n  arrange([1, silence], [1, note(\"c2\").sound(\"bajo\")], [1, silence]).orbit(1), // bajo · estribillo\n)",
   "vueltas": 3,
   "bpm": 90,
   "errores": [],
@@ -559,7 +577,13 @@
    "estribillo×1",
    "estrofa×1"
   ],
-  "tempos": [],
+  "tempos": [
+   {
+    "desde": 0,
+    "bpm": 90,
+    "tiempos": 4
+   }
+  ],
   "enlaces": []
  },
  "el tema va a medio escribir no es tempo": {
@@ -567,8 +591,159 @@
   "vueltas": 1,
   "bpm": 90,
   "errores": [
-   "1: no entiendo la línea. Va «la bata toca pum - pa -» o «va a 92».",
-   "2: no entiendo la línea. Va «la bata toca pum - pa -» o «va a 92»."
+   "1: no entiendo el renglón. Va «la bata toca pum - pa -» o «va a 92».",
+   "2: no entiendo el renglón. Va «la bata toca pum - pa -» o «va a 92»."
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "la altura es del instrumento": {
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"c2\").sound(\"bajo\").orbit(0), // bajo\n  note(\"c6\").sound(\"flautin\").orbit(1), // flautín\n  note(\"c2\").sound(\"bajo\").orbit(2), // melodía\n  note(\"c1\").sound(\"tuba\").orbit(3), // tuba\n  note(\"[c3,e3,g3]\").sound(\"bajo\").orbit(0), // bajo\n)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "los nombres de antes avisan y se arreglan": {
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd\").bank(\"linndrum\").orbit(0), // bata\n  s(\"bd\").bank(\"linndrum\").orbit(0), // bata\n  note(\"c4\").sound(\"piano\").orbit(1), // bajo acústico\n  note(\"c4\").sound(\"piano\").orbit(2), // piano\n)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: «brillante» ahora se escribe «sin graves». → «sin graves»",
+   "2: «brillante» ahora se escribe «sin graves». → «sin graves»",
+   "3: «bajo acústico» ahora se escribe «contrabajo». → «contrabajo»",
+   "4: «bajo acústico» ahora se escribe «contrabajo». → «contrabajo»",
+   "5: «tas» ahora se escribe «pa». → «pa»"
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "los acordes como se dicen": {
+  "codigo": "setcpm(90/4)\nnote(\"<[[c4,e4,g4,b4]] [[c4,d4,f#4,a4]] [[e4,g4,a4,c5]] [[f4,g#4,b4,d5]]>\").sound(\"piano\").orbit(0)",
+  "vueltas": 4,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "por tiempo, con el compás de cada sección": {
+  "codigo": "setcpm(150/3)\nstack(\n  arrange([1, note(\"c4\").sound(\"piano\").struct(\"x*3\").swingBy(1/3, 3).delay(.5).delayfeedback(.4).delaysync(1/(2*3))], [1, note(\"c4\").sound(\"piano\").struct(\"x*4\").swingBy(1/3, 4).delay(.5).delayfeedback(.4).delaysync(1/(2*4))]).orbit(0), // piano\n  arrange([1, note(\"c4\").sound(\"viola\").struct(\"x*1.5\")], [1, note(\"c4\").sound(\"viola\").struct(\"x*2\")]).orbit(1), // viola\n  arrange([1, s(\"bd\").bank(\"linndrum\")], [1, silence]).orbit(2), // bata · a\n  arrange([1, silence], [1, s(\"sd\").bank(\"linndrum\")]).orbit(2), // bata · b\n)",
+  "vueltas": 2,
+  "bpm": 150,
+  "errores": [
+   "3: «en blancas» es una nota cada dos tiempos: con un compás impar no cierra. Probá «en negras»."
+  ],
+  "tramos": [
+   "a×1",
+   "b×1"
+  ],
+  "tempos": [
+   {
+    "desde": 0,
+    "bpm": 150,
+    "tiempos": 3
+   },
+   {
+    "desde": 1,
+    "bpm": 90,
+    "tiempos": 4
+   }
+  ],
+  "enlaces": []
+ },
+ "un instrumento se sugiere con su «en»": {
+  "codigo": "setcpm(90/4)\nnote(\"c4\").sound(\"piano\").orbit(0)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "1: no conozco «violn». ¿Será «en viola»? → «en viola»"
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "los acordes se enlazan": {
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"<[[c4,e4,g4]] [[c4,f4,a4]] [[d4,g4,b4]] [[e4,g4,c5]]>\").sound(\"piano\").orbit(0), // piano\n  note(\"<[[a4,c5,e5]] [[f4,a4,d5]] [[e4,g#4,b4,d5]] [[e4,a4,c5]]>\").sound(\"piano\").arp(\"0 1 2 3\").orbit(0), // piano\n  note(\"<[[c4,e4,g4]] [[c4,e4,g4] [c4,f4,a4]]>\").sound(\"piano\").orbit(0), // piano\n  note(\"<[[c4,g4]] [[f4,c5]]>\").sound(\"piano\").orbit(0), // piano\n)",
+  "vueltas": 4,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "crece de punta a punta": {
+  "codigo": "setcpm(90/4)\ns(\"bd sd\").bank(\"linndrum\").fast(2).mul(velocity(saw.range(.2,1).slow(4))).orbit(0)",
+  "vueltas": 4,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "crece por sección": {
+  "codigo": "setcpm(90/4)\nstack(\n  arrange([4, note(\"c4\").sound(\"piano\").mul(velocity(saw.range(.2,1).slow(4)))], [2, note(\"c4\").sound(\"piano\").mul(velocity(saw.range(.2,1).slow(2)))], [4, note(\"c4\").sound(\"piano\").mul(velocity(saw.range(.2,1).slow(4)))]).orbit(0), // piano\n  arrange([4, s(\"bd\").bank(\"linndrum\").mul(velocity(saw.range(.2,1).slow(4)))], [2, silence], [4, s(\"bd\").bank(\"linndrum\").mul(velocity(saw.range(.2,1).slow(4)))]).orbit(1), // bata · estrofa\n  arrange([4, silence], [2, s(\"sd\").bank(\"linndrum\").mul(velocity(isaw.range(.2,1).slow(2)))], [4, silence]).orbit(1), // bata · estribillo\n)",
+  "vueltas": 10,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [
+   "estrofa×4",
+   "estribillo×2",
+   "estrofa×4"
+  ],
+  "tempos": [
+   {
+    "desde": 0,
+    "bpm": 90,
+    "tiempos": 4
+   }
+  ],
+  "enlaces": []
+ },
+ "percusión de verdad": {
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd sd bd sd\").bank(\"cajon\").orbit(0), // bata\n  s(\"bd mt ht sd\").bank(\"congas\").orbit(0), // bata\n  s(\"bd sd\").bank(\"bongos\").orbit(0), // bata\n  s(\"bd sd hh cr\").bank(\"murga\").orbit(0), // bata\n  s(\"bd sd cr sd\").bank(\"cajon\").orbit(0), // bata\n)",
+  "vueltas": 1,
+  "bpm": 90,
+  "errores": [
+   "5: el cajón no tiene platillo: «chan» ahí no suena."
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "los golpes de mano van en cualquier caja": {
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd cl sd tb\").bank(\"linndrum mano linndrum mano\").orbit(0), // bata\n  s(\"<[bd - tr] [gu tb]>\").bank(\"<[bongos - mano] [mano mano]>\").orbit(0), // bata\n  s(\"tr tr\").bank(\"mano mano\").velocity(\"1 1.4\").orbit(0), // bata\n)",
+  "vueltas": 2,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "lo que el GM no tiene": {
+  "codigo": "setcpm(90/4)\nstack(\n  note(\"<[[c4,e4,g4]] [[c4,f4,a4]]>\").sound(\"balafon\").orbit(0), // balafón\n  note(\"c4 e4 g4\").sound(\"campanasdemano\").orbit(1), // campanas de mano\n)",
+  "vueltas": 2,
+  "bpm": 90,
+  "errores": [],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
+ "las frases nuevas se pisan donde deben": {
+  "codigo": "setcpm(90/4)\nstack(\n  s(\"bd\").bank(\"linndrum\").mul(velocity(.6)).room(.8).lpf(2500).orbit(0), // bata\n  s(\"bd\").bank(\"linndrum\").mul(velocity(.6)).room(.8).lpf(2500).orbit(0), // bata\n  s(\"bd\").bank(\"linndrum\").hpf(600).lpf(3000).orbit(0), // bata\n  s(\"bd\").bank(\"linndrum\").mul(velocity(saw.range(.2,1).slow(4))).orbit(0), // bata\n  s(\"bd\").bank(\"linndrum\").nudge(rand.range(0,.02)).mul(velocity(rand.range(.8,1))).orbit(0), // bata\n  s(\"bd sd\").bank(\"linndrum\").velocity(\"1.4 1\").mul(velocity(.6)).room(.8).lpf(2500).gain(.45).nudge(rand.range(0,.02)).mul(velocity(rand.range(.8,1))).mul(velocity(saw.range(.2,1).slow(4))).orbit(0), // bata\n  s(\"bd\").bank(\"linndrum\").orbit(0), // bata\n  s(\"bd\").bank(\"linndrum\").every(2, x => x.nudge(rand.range(0,.02)).mul(velocity(rand.range(.8,1)))).orbit(0), // bata\n)",
+  "vueltas": 4,
+  "bpm": 90,
+  "errores": [
+   "1: «con eco» y «de lejos» se pisan: dejá una sola. → «»",
+   "2: «apagado» y «de lejos» se pisan: dejá una sola. → «»",
+   "3: «sin graves» y «como de radio» se pisan: dejá una sola. → «»",
+   "4: «cada vez más bajito» y «cada vez más fuerte» se pisan: dejá una sola. → «»",
+   "5: «a mano» y «a mano» se pisan: dejá una sola. → «»",
+   "7: «cada vez más fuerte» no puede ir adentro de una frase que la aplique de a ratos: va sola, separada con una coma."
   ],
   "tramos": [],
   "tempos": [],

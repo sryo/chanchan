@@ -36,15 +36,20 @@ self.addEventListener('install', e => {
 });
 self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 
+// una respuesta opaca ocupa en la cuota siete megas aunque pese nada: no se guarda.
+// Una red que no contesta, como la de un portal cautivo, no tiene que colgar la carga
+const PACIENCIA = 4000;
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   e.respondWith(caches.open(CACHE).then(async cache => {
+    const guardada = () => cache.match(e.request, { ignoreSearch: true });
+    const red = fetch(e.request).then(r => { if (r.ok) cache.put(e.request, r.clone()); return r; });
+    red.catch(() => {});
     try {
-      const r = await fetch(e.request);
-      if (r.ok || r.type === 'opaque') cache.put(e.request, r.clone());
-      return r;
+      const r = await Promise.race([red, new Promise(ok => setTimeout(ok, PACIENCIA, null))]);
+      return r || (await guardada()) || red;
     } catch (err) {
-      return (await cache.match(e.request, { ignoreSearch: true })) || Response.error();
+      return (await guardada()) || Response.error();
     }
   }));
 });

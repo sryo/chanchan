@@ -62,6 +62,18 @@ const CASOS = [
   ['una caja en las notas, y un instrumento en los golpes', 'el bajo toca do re, en una 808\nla bata toca pum pa, en un piano'],
   ['la forma con comas',                     'la estrofa:\nla bata toca pum\nel estribillo:\nel bajo toca do\nel tema va estrofa, estribillo, estrofa'],
   ['el tema va a medio escribir no es tempo', 'el tema va\nel tema\nla bata toca pum'],
+  ['la altura es del instrumento',           'el bajo toca do\nel flautín toca do\nla melodía toca do, en un bajo\nla tuba toca do muy grave\nel bajo toca do agudo mayor'],
+  ['los nombres de antes avisan y se arreglan', 'la bata toca pum, brillante\nla bata toca pum, a veces brillante\nel bajo acústico toca do\nel piano toca do, en un bajo acústico\nla bata toca tas'],
+  ['los acordes como se dicen',              'el piano toca do séptima mayor | re siete | la menor siete | si disminuido'],
+  ['por tiempo, con el compás de cada sección', 'va a 150 en tres\nel piano toca do, en negras, con swing, repicando\nla viola toca do, en blancas\nla a:\nla bata toca pum\nla b:\nva a 90\nla bata toca pa\nel tema va a b'],
+  ['un instrumento se sugiere con su «en»',  'el piano toca do, violn'],
+  ['los acordes se enlazan',                 'el piano toca do mayor | fa mayor | sol mayor | do mayor\nel piano toca la menor | re menor | mi séptima | la menor, arpegiado\nel piano toca do mayor | _ fa mayor\nel piano toca do quinta | fa quinta'],
+  ['crece de punta a punta',                 'la bata toca pum pa, cada vez más fuerte, al doble'],
+  ['crece por sección',                      'el piano toca do, cada vez más fuerte\nla estrofa:\nla bata toca pum, cada vez más fuerte\nel estribillo dura 2 vueltas:\nla bata toca pa, cada vez más bajito\nel tema va estrofa estribillo estrofa'],
+  ['percusión de verdad',                    'la bata toca pum pa pum pa, en un cajón\nla bata toca pum tum tim pa, en unas congas\nla bata toca pum pa, en unos bongós\nla bata toca pum pa chis chan, en una murga\nla bata toca pum pa chan pa, en un cajón'],
+  ['los golpes de mano van en cualquier caja', 'la bata toca pum clac pa chin\nla bata toca pum - tilín | ras chin, en unos bongós\nla bata toca tilin tilín!'],
+  ['lo que el GM no tiene',                  'el balafón toca do mayor | fa mayor\nlas campanas de mano tocan do mi sol'],
+  ['las frases nuevas se pisan donde deben', 'la bata toca pum, de lejos, con eco\nla bata toca pum, de lejos, apagado\nla bata toca pum, como de radio, sin graves\nla bata toca pum, cada vez más fuerte, cada vez más bajito\nla bata toca pum, a mano, a mano\nla bata toca pum! pa, de lejos, bajito, a mano, cada vez más fuerte\nla bata toca pum, a veces cada vez más fuerte\nla bata toca pum, cada dos vueltas a mano'],
 ];
 
 const foto = txt => {
@@ -134,6 +146,19 @@ es('un rango sobrevive con lo insertado afuera', C('mapearRango')({ desde: 5, ha
 es('un rango borrado se va', C('mapearRango')({ desde: 5, hasta: 8 }, [C('paso')(4, 'abcdef', '')]), null);
 let mal = 0; try { C('aplicarPaso')('hola', q); } catch (e) { mal++; }
 es('un paso que no calza rompe', mal, 1);
+
+// dos instrumentos con el mismo sonido serían uno solo para strudel; el GM son 128 en su orden
+const sonidos = [...new Set(Object.values(C('INSTRUMENTOS')))].map(i => i.sonido);
+es('ningún sonido repetido', sonidos.filter((x, k) => sonidos.indexOf(x) !== k), []);
+es('el GM entero', C('FAMILIAS').flatMap(([, t]) => Object.values(t)).length, 128);
+
+// cada frase de cómo está en una sola pregunta del árbol, y cada golpe en una sola familia
+const enGrupos = grupos => grupos.flatMap(([, lista]) => lista);
+const frases = C('MODIFICADORES').map(m => m[0]), agrupadas = enGrupos(C('GRUPOS_COMO'));
+es('cada frase en un grupo', frases.filter(f => agrupadas.filter(x => x === f).length !== 1), []);
+es('ningún grupo nombra lo que no hay', agrupadas.filter(f => !frases.includes(f)), []);
+const golpes = Object.keys(C('SONIDOS')), enFamilias = enGrupos(C('GRUPOS_GOLPES'));
+es('cada golpe en una familia', golpes.filter(g => enFamilias.filter(x => x === g).length !== 1), []);
 
 // un tema que viene hecho no puede traer errores
 for (const e of EJEMPLOS)

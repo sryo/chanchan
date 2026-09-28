@@ -10,7 +10,7 @@ const ORDEN = [...html.matchAll(/<script src="(js\/[^"]+)"/g)].map(m => m[1]);
 // no suena nada— y los globales del navegador que se declaran sin querer
 const RESERVADOS = new Set([
   's', 'n', 'note', 'sound', 'stack', 'setcpm', 'setcps', 'sine', 'saw', 'square',
-  'tri', 'rand', 'perlin', 'hush', 'evaluate', 'samples', 'initStrudel', 'getTime',
+  'tri', 'rand', 'perlin', 'isaw', 'velocity', 'hush', 'evaluate', 'samples', 'initStrudel', 'getTime',
   'getAudioContext', 'strudel', 'chord', 'voicing',
   // las que aparecen en el código generado
   'every', 'sometimes', 'rarely', 'almostNever', 'almostAlways', 'arp', 'rev', 'ply',
@@ -130,6 +130,12 @@ for (const { archivo, lineas } of archivos) {
           avisar('adelantado: %s:%d usa «%s» al cargar, y %s carga después', archivo, nro, id, donde.get(id));
     for (const c of linea) { if ('({['.includes(c)) profundidad++; else if (')}]'.includes(c)) profundidad--; }
   });
+}
+
+// un script que no parsea tira la página entera sin decir cuál: se le pregunta a node, uno por uno
+for (const archivo of [...ORDEN, 'sw.js']) {
+  const r = spawnSync(process.execPath, ['--check', new URL('../' + archivo, import.meta.url).pathname], { encoding: 'utf8' });
+  if (r.status) { console.error('no parsea: %s\n%s', archivo, (r.stderr || '').split('\n').slice(0, 4).join('\n')); choques++; }
 }
 
 // ejemplos.js sale de temas/*.txt y un js viejo no da ningún síntoma: se le pregunta al generador

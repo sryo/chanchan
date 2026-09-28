@@ -13,18 +13,12 @@ const V = n => runInContext(n, ctx);
 
 const SONIDOS = V('SONIDOS'), OCTAVAS = V('OCTAVAS'), MODIFICADORES = V('MODIFICADORES'), FIGURAS = V('FIGURAS');
 const VECES = V('VECES'), ARREGLOS = V('ARREGLOS'), EUCLIDES = V('EUCLIDES'), FAMILIAS = V('FAMILIAS');
-const SIN_GM = V('SIN_GM'), ALIAS = V('ALIAS'), ALIAS_MAQUINA = V('ALIAS_MAQUINA'), NUMEROS = V('NUMEROS');
-const fraseArreglo = V('fraseArreglo'), fraseEuclides = V('fraseEuclides'), ACORDES = V('ACORDES');
+const SIN_GM = V('SIN_GM'), ALIAS = V('ALIAS'), ALIAS_MAQUINA = V('ALIAS_MAQUINA'), KITS = V('KITS'), DE_VCSL = V('DE_VCSL'), NUMEROS = V('NUMEROS');
+const fraseArreglo = V('fraseArreglo'), fraseEuclides = V('fraseEuclides'), ACORDES = V('ACORDES'), ACORDES_GLOSA = V('ACORDES_GLOSA');
 const ENVOLTURAS = V('ENVOLTURAS'), enLetras = V('enLetras');
 const VUELTAS_MAX = V('VUELTAS_MAX'), VUELTAS_FORMA = V('VUELTAS_FORMA');
 const TEMPO_MIN = V('TEMPO_MIN'), TEMPO_MAX = V('TEMPO_MAX'), TIEMPOS_MAX = V('TIEMPOS_MAX');
 
-const ACORDES_GLOSA = {
-  mayor: 'el de siempre', menor: 'el triste', quinta: 'dos notas, como una viola distorsionada',
-  séptima: 'el del blues', disminuido: 'el tenso',
-  'menor séptima': 'el menor con una nota más, el del soul', 'mayor séptima': 'el mayor con una nota más, el de la bossa',
-  suspendido: 'ni mayor ni menor, en el aire', aumentado: 'el mayor estirado, el raro',
-};
 const codigo = s => '`' + s + '`';
 // «a, b y c»
 const juntar = xs => xs.length < 2 ? xs.join('') : xs.slice(0, -1).join(', ') + ' y ' + xs[xs.length - 1];
@@ -60,7 +54,7 @@ ${columnas(Object.entries(SONIDOS).map(([w, [, d]]) => [w, d]))}
 
     el bajo toca do - sol -
 
-Do re mi fa sol la si. Después, si hace falta, ${codigo('sostenido')} o ${codigo('bemol')}. Después la altura: ${alturas.map(codigo).join(', ')}. Sin nada es la del medio.
+Do re mi fa sol la si. Después, si hace falta, ${codigo('sostenido')} o ${codigo('bemol')}. Después la altura: ${alturas.map(codigo).join(', ')}. Sin nada, cada instrumento suena en su registro: ${codigo('do')} en el bajo es un do de bajo, y en la flauta uno de flauta. ${codigo('grave')} y ${codigo('agudo')} son una octava más abajo o más arriba desde ahí.
 
 Una nota lleva una sola alteración, una sola altura y un solo acorde. en ${codigo('do sostenido bemol')} sobra el bemol, y se marca en rojo. Si tipeás ${codigo('do#')}, el editor lo escribe ${codigo('do sostenido')}; Backspace lo devuelve.
 
@@ -95,13 +89,17 @@ Cómo suena. Varias cosas van separadas por comas, en cualquier orden.
 
 ${codigo('en pizzicato')}, ${codigo('en una viola criolla')}. Para la batería, una caja de ritmos: ${Object.keys(ALIAS_MAQUINA).map(a => codigo('en una ' + a)).join(', ')}. O cualquiera del pack, por marca y modelo. El ▾ las lista.
 
+O percusión de verdad, tocada con las mismas palabras: ${juntar(KITS.map(k => codigo('en ' + k.un + ' ' + k.nombre)))}. Lo que no tiene no suena, y se avisa.
+
+    la bata toca pum pa pum pa, en un cajón
+
 **Cómo suena**
 
 ${columnas(MODIFICADORES.map(m => [m[0], m[2]]))}
 
-**Cada nota, tantas veces por vuelta**
+**Cada nota, tantas veces por tiempo**
 
-${Object.entries(FIGURAS).map(([f, n], i) => codigo('en ' + f) + (i ? ' ' : ' son ') + enLetras(n)).join(', ')}. Sirve para rasguear.
+${Object.entries(FIGURAS).filter(([, k]) => k >= 1).map(([f, k], i) => codigo('en ' + f) + (i ? ' ' : ' es ') + enLetras(k)).join(', ')}. ${codigo('en blancas')} es una cada dos tiempos. Sirve para rasguear.
 
     la viola toca do mayor | fa mayor, en corcheas
 
@@ -127,7 +125,7 @@ ${parejos.map(([n, q]) => codigo(fraseArreglo(n, q))).join(', ')}. Y desparejo: 
 
 **Lo que se pisa**
 
-Dos frases que dicen lo mismo no van juntas. ${codigo('bajito, fuerte')} es un error. Lo mismo dos instrumentos, dos de entra y sale, o dos maneras de repartir los pasos, sea figura o reparto.
+Dos frases que dicen lo mismo no van juntas. ${codigo('bajito, fuerte')} es un error, y ${codigo('de lejos, con eco')} también: ${codigo('de lejos')} ya trae su eco. Lo mismo dos instrumentos, dos de entra y sale, o dos maneras de repartir los pasos, sea figura o reparto.
 
 Las que se suman sí van. ${codigo('al doble, al doble')} es cuatro veces más rápido, y ${codigo('un tono arriba, medio tono arriba')} es tono y medio.
 
@@ -148,7 +146,7 @@ Los renglones de antes de la primera sección suenan en todas.
 
     el tema va estrofa estrofa estribillo estrofa
 
-El orden en que van las secciones, y cuántas veces. Sin esta línea van una vez cada una, en el orden en que están escritas.
+El orden en que van las secciones, y cuántas veces. Sin este renglón van una vez cada una, en el orden en que están escritas.
 
 **El tempo**
 
@@ -181,7 +179,8 @@ Se escriben con letras hasta ${NUMEROS[NUMEROS.length - 1]}, o con cifras. Los a
 
 Cualquiera de estos nombres puede ser el nombre de la parte, o ir después de la coma con ${codigo('en')}. Sin instrumento, piano. Van por familia.
 
-${FAMILIAS.map(([fam, tabla]) => fam + ': ' + Object.keys(tabla).join(', ')).join('\n\n')}
+${FAMILIAS.map(([fam, tabla]) => fam + ': ' + [...Object.keys(tabla),
+  ...Object.entries(DE_VCSL).filter(([, o]) => o.fam === fam).map(([n]) => n)].join(', ')).join('\n\n')}
 
 osciladores: ${osciladores.join(', ')}. No bajan ninguna muestra.
 

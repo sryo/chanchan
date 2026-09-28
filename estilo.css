@@ -3,7 +3,7 @@
     --panel: #e8ddc6;
     --linea: #d6cdb8;
     --texto: #123540;
-    --tenue: #756e5d;
+    --tenue: #625b4b;
     --suave: #c6bda6;
     --punteo: #8a8069;
 
@@ -34,10 +34,12 @@
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --titular: 'Antonio', 'Arial Narrow', system-ui, sans-serif;
   }
+  :root { color-scheme: light; }
   :root[data-luz="oscuro"] {
+    color-scheme: dark;
     --fondo: #141b1e;
     --panel: #1a2226;
-    --linea: #263134;
+    --linea: #36454a;
     --texto: #e8e0cd;
     --tenue: #7c8a8e;
     --suave: #3f4c50;
@@ -83,7 +85,7 @@
 
   #cinta .corte { stroke: var(--texto); stroke-width: 1.5; }
   #cinta .rotulo {
-    fill: var(--andamio); font-size: var(--letra-chica); letter-spacing: .04em;
+    fill: var(--tenue); font-size: var(--letra-chica); letter-spacing: .04em;
     text-transform: lowercase; dominant-baseline: auto;
   }
   header, main, #errores { position: relative; z-index: 1; }
@@ -131,7 +133,7 @@
     font: inherit; color: var(--texto); text-overflow: ellipsis;
     background: none; border: 0; padding: 0; outline: none; min-width: 0;
   }
-  #nombre::placeholder { color: var(--suave); }
+  #nombre::placeholder { color: var(--tenue); }
 
   #nombre.choca { color: var(--mal); text-decoration: underline wavy var(--mal); text-underline-offset: 4px; }
   button {
@@ -163,7 +165,7 @@
 
   #luz { position: fixed; right: 44px; top: calc(var(--sangria) + 21px); z-index: 2; }
 
-  #enlace.dicho {
+  #enlace.dicho, #archivo.dicho {
     color: var(--marca-tinta); font-size: var(--letra-chica);
     letter-spacing: .1em; text-transform: uppercase;
   }
@@ -230,11 +232,32 @@
   #menu.columnas .sec { background: var(--panel); padding: 6px 0; min-width: 118px; }
   #menu.columnas .sec.detalle { min-width: 208px; }
   #menu.columnas .sec.pie { grid-column: 1 / -1; }
+  #menu.columnas .sec.pie.mitad { grid-column: auto; }
+  /* en un teléfono las columnas se reparten el ancho, y lo que describe baja abajo de lo que escribe */
+  @media (max-width: 720px) {
+    #menu.columnas .op:not(.conSub) { white-space: normal; flex-wrap: wrap; row-gap: 0; }
+    #menu.columnas .op:not(.conSub) .d { flex-basis: 100%; margin-left: 0; }
+  }
 
   #deshacer, #seleccion, #manija {
     position: fixed; z-index: 11; display: none;
     align-items: center; justify-content: center;
     height: 22px; line-height: 1; border-radius: 5px;
+  }
+  #deshacer.afuera, #seleccion.afuera, #manija.afuera { visibility: hidden; }
+
+  :focus-visible { outline: 2px solid var(--marca-tinta); outline-offset: 2px; }
+  #src:focus-visible, #nombre:focus-visible { outline: none; }
+
+  /* con el dedo: el blanco mide lo que un dedo, el dibujo sigue igual */
+  @media (pointer: coarse) {
+    #abrir, #enlace, #archivo { min-width: 36px; min-height: 36px; }
+    #archivo { margin-left: 0; }
+    .punto::after, #deshacer::after, #seleccion::after, #manija::after {
+      content: ''; position: absolute; inset: -7px;
+    }
+    #deshacer, #seleccion, #manija { overflow: visible; }
+    #errores .accion { padding: 6px 2px; }
   }
   #deshacer.vivo, #seleccion.vivo, #manija.vivo { display: flex; }
 
@@ -276,12 +299,17 @@
     background: var(--vivo); border-radius: 3px;
     box-shadow: 0 0 0 2px var(--vivo);
   }
-  #errores:not(:empty) {
-    padding: 10px 20px calc(10px + env(safe-area-inset-bottom)) calc(var(--sangria) + var(--canal));
+  /* el borde no cruza las bandas del marco; muchos errores no se comen la hoja */
+  #errores:has(p) {
+    margin-left: var(--marco); max-height: 30vh; overflow: auto;
+    padding: 10px 20px calc(10px + env(safe-area-inset-bottom)) calc(var(--sangria) + var(--canal) - var(--marco));
     border-top: 1px solid var(--linea);
   }
   #errores p { margin: 0 0 4px; color: var(--mal); }
-  #errores b { color: var(--texto); font-weight: 600; }
+  #avisos p { color: var(--texto); }
+  #errores b, #errores .renglon { color: var(--texto); font-weight: 600; }
+  #errores .renglon { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; cursor: pointer; }
+  #errores .renglon:hover { text-decoration: underline dotted; text-underline-offset: 4px; }
 
   #errores .accion {
     background: none; border: 0; padding: 0; color: var(--texto);
@@ -313,10 +341,12 @@
     width: 16px; height: 15px; border-radius: 1px; overflow: hidden;
   }
   #temas .tira span { flex: 1; min-height: 1px; }
-  #temas .op.aparte { margin-top: 5px; padding-top: 7px; border-top: 1px solid var(--linea); }
+  #temas .op.aparte, .panel .op.aparte { margin-top: 5px; padding-top: 7px; border-top: 1px solid var(--linea); }
+  #sugerencias .op.conTab::after { content: '⇥'; color: var(--tenue); margin-left: 10px; }
 
   #temas .op .borrar { visibility: hidden; margin-left: 2px; color: var(--suave); }
   #temas .op:hover .borrar { visibility: visible; }
+  @media (hover: none) { #temas .op .borrar { visibility: visible; } }
   #temas .op .borrar:hover { color: var(--mal); }
   #abrir:hover { color: var(--marca-tinta); }
   #temas .op.puesto { color: var(--marca-tinta); }

@@ -61,13 +61,15 @@ function armarTemas() {
     '<span class="d">' + esc(cuando) + '</span>' +
     (borrable ? '<span class="borrar" title="borrarlo de la lista">' + icono('cerrar', 'chica') + '</span>' : '') + '</div>';
   panelTemas.innerHTML =
-    (mios.length ? '<h3>mis temas</h3>' +
+    (mios.length ? '<h3>tus temas</h3>' +
       mios.map((t, i) => fila(t.nombre, t.txt, 'data-mio="' + i + '"', desdeCuando(t.t), true)).join('') : '') +
-    '<h3>temas</h3>' +
-    EJEMPLOS.map((e, i) => fila(e.nombre, e.txt, 'data-i="' + i + '"', '')).join('') +
+    '<h3>ejemplos</h3>' +
+    // con una copia tuya al lado, el ejemplo es la manera de volver a cómo venía: lo dice
+    EJEMPLOS.map((e, i) => fila(e.nombre, e.txt, 'data-i="' + i + '"',
+      mios.some(t => mismoTema(t.nombre, e.nombre)) ? 'como venía' : '')).join('') +
     // las dos últimas no abren un tema de la lista: raya y no rótulo
     '<div class="op aparte" data-nueva="1">nuevo</div>' +
-    '<div class="op" data-archivo="1">importar archivo</div>';
+    '<div class="op" data-archivo="1">abrir un archivo</div>';
   panelTemas.querySelectorAll('.op').forEach(el => el.addEventListener('mousedown', ev => {
     ev.preventDefault();
     // la × deja el panel abierto: borrar de a uno es un gesto de lista
@@ -93,7 +95,8 @@ function armarTemas() {
     mostrarPanel(panelTemas, false);
     // elegirArchivo() carga el tema solo
     if (el.dataset.archivo) return elegirArchivo();
-    cargarTema(el.dataset.nueva ? { nombre: '', txt: PRIMERA_HOJA }
+    // la hoja de bienvenida es de la primera visita: «nuevo» es una hoja en blanco
+    cargarTema(el.dataset.nueva ? { nombre: '', txt: '' }
       : el.dataset.mio ? mios[+el.dataset.mio]
       : EJEMPLOS[+el.dataset.i]);
     src.focus();

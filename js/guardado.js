@@ -32,14 +32,14 @@ const escribirTemas = lista => recordar(GUARDADO_TEMAS, JSON.stringify(lista));
 
 // abrir un ejemplo sin tocarlo no lo hace tuyo
 const esUnEjemplo = (nombre, txt) =>
-  EJEMPLOS.some(e => mismoTema(e.nombre, nombre) && conRenglonFinal(e.txt) === conRenglonFinal(txt));
+  EJEMPLOS.some(e => mismoTema(e.nombre, nombre) && mismoTexto(e.txt, txt));
 
 // el nombre es la identidad, ver REGLAS.md: renombrar e irse a otro tema llegan igual, los separa nombreViejo
 function anotarTema(nombre, txt, nombreViejo) {
-  if (!nombre || esUnEjemplo(nombre, txt)) return true;
+  if (!nombre) return true;
   const queda = misTemas().filter(t => !mismoTema(t.nombre, nombre) && !(nombreViejo && mismoTema(t.nombre, nombreViejo)));
-  // un tema vacío no está en la lista
-  if (txt.trim()) queda.unshift({ nombre, txt, t: Date.now() });
+  // un tema vacío no está en la lista, y un ejemplo que volvió a como venía tampoco
+  if (txt.trim() && !esUnEjemplo(nombre, txt)) queda.unshift({ nombre, txt, t: Date.now() });
   if (queda.length > TOPE_TEMAS) avisar('la lista llegó a ' + TOPE_TEMAS + ' temas: el más viejo se fue.');
   return escribirTemas(queda.slice(0, TOPE_TEMAS));
 }
@@ -48,7 +48,13 @@ const olvidarTema = nombre => escribirTemas(misTemas().filter(t => !mismoTema(t.
 
 // un tema tuyo con ese nombre y otro texto: con el mismo texto es el mismo tema
 const chocaCon = (nombre, txt) =>
-  misTemas().find(t => mismoTema(t.nombre, nombre) && conRenglonFinal(t.txt) !== conRenglonFinal(txt));
+  misTemas().find(t => mismoTema(t.nombre, nombre) && !mismoTexto(t.txt, txt));
+
+// el nombre del campo, si pisaría otro tema tuyo; se cuenta y no se lee del rojo, que llega a los 400 ms
+function chocaElCampo() {
+  const nombre = campoNombre.value.trim();
+  return nombre && !mismoTema(nombre, nombreAbierto) && chocaCon(nombre, src.value);
+}
 
 function nombreLibre(base) {
   let nombre = base, k = 2;
@@ -59,9 +65,9 @@ function nombreLibre(base) {
 // al dejar la hoja, ver REGLAS.md: sin nombre, o con uno que choca y sin otro con el
 // que ya esté guardada, la bautiza la casa. La hoja de bienvenida sin tocar, no
 function bautizar() {
-  if (!src.value.trim() || conRenglonFinal(src.value) === conRenglonFinal(PRIMERA_HOJA)) return;
+  if (!src.value.trim() || BIENVENIDAS.some(b => mismoTexto(src.value, b))) return;
   const nombre = campoNombre.value.trim();
-  if (nombre && (nombreAbierto || !campoNombre.classList.contains('choca'))) return;
+  if (nombre && (nombreAbierto || !chocaElCampo())) return;
   campoNombre.value = nombreLibre(nombre || 'sin título');
   campoNombre.classList.remove('choca');
   acomodarNombre();
@@ -75,29 +81,24 @@ function recibido(tema) {
   return { ...tema, nombre, aviso: 'ya tenías un «' + mio.nombre + '» distinto: el que llegó quedó como «' + nombre + '».' };
 }
 
-// después de cargar: cargarTema() termina en actualizar(), que rehace el cajón
-function cargarRecibido(tema) {
-  const t = recibido(tema);
-  cargarTema(t);
-  if (t.aviso) avisar(t.aviso);
-}
-
 let relojGuardar, nombreAbierto = '';   // con qué nombre está la hoja en la lista
 
 function guardarYa() {
   clearTimeout(relojGuardar);
   const nombre = campoNombre.value.trim();
   const pudo = recordar(GUARDADO, src.value) && recordar(GUARDADO_NOMBRE, campoNombre.value);
-  recordar(GUARDADO_ABIERTO, nombreAbierto);
   // renombrar encima de otro no lo pisa: el campo se pone en rojo y la hoja sigue con el nombre de antes
-  const choca = nombre && !mismoTema(nombre, nombreAbierto) && chocaCon(nombre, src.value);
+  const choca = chocaElCampo();
   campoNombre.classList.toggle('choca', !!choca);
   if (choca) avisar('ya hay un tema que se llama «' + choca.nombre + '»' + (nombreAbierto
     ? ': éste sigue guardado como «' + nombreAbierto + '».'
-    : ': éste no entra en la lista hasta que el nombre sea otro.'));
+    : ': éste no entra en la lista hasta que el nombre sea otro.'), null, 'choca');
+  else callarAviso('choca');
   const anotado = anotarTema(choca ? nombreAbierto : nombre, src.value, nombreAbierto);
   if (!pudo || !anotado) avisar(NO_SE_GUARDO);
-  if (!choca) nombreAbierto = nombre;
+  // el campo vacío no es un nombre: la hoja sigue en la lista con el suyo, así el próximo la renombra
+  if (!choca && nombre) nombreAbierto = nombre;
+  recordar(GUARDADO_ABIERTO, nombreAbierto);
 }
 
 // con qué nombre está guardada la hoja que se abre
@@ -113,10 +114,13 @@ function cambiarDeTema(nombre) {
 function cargarTema(tema) {
   bautizar();
   // el historial es de la hoja: se guarda bajo el nombre con el que la hoja está en la lista
-  const deja = campoNombre.classList.contains('choca') ? nombreAbierto : campoNombre.value.trim();
+  const deja = chocaElCampo() ? nombreAbierto : campoNombre.value.trim();
   cambiarDeTema(tema.nombre);
+  const viejo = src.value;
   cambiarHistorial(deja, tema.nombre, conRenglonFinal(tema.txt));
   src.value = conRenglonFinal(tema.txt);
+  // lo que colgaba de una palabra de la hoja que se fue, se va con ella
+  avisarCambio([paso(0, viejo, src.value)], viejo);
   campoNombre.value = tema.nombre;
   campoNombre.classList.remove('choca');
   acomodarNombre();
@@ -194,31 +198,61 @@ async function armarHash() {
   return (await Promise.all(piezas.map(([n, x]) => hashDe(n, x)))).join(';');
 }
 
-// los que vienen con el enlace entran como cualquier recibido; devuelve los avisos
-function guardarTraidos(traidos) {
-  const avisos = [];
-  for (const t of traidos || []) {
-    if (!t.nombre) continue;
+// los «@» que apuntaban a un nombre que llegó cambiado apuntan al nombre nuevo
+function seguirRenombres(txt, nuevos) {
+  if (!nuevos.size) return txt;
+  return txt.split('\n').map(l => {
+    const r = leerRenglon(l), n = (r.clase === 'enlace' || r.clase === 'apunte') && r.nombre;
+    const a = n && n.texto && nuevos.get(claveTema(n.texto));
+    return a ? l.slice(0, n.desde) + a + l.slice(n.hasta) : l;
+  }).join('\n');
+}
+
+// lo que llega junto, por enlace o por archivos: el primero se abre, los otros se anotan.
+// Un nombre que choca queda como «nombre 2», y los «@» de todos lo siguen
+function recibirJuntos(primero, otros) {
+  const nuevos = new Map(), avisos = [];
+  const nombrar = t => {
     const r = recibido(t);
+    if (r.aviso) { avisos.push(r.aviso); nuevos.set(claveTema(t.nombre), r.nombre); }
+    return { ...r, aviso: null };
+  };
+  const abre = nombrar(primero);
+  // de a uno, anotando cada uno antes de nombrar al que sigue: dos con el mismo nombre no se pisan
+  const recibidos = otros.filter(t => t.nombre).map(t => {
+    const r = nombrar(t);
     anotarTema(r.nombre, r.txt, null);
-    if (r.aviso) avisos.push(r.aviso);
+    return r;
+  });
+  if (nuevos.size) for (const r of recibidos) {
+    r.txt = seguirRenombres(r.txt, nuevos);
+    anotarTema(r.nombre, r.txt, null);
   }
-  return avisos;
+  return { abre: { ...abre, txt: seguirRenombres(abre.txt, nuevos) }, recibidos, avisos };
+}
+
+// después de cargar: cargarTema() termina en actualizar(), que rehace el cajón
+function abrirRecibidos(primero, otros) {
+  const { abre, avisos } = recibirJuntos(primero, otros);
+  cargarTema(abre);
+  avisos.forEach(a => avisar(a));
 }
 
 // «;» sólo puede ser nuestro: encodeURIComponent lo escapa y base64url no lo trae
 async function abrirCarga(crudo) {
-  const [primero, ...resto] = await Promise.all(crudo.split(';').map(abrirPieza));
+  // escapado de más, por un chat o un correo: ningún separador literal, que le quedó «%3A»;
+  // es lo que lo distingue de un nombre con «%» adentro
+  let carga = crudo;
+  try {
+    for (let i = 0; i < 3 && carga.indexOf(':') < 0 && /%(25|3A)/i.test(carga); i++)
+      carga = decodeURIComponent(carga);
+  } catch (e) { return null; }
+  const [primero, ...resto] = await Promise.all(carga.split(';').map(abrirPieza));
   return primero && { ...primero, traidos: resto.filter(Boolean) };
 }
 
-async function abrirPieza(crudo) {
+async function abrirPieza(carga) {
   try {
-    // escapado de más, por un chat o un correo: trae «%25» y ningún separador literal, que le
-    // quedó «%3A»; es lo que lo distingue de un nombre con «%» adentro
-    let carga = crudo;
-    for (let i = 0; i < 3 && /%25[0-9A-Fa-f]{2}/.test(carga) && carga.indexOf(':') < 0; i++)
-      carga = decodeURIComponent(carga);
     const corte = carga.indexOf(':');
     const nombre = corte >= 0 ? decodeURIComponent(carga.slice(0, corte)) : '';
     const cuerpo = carga.slice(corte + 1);
@@ -244,7 +278,7 @@ function pareceUnTema(txt) {
 
 // un enlace pegado en la hoja es un tema, no un texto; vale la dirección entera o lo que sigue al numeral.
 // Se decide por la forma: inflar es asíncrono y el pegado se corta o no ahora mismo
-const pareceEnlace = txt => !!txt && !/\s/.test(txt) &&
+const pareceEnlace = txt => !!txt && !/\s/.test(txt) && !(/:\/\//.test(txt) && !txt.includes('#')) &&
   (/%[0-9A-Fa-f]{2}/.test(txt) || /[:|]z[A-Za-z0-9_-]+$/.test(txt));
 
 src.addEventListener('paste', e => {
@@ -253,14 +287,14 @@ src.addEventListener('paste', e => {
   e.preventDefault();
   abrirCarga(crudo.slice(crudo.indexOf('#') + 1)).then(tema => {
     if (!tema || !pareceUnTema(tema.txt)) return avisar(noSePudo());
-    const avisos = guardarTraidos(tema.traidos);
-    cargarRecibido(tema);
-    avisos.forEach(a => avisar(a));
+    abrirRecibidos(tema, tema.traidos);
   });
 });
 
 // termina en un renglón vacío: la hoja dice que ahí se puede seguir
-const conRenglonFinal = txt => txt.replace(/\n*$/, '\n');
+const conRenglonFinal = txt => /\n$/.test(txt) ? txt : txt + '\n';
+// los renglones vacíos del final no hacen a otro tema
+const mismoTexto = (a, b) => a.replace(/\n*$/, '') === b.replace(/\n*$/, '');
 
 // la primera visita, y «nuevo»
 const PRIMERA_HOJA = [
@@ -268,18 +302,25 @@ const PRIMERA_HOJA = [
   'la bata toca pum pa pum pa',
   'el bajo toca do - sol -',
   'el piano toca do mayor | fa mayor',
-  '* o ir a un tema ya grabado, así: @ricotero',
+  '* o saltar a otro tema, así: @ricotero',
+  '* tocá una palabra y elegí en el ▾; ' + mostrarTecla('Tab') + ' te sugiere qué va; ' + mostrarTecla('Mod-Enter') + ' toca y para',
 ].join('\n');
+// las bienvenidas de antes también son la hoja sin tocar: guardadas así, no se bautizan
+const BIENVENIDAS = [PRIMERA_HOJA, ...[
+  ['* o ir a un tema ya grabado, así: @ricotero'],
+  ['* o saltar a otro tema, así: @ricotero', '* tocá una palabra y elegí en el ▾; ' + mostrarTecla('Mod-Enter') + ' toca y para'],
+].map(cola => [...PRIMERA_HOJA.split('\n').slice(0, 4), ...cola].join('\n'))];
 
 async function temaInicial() {
   const delEnlace = await leerHash();
   // se avisa en arranque.js: actualizar() pisa el cajón
-  if (!delEnlace && location.hash.length > 1) return { txt: '', nombre: '', roto: true };
-  if (delEnlace) {
+  const sirve = delEnlace && pareceUnTema(delEnlace.txt);
+  if (!sirve && location.hash.length > 1) return { txt: '', nombre: '', roto: true };
+  if (sirve) {
     // el enlace se consume: si quedara en la barra, recargar abriría esa versión vieja encima de lo escrito
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
-    const avisos = guardarTraidos(delEnlace.traidos);
-    return { ...recibido(delEnlace), avisos };
+    const { abre, avisos } = recibirJuntos(delEnlace, delEnlace.traidos);
+    return { ...abre, avisos };
   }
   const guardado = recordado(GUARDADO);
   return guardado
@@ -300,25 +341,37 @@ function acomodarNombre() {
 campoNombre.addEventListener('input', () => { acomodarNombre(); guardar(); });
 
 // un enlace pegado en la barra abre sin recargar
-let hashPropio = false;
+// el hash que puso el botón, para no abrirlo de vuelta; un booleano quedaba prendido si no cambiaba nada
+let hashPropio = '';
 addEventListener('hashchange', async () => {
-  if (hashPropio) { hashPropio = false; return; }
+  if (location.hash === hashPropio) { hashPropio = ''; return; }
   if (location.hash.length < 2) return;
   const tema = await leerHash();
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* file:// */ }
-  if (!tema) return avisar(noSePudo());
-  const avisos = guardarTraidos(tema.traidos);
-  cargarRecibido(tema);
-  avisos.forEach(a => avisar(a));
+  if (!tema || !pareceUnTema(tema.txt)) return avisar(noSePudo());
+  abrirRecibidos(tema, tema.traidos);
 });
 
-btnEnlace.addEventListener('click', async () => {
-  hashPropio = true;
-  location.hash = await armarHash();
+btnEnlace.addEventListener('click', () => {
+  const direccion = armarHash().then(h => {
+    hashPropio = '#' + h;
+    location.hash = hashPropio;
+    return location.href;
+  });
+  // el portapapeles se pide en el mismo click y recibe la promesa: comprimir tarda, y Safari
+  // no acepta una escritura que llega después de un await
+  let copia;
   try {
-    await navigator.clipboard.writeText(location.href);
-    decirEnElEnlace('enlace copiado');
+    copia = window.ClipboardItem && navigator.clipboard.write
+      ? navigator.clipboard.write([new ClipboardItem({ 'text/plain': direccion.then(u => new Blob([u], { type: 'text/plain' })) })])
+      : direccion.then(u => navigator.clipboard.writeText(u));
+  } catch (e) { copia = Promise.reject(e); }
+  Promise.all([direccion, copia]).then(() => {
+    // lo que no se ve del enlace: los temas nombrados con «@» viajan adentro
+    const adentro = nombrados(campoNombre.value.trim(), src.value);
+    decirEn(btnEnlace, 'enlace copiado' + (adentro.length === 1 ? ', con ' + adentro[0].nombre + ' adentro'
+      : adentro.length ? ', con ' + enLetras(adentro.length) + ' temas más adentro' : ''));
     // en la barra se queda sólo cuando es la única copia: una recarga lo pisaría sobre lo escrito
     history.replaceState(null, '', location.pathname + location.search);
-  } catch (e) { decirEnElEnlace('quedó en la barra'); }
+  }, () => direccion.then(() => decirEn(btnEnlace, 'quedó en la barra')));
 });

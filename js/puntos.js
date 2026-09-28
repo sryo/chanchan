@@ -37,7 +37,8 @@ function armarPuntos(marcas, calladas, renglones = actual.renglones) {
     b.setAttribute('aria-pressed', calladas.has(l));
     if (color.has(l)) b.style.color = color.get(l);
     b.dataset.l = l;
-    b.title = 'silenciar · may+click deja sólo ésta';
+    b.title = (calladas.has(l) ? 'que suene' : 'callar') + ' el renglón ' + (l + 1) + ' · mayúscula y clic: que suene sólo éste';
+    b.setAttribute('aria-label', (calladas.has(l) ? 'que suene' : 'callar') + ' el renglón ' + (l + 1));
     // se rehacen en cada tecleo, y el que la franja tiene señalado no se puede perder
     if (l === franjaSeñalada) b.classList.add('senalado');
     puntos.appendChild(b);
@@ -51,6 +52,11 @@ puntos.addEventListener('mousedown', e => {
   if (!b) return;
   e.preventDefault();
   alternarCallado(+b.dataset.l, e.shiftKey);
+});
+// desde el teclado no hay mousedown: Enter y espacio llegan como click
+puntos.addEventListener('click', e => {
+  const b = e.target.closest('.punto');
+  if (b && !e.detail) alternarCallado(+b.dataset.l, e.shiftKey);
 });
 
 function alternarCallado(l, solo) {
@@ -69,5 +75,9 @@ function alternarCallado(l, solo) {
   const pasos = [];
   let base = 0;
   lineas.forEach((ln, k) => { if (nuevas[k] !== ln) pasos.push(paso(base, ln, nuevas[k])); base += ln.length + 1; });
-  if (pasos.length) aplicar(pasos);
+  if (!pasos.length) return;
+  aplicar(pasos);
+  // como cualquier otro gesto, deja su deshacer colgado del nombre de la parte
+  const nombre = (marcasActuales[l] || []).find(t => t.cls === 'sujeto');
+  if (nombre) mostrarDeshacer({ l, i: nombre.i, len: nombre.len }, false);
 }

@@ -22,7 +22,7 @@ La tinta de la página dice lo que el tema dice: el tempo, las secciones, la for
 
 La tinta del tema dice de qué tema estamos hablando: su nombre, su lista, su enlace. Es `--marca-tinta`.
 
-El rojo pleno dice que esto no se entiende. Es `--mal`, con la croma al máximo que entra en pantalla.
+El rojo pleno dice que esto no se entiende. Es `--mal`, con la croma al máximo que entra en pantalla. Un aviso del cajón no es un error: va en la tinta de la página, y dura hasta la tecla que sigue.
 
 **La rueda**
 
@@ -110,6 +110,10 @@ Lo que guarda una posición no se rebusca: se corre. Cada archivo anota en `alCa
 
 `leerRenglon()`, en `renglon.js`, dice qué clase de renglón es y dónde está cada pedazo: el apunte y su enlace, la sección, el tempo y su número, la parte con su artículo, su sujeto, su verbo y sus cláusulas. Nunca falla, ni con un renglón a medio escribir. El traductor lo toma y valida y traduce; el sugeridor le pregunta en qué pedazo cae el cursor; los puntitos buscan la marca de «callado» que dejó el traductor. Nadie vuelve a partir un renglón por su cuenta.
 
+**La altura es del instrumento**
+
+Una nota sin altura suena en la octava de casa de su instrumento, y «grave» y «agudo» se cuentan desde ahí: «do» en el bajo es un do de bajo. La casa vive en `CASAS`, en `vocabulario.js`, y la leen el traductor, las muestras de `oir.js` y el conversor de midis. Lo escrito se sigue contando alrededor de la cuatro, así el arrastre, el ▾ y los colores no cambian cuando cambia el instrumento.
+
 **Las teclas y las órdenes**
 
 Nadie escucha el teclado por su cuenta. Cada archivo anota sus atajos en `teclado.js` con `atajo(tecla, nombre, orden)`, y un solo despachador los recorre en el orden en que se anotaron: el primero que contesta gana. `Mod` es ⌘ en Mac y ctrl en el resto, y `Meta-Enter` no es `Enter`. Cada atajo lleva su nombre, así la tabla puede mostrarse; hoy sólo se muestra en el título del botón de tocar.
@@ -126,9 +130,15 @@ Una sección es posicional: un renglón es de la última sección abierta arriba
 
 **Sin red**
 
-`sw.js` es un service worker: no es un script de la página y no entra en el ámbito ni en el chequeador. Al instalarse guarda la cáscara, el html, el css, los scripts, la tipografía y strudel, y después guarda lo que baja a medida que baja, las muestras incluidas. Con red se va a la red, así una versión nueva llega en la carga siguiente sin versionar nada a mano; sin red, sirve lo guardado. Suena lo que ya se escuchó, y los osciladores, que no bajan nada. Desde `file://` no hay worker y todo anda como siempre.
+`sw.js` es un service worker: no es un script de la página y no entra en el ámbito ni en el chequeador. Al instalarse guarda la cáscara, el html, el css, los scripts, la tipografía y strudel, y después guarda lo que baja a medida que baja, las muestras incluidas. Con red se va a la red, así una versión nueva llega en la carga siguiente sin versionar nada a mano; sin red, o con una que tarda más de cuatro segundos, sirve lo guardado. Suena lo que ya se escuchó, y los osciladores, que no bajan nada. Desde `file://` no hay worker y todo anda como siempre.
 
 Los íconos son el logo en tinta sobre papel, dibujado por el mismo canvas que pinta la pestaña y guardado en png porque iOS no toma otra cosa. `manifest.webmanifest` es lo que hace que el teléfono ofrezca ponerlo en la pantalla de inicio.
+
+Las grabaciones de VCSL son wav de medio mega cada una, contra unos kilos de las del GM. Por eso no se guardan al instalar: bajan recién cuando suenan, y ahí quedan.
+
+**Las grabaciones de VCSL**
+
+La percusión de verdad, los golpes de mano y los instrumentos que el GM no tiene salen de VCSL, que es dominio público. Van fijadas a un commit, como las demás muestras, y se registran sólo las que se usan, con el nombre que ya les da el idioma: nada choca con un sonido del GM. Los rótulos del pack no se creen de palabra: los golpes del cajón vienen sin nombre y se leyeron por su espectro, y hay grabaciones marcadas una octava abajo de lo que suenan. Lo que entra, se midió antes.
 
 **El enlace pegado**
 
@@ -137,6 +147,8 @@ Un enlace pegado en un chat muestra una tarjeta, y la arma el que lo recibe leye
 **El error trae su arreglo cuando lo hay**
 
 Un error que se arregla de una sola manera lleva el arreglo puesto: qué tramo del renglón se cambia por qué. Lo pone el traductor, que es el que sabe; el cajón lo ofrece como un botón al lado del mensaje, y el ▾ de la palabra en rojo ofrece el mismo. Tocarlo es un paso como cualquier otro, con su deshacer. Los que se arreglan de más de una manera, «muy» sin altura, una nota que falta, un tempo fuera de rango, no traen botón: el mensaje es la respuesta.
+
+Una palabra que cambió de nombre va a `RENOMBRADOS`: lo escrito antes se pinta de rojo y trae el nombre nuevo como arreglo, afuera o adentro de un «a veces». Nunca suena distinto sin avisar.
 
 **La cinta se lee, el margen escribe**
 
@@ -154,11 +166,17 @@ Lo arma `traductor.js`. Lo evalúa `editor.js` una vez por línea. `cinta.js` le
 
 No vive en el patrón. Por eso un tema que acelera se le va diciendo al reloj al cruzar cada borde de sección. Y por eso el número se puede arrastrar mientras suena: volver a evaluar cambiaría el tema recién en el borde de la vuelta.
 
-**Ciento treinta y tres instrumentos no entran en una lista**
+**Ciento treinta y cinco instrumentos no entran en una lista**
 
 Apilados son nueve pantallas y media. Donde se eligen por el ▾ van en dos columnas: las familias a la izquierda, la elegida a la derecha. En el sugeridor no aparecen sin prefijo. Sin nada tipeado van sólo los arranques de siempre.
 
 Cualquier cosa que recorra la lista entera corre en cada cuadro del hover. Así que se pregunta primero por el tipo del token, y recién después se arma el menú.
+
+**Los menús preguntan**
+
+El título de una columna es una pregunta que cualquiera se haría, en minúscula: «qué nota», «qué tan agudo», «dónde suena». Cada opción es lo que escribe, y su descripción, lo que se oye. Lo que abre otro nivel lleva ›. El pie no tiene título y guarda las órdenes: sacar, llevar, copiar.
+
+Lo que va después de la coma es un solo árbol, `GRUPOS_COMO`, y se ve igual en el ▾ de «toca», en el de una frase escrita y en el sugeridor recién puesta la coma: las preguntas primero, las frases después. Con una letra tipeada ya es buscar, y va todo junto. Lo que choca con algo que el renglón ya dice se ofrece en gris, y dice con qué.
 
 **Un solo ámbito**
 

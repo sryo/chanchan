@@ -78,12 +78,15 @@ function pasar(pasos, sel, ancla, esRehacer) {
   return true;
 }
 
+// el botón cuelga del paso de más arriba: lo de antes de él vale igual en los dos textos
+const primeroEnLaHoja = pasos => pasos.reduce((m, x) => x.desde < m.desde ? x : m);
+
 function deshacer() {
   const g = hechos.pop();
   if (!g) return false;
   deshechos.push({ ...g, selDespues: { a: src.selectionStart, z: src.selectionEnd } });
   cerrarGrupo();
-  const p = g.pasos[0];
+  const p = primeroEnLaHoja(g.pasos);
   return pasar(g.pasos.slice().reverse().map(invertir), g.selAntes, anclaDe(p.desde, p.sacado.length), true);
 }
 
@@ -91,7 +94,7 @@ function rehacer() {
   const g = deshechos.pop();
   if (!g) return false;
   hechos.push({ ...g, cerrado: true });
-  const p = g.pasos[0];
+  const p = primeroEnLaHoja(g.pasos);
   return pasar(g.pasos, g.selDespues, anclaDe(p.desde, p.puesto.length), false);
 }
 
@@ -124,10 +127,13 @@ function mostrarDeshacer(ancla, esRehacer) {
 botonDeshacer.addEventListener('mouseenter', () => clearTimeout(relojDeshacer));
 botonDeshacer.addEventListener('mouseleave', contarParaIrse);
 
-botonDeshacer.addEventListener('mousedown', e => {
+const usarDeshacer = e => {
   e.preventDefault();
   botonDeshacer.dataset.que === 'rehacer' ? rehacer() : deshacer();
-});
+};
+botonDeshacer.addEventListener('mousedown', usarDeshacer);
+// desde el teclado no hay mousedown: Enter y espacio llegan como click
+botonDeshacer.addEventListener('click', e => { if (!e.detail) usarDeshacer(e); });
 
 // sólo en la hoja: escribiendo el nombre, deshacer es del nombre
 atajo('Mod-z', 'deshacer', hacer => hacer ? deshacer() : hechos.length > 0);

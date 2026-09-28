@@ -8,6 +8,12 @@
 // los dos últimos son para cuando la cuenta no acierta: pasos por compás, y de qué
 // punta agarrar un acompañamiento (arriba la melodía, abajo el bajo del riff)
 import { readFileSync } from 'node:fs';
+import { runInContext, createContext } from 'node:vm';
+
+const idioma = createContext({});
+for (const f of ['texto', 'vocabulario'])
+  runInContext(readFileSync(new URL('../js/' + f + '.js', import.meta.url), 'utf8'), idioma);
+const casaDe = runInContext('casaDe', idioma), instrumentoDe = runInContext('instrumentoDe', idioma);
 
 // ------------------------------------------------------------------ leer el midi
 function leerVar(b, i) {
@@ -97,34 +103,30 @@ function elegirAlteraciones(notas) {
   NOTA = CON_BEMOLES.includes(mejor) ? BEMOLES : SOSTENIDOS;
 }
 
-// fuera del rango que chanchán sabe nombrar se corre de a octavas hasta que entre
-function palabraNota(midi) {
-  let oct = Math.floor(midi / 12) - 1;
+// la altura se cuenta desde la casa del instrumento; fuera de lo que chanchán sabe nombrar se corre de a octavas
+function palabraNota(midi, casa = 4) {
+  let oct = Math.floor(midi / 12) - 1 - casa + 4;
   const clase = ((midi % 12) + 12) % 12;
   while (oct < 2) oct++;
   while (oct > 6) oct--;
   return NOTA[clase] + OCTAVA[oct];
 }
 
-// los cuarenta y siete golpes del GM caen en los trece de chanchán por parecido
+// los cuarenta y siete golpes del GM caen en los de chanchán por parecido
 const GOLPE = {
   35:'pum', 36:'pum', 37:'toc', 38:'pa', 39:'plas', 40:'pa', 41:'dum', 42:'chis',
   43:'dum', 44:'chis', 45:'tum', 46:'tsss', 47:'tum', 48:'tim', 49:'chan', 50:'tim',
-  51:'tin', 52:'chan', 53:'tin', 54:'chis', 55:'chan', 56:'clon', 57:'chan', 58:'tum',
-  59:'tin', 60:'tum', 61:'tum', 62:'toc', 63:'tum', 64:'tum', 65:'tum', 66:'tum',
-  67:'toc', 68:'toc', 69:'shh', 70:'shh', 75:'toc', 76:'toc', 77:'toc', 80:'tin', 81:'tin', 82:'shh',
+  51:'tin', 52:'chan', 53:'tin', 54:'chin', 55:'chan', 56:'clon', 57:'chan', 58:'tum',
+  59:'tin', 60:'tim', 61:'dum', 62:'pa', 63:'tim', 64:'tum', 65:'tum', 66:'tum',
+  67:'toc', 68:'toc', 69:'shh', 70:'shh', 73:'ras', 74:'ras', 75:'clac', 76:'toc', 77:'toc',
+  80:'tilín', 81:'tilín', 82:'shh',
 };
 // de grave a agudo como SONIDOS: en el mismo paso gana el más grave
-const PESO = ['pum', 'dum', 'tum', 'tim', 'pa', 'toc', 'plas', 'clon', 'chan', 'tin', 'chis', 'shh', 'tsss'];
+const PESO = Object.keys(runInContext('SONIDOS', idioma));
 
 // los 128 del GM salen de FAMILIAS en vocabulario.js, que ya va en orden GM
-function instrumentos() {
-  const fuente = readFileSync(new URL('../js/vocabulario.js', import.meta.url), 'utf8');
-  const cuerpo = fuente.slice(fuente.indexOf('const FAMILIAS = ['));
-  const literal = cuerpo.slice(cuerpo.indexOf('['), cuerpo.indexOf('\n];') + 2);
-  return new Function('return ' + literal)().flatMap(([, tabla]) => Object.keys(tabla));
-}
-const GM = instrumentos();
+const GM = runInContext('FAMILIAS', idioma).flatMap(([, tabla]) => Object.keys(tabla));
+const casaDePista = p => p.bateria ? 4 : casaDe(instrumentoDe(p.instrumento));
 
 // --------------------------------------------------------------- la cuadrícula
 // gana la primera grilla, de menos a más, que explique el 90% de las notas
@@ -178,7 +180,7 @@ function enPasos(p, compas, desde, hasta, res, voz) {
         } else {
           // por arriba sale la melodía, por abajo el bajo del riff
           const alturas = entran.map(n => n.nota);
-          fila.push(palabraNota(voz === 'abajo' ? Math.min(...alturas) : Math.max(...alturas)));
+          fila.push(palabraNota(voz === 'abajo' ? Math.min(...alturas) : Math.max(...alturas), casaDePista(p)));
         }
       } else if (!p.bateria && p.notas.some(n => n.t < a && n.fin > a + paso * 0.25)) {
         fila.push('_');
@@ -231,7 +233,7 @@ function mapa(ruta) {
     console.log('  pista ' + String(p.i).padStart(2) + '  ' +
       p.nombre.slice(0, 18).padEnd(19) + p.instrumento.padEnd(22) +
       String(p.notas.length).padStart(4) + ' notas, ' + String(g).padStart(2) + ' pasos/compás, ' +
-      palabraNota(Math.min(...alturas)) + '..' + palabraNota(Math.max(...alturas)));
+      palabraNota(Math.min(...alturas), casaDePista(p)) + '..' + palabraNota(Math.max(...alturas), casaDePista(p)));
   }
   // los compases iguales, por la armonía
   const armonica = ps.filter(p => !p.bateria).sort((a, b) => b.notas.length - a.notas.length)[0];

@@ -23,7 +23,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0,0,16,16'%3E%3Ctext%20x='8'%20y='7.6'%20font-family='Antonio,Arial%20Narrow,sans-serif'%20font-weight='600'%20font-size='7.2'%20text-anchor='middle'%20fill='%238a8069'%3Echan%3C/text%3E%3Ctext%20x='8'%20y='14.8'%20font-family='Antonio,Arial%20Narrow,sans-serif'%20font-weight='600'%20font-size='7.2'%20text-anchor='middle'%20fill='%238a8069'%3Ech%C3%A1n%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Antonio:wght@600&display=swap" crossorigin>
 <link rel="stylesheet" href="estilo.css">
 <script>
   // antes de la primera pintada: si no, un fogonazo de papel al abrir de noche
@@ -32,6 +32,9 @@
     document.documentElement.dataset.luz = guardada
       || (matchMedia('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro');
   } catch (e) { document.documentElement.dataset.luz = 'claro'; }
+  // las barras del teléfono también: mientras baja strudel no tienen que quedar de papel
+  if (document.documentElement.dataset.luz === 'oscuro')
+    document.querySelector('meta[name="theme-color"]').content = '#141b1e';
 </script>
 <body>
 
@@ -75,7 +78,7 @@
       <button id="abrir" title="abrir otro tema" popovertarget="temas"><svg class="i chica"><use href="#i-chevron"/></svg></button>
     </span>
     <button id="enlace" title="copiar un enlace con este tema adentro" aria-label="copiar enlace"><svg class="i"><use href="#i-enlace"/></svg></button>
-    <button id="archivo" title="exportar este tema como archivo" aria-label="exportar archivo"><svg class="i"><use href="#i-bajar"/></svg></button>
+    <button id="archivo" title="guardar este tema como archivo" aria-label="guardar como archivo"><svg class="i"><use href="#i-bajar"/></svg></button>
   </div>
 </header>
 <main>
@@ -84,7 +87,7 @@
       <pre id="hl" aria-hidden="true"></pre>
       <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" enterkeyhint="enter" aria-label="el tema"></textarea>
     </div>
-    <div id="errores"></div>
+    <div id="errores"><div id="avisos" role="status" aria-live="polite"></div><div id="fallas"></div></div>
   </section>
 </main>
 <button id="luz" title="papel o tinta" aria-label="papel o tinta"><svg class="i"><use href="#i-luz"/></svg></button>

@@ -13,22 +13,22 @@ const EJEMPLOS = [
 
 la entrada:
 la bata toca pum pum pum pum pum pum pum pum
-el bajo toca re muy grave re muy grave re muy grave re muy grave re muy grave - - -
+el bajo toca re re re re re - - -
 
 la estrofa:
 la bata toca pum pa pum pa pum pa pum pa
-el bajo toca re muy grave _ - la muy grave re muy grave _ - la muy grave | mi muy grave _ - la muy grave mi muy grave _ - la muy grave | do sostenido muy grave _ - la muy grave do sostenido muy grave _ - la muy grave | re muy grave _ - la muy grave re muy grave _ - la muy grave
+el bajo toca re _ - la re _ - la | mi _ - la mi _ - la | do sostenido _ - la do sostenido _ - la | re _ - la re _ - la
 la viola eléctrica toca la la la sol mi re _ re | re do sostenido re mi _ - sol fa | sol sol fa sol sol fa sol mi | do sostenido mi fa re re la grave mi sol
 la viola distorsionada toca re menor | mi menor | do sostenido disminuido | re menor, bajito
 
 el estribillo:
 la bata toca pum pa pum pa pum pa pum pa
-el bajo toca fa muy grave | do muy grave | si bemol muy grave | re muy grave, en corcheas
+el bajo toca fa | do | si bemol | re, en corcheas
 la viola distorsionada toca fa quinta | do quinta | si bemol quinta | re quinta, en corcheas
 
 el final:
 la bata toca pum pa pum pa pum pa pum pa
-el bajo toca si bemol muy grave | fa muy grave | sol muy grave | la muy grave, en corcheas
+el bajo toca si bemol | fa | sol | la, en corcheas
 la viola distorsionada toca si bemol quinta | fa quinta | sol quinta | la quinta, en corcheas
 
 el tema va entrada estrofa estrofa estribillo estribillo final` },
@@ -45,7 +45,7 @@ la viola criolla toca mi grave re sol sol sol grave sol sol grave mi grave | re 
 
 la estrofa:
 la viola criolla toca do grave | fa sostenido muy grave | la muy grave mi muy grave mi muy grave la muy grave | sol muy grave | fa sostenido muy grave fa sostenido muy grave fa sostenido muy grave la muy grave | do grave | la muy grave | sol muy grave
-la voz toca - do sol grave - - do do la grave | fa grave _ - - - - re re sostenido | mi si grave - - - mi mi re | re _ - - - do do sol grave | la grave re grave - - re re re si grave | do sol grave mi grave - - re re do | do - - - - do do sol grave | sol grave - - - - do re mi, en un solista voz, con eco
+la voz toca - do sol grave - - do do la grave | fa grave _ - - - - re re sostenido | mi si grave - - - mi mi re | re _ - - - do do sol grave | la grave re grave - - re re re si grave | do sol grave mi grave - - re re do | do - - - - do do sol grave | sol grave - - - - do re mi, en un sintetizador de voz, con eco
 el piano toca do mayor | fa sostenido menor | mi séptima | sol mayor | fa sostenido menor | do mayor | la menor | sol mayor, bajito, con eco
 
 el tema va entrada estrofa estrofa entrada estrofa entrada` },
@@ -61,20 +61,20 @@ el tema va entrada estrofa estrofa entrada estrofa entrada` },
 la bata toca pum - chis chis pa chis pum - - - pa - chis chis chis -
 
 la entrada:
-el bajo toca fa muy grave _ - fa muy grave _ _ _ fa muy grave | re muy grave _ _ _ _ _ - re muy grave | do muy grave _ _ _ _ _ - do muy grave | do muy grave _ _ _ - - do muy grave _
+el bajo toca fa _ - fa _ _ _ fa | re _ _ _ _ _ - re | do _ _ _ _ _ - do | do _ _ _ - - do _
 el piano toca fa séptima | la menor | sol mayor | sol menor, bajito, con eco
 
 la estrofa:
-el bajo toca la muy grave _ _ _ _ _ - - | do muy grave do muy grave _ _ _ _ _ - | fa muy grave | do muy grave _ _ _ _ _ si muy grave _
+el bajo toca la _ _ _ _ _ - - | do do _ _ _ _ _ - | fa | do _ _ _ _ _ si _
 la viola eléctrica toca - | - | mi _ la mi agudo _ _ la _ | sol _ _ _ do _ si grave _
 el piano toca la menor | sol mayor | fa mayor | sol séptima, bajito, con eco
 
 el puente:
-el bajo toca fa muy grave fa muy grave - fa muy grave _ _ _ - | mi muy grave mi muy grave - mi muy grave _ _ _ - | la muy grave la muy grave - la muy grave _ _ _ - | do muy grave do muy grave - do muy grave _ _ _ -
+el bajo toca fa fa - fa _ _ _ - | mi mi - mi _ _ _ - | la la - la _ _ _ - | do do - do _ _ _ -
 el piano toca fa mayor | mi mayor | la menor | sol mayor, bajito, con eco
 
 el estribillo:
-el bajo toca fa muy grave fa muy grave fa muy grave fa muy grave fa muy grave sol muy grave sol muy grave do muy grave | fa muy grave fa muy grave fa muy grave fa muy grave fa muy grave sol muy grave sol muy grave do muy grave | do muy grave do muy grave do muy grave do grave do grave sol muy grave do muy grave do muy grave | do muy grave do muy grave do muy grave do grave do grave sol muy grave do muy grave _
+el bajo toca fa fa fa fa fa sol sol do | fa fa fa fa fa sol sol do | do do do do agudo do agudo sol do do | do do do do agudo do agudo sol do _
 la viola distorsionada toca fa séptima | fa séptima | do quinta | do quinta, en corcheas
 el piano toca fa séptima | fa séptima | do mayor | do mayor, bajito, con eco
 
@@ -95,27 +95,27 @@ el tema va entrada estrofa estrofa puente estribillo estrofa puente estribillo e
 
 la entrada:
 el coro toca - mi agudo | _ fa agudo | re agudo re agudo | - mi agudo | _ fa agudo | re agudo re agudo | - la agudo | _ sol agudo | la agudo sol agudo | sol agudo fa agudo | mi agudo _ | - -, fuerte
-la tuba toca re muy grave | do muy grave | si bemol muy grave | re muy grave | do muy grave | si bemol muy grave | la muy grave | la muy grave | - | - | - | -, fuerte
-los timbales tocan re grave _ re grave _ | re grave _ re grave _ | re grave _ re grave _ | re grave _ re grave _ | re grave _ re grave _ | re grave _ re grave _ | la muy grave - - - | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave
+la tuba toca re | do | si bemol | re | do | si bemol | la | la | - | - | - | -, fuerte
+los timbales tocan re _ re _ | re _ re _ | re _ re _ | re _ re _ | re _ re _ | re _ re _ | la grave - - - | la grave la grave la grave la grave | la grave la grave la grave la grave | la grave la grave la grave la grave | la grave la grave la grave la grave | la grave la grave la grave la grave
 las cuerdas tocan re menor | do mayor | si bemol mayor | re menor | do mayor | si bemol mayor | la mayor | la mayor | la mayor | la mayor | la mayor | -, bajito
 
 el susurro:
 va a 264
 el coro toca - fa | fa mi | mi - | - fa | fa mi | mi - | - fa | fa mi | fa _ | sol _ | fa mi | _ _, bajito
 las cuerdas tocan fa quinta | mi quinta | mi quinta | fa quinta | mi quinta | mi quinta | fa quinta | mi quinta | fa quinta | sol quinta | mi quinta | -, bajito
-los timbales tocan re grave - - - | - - - - | - - - - | re grave - - - | - - - - | - - - - | re grave - - - | - - - - | re grave - - - | sol grave - - - | mi grave - - - | - - - -, bajito
+los timbales tocan re - - - | - - - - | - - - - | re - - - | - - - - | - - - - | re - - - | - - - - | re - - - | sol - - - | mi - - - | - - - -, bajito
 
 el crece:
 va a 280
 el coro toca - fa agudo | fa agudo mi agudo | mi agudo - | - fa agudo | fa agudo mi agudo | mi agudo - | - fa agudo | fa agudo mi agudo | fa agudo _ | sol agudo _ | fa agudo mi agudo | _ _, fuerte
 las cuerdas tocan fa quinta | mi quinta | mi quinta | fa quinta | mi quinta | mi quinta | fa quinta | mi quinta | fa quinta | sol quinta | mi quinta | -
-los timbales tocan re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | re grave - re grave - | sol grave - sol grave - | mi grave - mi grave - | - - - -
+los timbales tocan re - re - | re - re - | re - re - | re - re - | re - re - | re - re - | re - re - | re - re - | re - re - | sol - sol - | mi - mi - | - - - -
 
 el final:
 va a 120
 el coro toca re grave fa grave | mi grave re grave | sol grave fa grave | mi grave la grave | sol grave sol grave | sol grave mi grave | re grave re grave | fa grave mi grave | re grave sol grave | - - | - - | - -, fuerte
-la tuba toca re muy grave | do muy grave | si bemol muy grave | la muy grave | sol muy grave | mi muy grave | re muy grave | la muy grave | re muy grave | - | - | -, fuerte
-los timbales tocan re grave re grave re grave re grave | re grave re grave re grave re grave | re grave re grave re grave re grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | la muy grave la muy grave la muy grave la muy grave | re grave re grave re grave re grave | la muy grave la muy grave la muy grave la muy grave | re grave - - - | - - - - | - - - - | - - - -
+la tuba toca re | do | si bemol | la | sol | mi | re | la | re | - | - | -, fuerte
+los timbales tocan re re re re | re re re re | re re re re | la grave la grave la grave la grave | la grave la grave la grave la grave | la grave la grave la grave la grave | re re re re | la grave la grave la grave la grave | re - - - | - - - - | - - - - | - - - -
 las cuerdas tocan re menor | do mayor | si bemol mayor | la mayor | sol menor | mi disminuido | re menor | la mayor | re menor | - | - | -, fuerte
 
 el tema va entrada susurro crece final` },
@@ -130,26 +130,26 @@ el tema va entrada susurro crece final` },
 
 el tema:
 la melodía toca mi fa sostenido sol la | si sol si _ | la sostenido fa sostenido la sostenido - | la fa la _ | mi fa sostenido sol la | si sol si mi agudo | re agudo si sol si | re agudo _ - -, en pizzicato
-el contrabajo toca mi grave | si muy grave | la sostenido muy grave | la muy grave | mi grave | si muy grave | re grave | re grave, bajito
-los timbales tocan mi muy grave - - -, bajito
+el contrabajo con arco toca mi | si grave | la sostenido grave | la grave | mi | si grave | re | re, bajito
+los timbales tocan mi grave - - -, bajito
 
 el arriba:
 va a 165
 la melodía toca do sostenido re sostenido mi fa sostenido | re sostenido fa sostenido _ sol | re sostenido sol _ fa sostenido | re sostenido fa sostenido _ si grave | do sostenido re sostenido mi fa sostenido | re sostenido fa sostenido _ sol | re sostenido sol _ fa sostenido | - si grave do sostenido agudo re sostenido agudo, en pizzicato
-el contrabajo toca do sostenido grave | re sostenido grave | re sostenido grave | si muy grave | do sostenido grave | re sostenido grave | re sostenido grave | si muy grave, bajito
-los timbales tocan mi muy grave - - -, bajito
+el contrabajo con arco toca do sostenido | re sostenido | re sostenido | si grave | do sostenido | re sostenido | re sostenido | si grave, bajito
+los timbales tocan mi grave - - -, bajito
 
 la cumbre:
 va a 190
 la melodía toca mi agudo fa sostenido agudo re sostenido agudo fa sostenido agudo | - sol agudo re sostenido agudo sol agudo | - fa sostenido agudo re sostenido agudo fa sostenido agudo | - si do sostenido agudo re sostenido agudo | mi agudo fa sostenido agudo re sostenido agudo fa sostenido agudo | - sol agudo re sostenido agudo sol agudo | - fa sostenido agudo - - | - - - -, en pizzicato, fuerte
-el contrabajo toca mi grave | sol grave | re sostenido grave | si muy grave | mi grave | sol grave | re sostenido grave | si muy grave
-los timbales tocan mi muy grave - mi muy grave -
+el contrabajo con arco toca mi | sol | re sostenido | si grave | mi | sol | re sostenido | si grave
+los timbales tocan mi grave - mi grave -
 
 el final:
 va a 220
 la melodía toca sol si - la sostenido | fa sostenido la sostenido - la | fa la - mi | fa sostenido sol si sol | si mi agudo re agudo si | sol si re agudo re | si _ - - | si mi agudo fa sostenido agudo sol agudo, fuerte
-el contrabajo toca sol grave | fa sostenido grave | fa grave | mi grave | mi grave | sol grave | si muy grave | mi grave, fuerte
-los timbales tocan mi muy grave mi muy grave mi muy grave mi muy grave
+el contrabajo con arco toca sol | fa sostenido | fa | mi | mi | sol | si grave | mi, fuerte
+los timbales tocan mi grave mi grave mi grave mi grave
 
 el tema va tema tema arriba cumbre final` },
 ];

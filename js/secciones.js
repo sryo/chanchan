@@ -13,12 +13,11 @@ const renglonesEnSeleccion = lineas => {
 function cambioDeRenglones(lineas, a, z, nuevas) {
   return paso(baseDe(lineas, a), lineas.slice(a, z + 1).join('\n'), nuevas.join('\n'));
 }
-const correrSeleccion = delta => [src.selectionStart + delta, src.selectionEnd + delta];
+// el cursor en el renglón vacío del final vale por el de arriba: se lo sube a él antes de correrlo
+const correrSeleccion = (delta, tope = Infinity) =>
+  [Math.min(src.selectionStart, tope) + delta, Math.min(src.selectionEnd, tope) + delta];
 
-// los encabezados, en orden, con su renglón; y de qué sección es un renglón
-const encabezados = () => marcasActuales
-  .map((tks, l) => { const s = (tks || []).find(t => t.tipo === 'seccion'); return s && { nombre: s.nombre, escrito: s.escrito, l }; })
-  .filter(Boolean);
+// de qué sección es un renglón
 const seccionDe = l => encabezados().filter(e => e.l < l).pop() || null;
 // hasta dónde llega una sección: el renglón antes del próximo encabezado, o el último
 function finDeSeccion(lineas, e) {
@@ -41,7 +40,7 @@ const moverRenglones = abajo => hacer => {
     const bloque = lineas.slice(a, z + 1), vecino = abajo ? lineas[z + 1] : lineas[a - 1];
     const p = abajo ? cambioDeRenglones(lineas, a, z + 1, [vecino, ...bloque])
                     : cambioDeRenglones(lineas, a - 1, z, [...bloque, vecino]);
-    aplicar(p, { sel: correrSeleccion((vecino.length + 1) * (abajo ? 1 : -1)) });
+    aplicar(p, { sel: correrSeleccion((vecino.length + 1) * (abajo ? 1 : -1), baseDe(lineas, z) + lineas[z].length) });
   }
   return true;
 };
@@ -50,7 +49,7 @@ const duplicarRenglones = hacer => {
   if (a === z && !lineas[a].trim()) return false;
   if (hacer) {
     const bloque = lineas.slice(a, z + 1);
-    aplicar(cambioDeRenglones(lineas, a, z, [...bloque, ...bloque]), { sel: correrSeleccion(bloque.join('\n').length + 1) });
+    aplicar(cambioDeRenglones(lineas, a, z, [...bloque, ...bloque]), { sel: correrSeleccion(bloque.join('\n').length + 1, baseDe(lineas, z) + lineas[z].length) });
   }
   return true;
 };
@@ -82,14 +81,21 @@ const abrirSeccionArriba = l => hacer => {
   }
   return true;
 };
-// lo que el ▾ de una parte ofrece al pie
+// lo que el ▾ de una parte ofrece al pie; arriba de la primera sección, un renglón suena en todas
 function ordenesDeParte(l) {
   const mia = seccionDe(l), otras = encabezados().filter(e => !mia || e.l !== mia.l);
-  const ops = [{ txt: 'abrir una sección acá', orden: abrirSeccionArriba(l) }];
-  if (mia) ops.push({ txt: 'llevar arriba de todas', orden: llevarA(l, null, false) });
-  for (const e of otras) ops.push({ txt: 'llevar a ' + e.escrito, orden: llevarA(l, e, false) },
-                                  { txt: 'copiar a ' + e.escrito, orden: llevarA(l, e, true) });
-  return ops;
+  const sueltas = [{ txt: 'abrir una sección acá', orden: abrirSeccionArriba(l) }];
+  if (mia) sueltas.push({ txt: 'que suene en todas', orden: llevarA(l, null, false) });
+  // el solo del puntito con mayúscula: escribe «callado» en las otras, o lo saca de todas
+  const lasDemas = lineasQueSuenan(marcasActuales).filter(i => i !== l);
+  if (lasDemas.length) sueltas.push({ txt: lasDemas.every(i => calladasActuales.has(i)) ? 'que suenen todas' : 'que suene sólo ésta',
+                                   orden: hacer => { if (hacer) alternarCallado(l, true); return true; } });
+  const a = e => { const art = articuloDe(e.escrito); return (art === 'el' ? 'al' : 'a ' + art) + ' ' + e.escrito; };
+  return [
+    { titulo: '', pie: true, ops: sueltas },
+    { titulo: 'llevar', pie: true, mitad: true, ops: otras.map(e => ({ txt: a(e), orden: llevarA(l, e, false) })) },
+    { titulo: 'copiar', pie: true, mitad: true, ops: otras.map(e => ({ txt: a(e), orden: llevarA(l, e, true) })) },
+  ];
 }
 
 // ---- con un encabezado: seleccionar la sección, unirla con la anterior
@@ -113,7 +119,67 @@ const unirConLaAnterior = l => hacer => {
   }
   return true;
 };
+// una sección entera: su encabezado y sus renglones, sin los vacíos del final ni la forma, que no es de nadie
+function tramoDeSeccion(lineas, e) {
+  let z = finDeSeccion(lineas, e);
+  while (z > e.l && (!lineas[z].trim() || leerRenglon(lineas[z]).clase === 'forma')) z--;
+  return [e.l, z];
+}
+// la cambia de lugar con la de al lado; lo que haya entre las dos se queda en el medio
+const moverSeccion = (l, abajo) => hacer => {
+  const lineas = lineasDeLaHoja(), es = encabezados(), k = es.findIndex(x => x.l === l);
+  const otra = es[k + (abajo ? 1 : -1)];
+  if (k < 0 || !otra) return false;
+  if (hacer) {
+    const [a1, z1] = tramoDeSeccion(lineas, abajo ? es[k] : otra), [a2, z2] = tramoDeSeccion(lineas, abajo ? otra : es[k]);
+    const arriba = lineas.slice(a1, z1 + 1), deAbajo = lineas.slice(a2, z2 + 1), medio = lineas.slice(z1 + 1, a2);
+    const nuevas = [...lineas.slice(0, a1), ...deAbajo, ...medio, ...arriba, ...lineas.slice(z2 + 1)];
+    const queda = abajo ? a1 + deAbajo.length + medio.length : a1;
+    aplicar(cambioDeRenglones(lineas, a1, z2, [...deAbajo, ...medio, ...arriba]), { cursor: baseDe(nuevas, queda) });
+  }
+  return true;
+};
+// la copia va abajo con otro nombre: con el mismo sería la misma sección, y sumaría sus renglones
+const duplicarSeccion = l => hacer => {
+  const lineas = lineasDeLaHoja(), e = encabezados().find(x => x.l === l);
+  if (!e) return false;
+  if (hacer) {
+    const [a, z] = tramoDeSeccion(lineas, e);
+    const libre = seccionLibre(encabezados().map(x => x.escrito));
+    const dura = (lineas[a].match(/\s+dura\s+\S+\s+vueltas?(?=\s*:\s*$)/) || [''])[0];
+    const copia = [articuloDe(libre) + ' ' + libre + dura + ':', ...lineas.slice(a + 1, z + 1)];
+    aplicar(cambioDeRenglones(lineas, z, z, [lineas[z], '', ...copia]), { cursor: baseDe(lineas, z) + lineas[z].length + 2 });
+  }
+  return true;
+};
 const ordenesDeEncabezado = l => [
-  { txt: 'seleccionar la sección', orden: seleccionarSeccion(l) },
-  { txt: 'unir con la anterior', orden: unirConLaAnterior(l) },
+  { txt: 'seleccionarla', orden: seleccionarSeccion(l) },
+  { txt: 'subirla', orden: moverSeccion(l, false) },
+  { txt: 'bajarla', orden: moverSeccion(l, true) },
+  { txt: 'duplicarla', orden: duplicarSeccion(l) },
+  { txt: 'unirla con la anterior', orden: unirConLaAnterior(l) },
 ];
+
+// cuánto dura: se escribe en el encabezado, «la estrofa dura 8 vueltas:»
+function duracionesDeEncabezado(l) {
+  const linea = lineasDeLaHoja()[l], ahora = (leerSeccion(linea) || {}).vueltas || null;
+  return [null, 4, 8, 16].map(n => ({
+    txt: n ? 'dura ' + enLetras(n) + ' vueltas' : 'lo que tarden sus renglones', puesto: n === ahora,
+    hacer: () => {
+      const lineas = lineasDeLaHoja(), sin = lineas[l].replace(/\s+dura\s+\S+\s+vueltas?(?=\s*:\s*$)/, '');
+      const nueva = sin.replace(/\s*:\s*$/, '') + (n ? ' dura ' + enLetras(n) + ' vueltas' : '') + ':';
+      aplicar(cambioDeRenglones(lineas, l, l, [nueva]), { cursor: baseDe(lineas, l) + nueva.length });
+    },
+  }));
+}
+
+// la forma se escribe de a nombres: uno más al final, o uno menos con su espacio
+function agregarALaForma(l, escrito) {
+  const lineas = lineasDeLaHoja(), fin = baseDe(lineas, l) + lineas[l].trimEnd().length;
+  aplicar(paso(fin, '', ' ' + escrito), { cursor: fin + escrito.length + 1 });
+}
+function sacarDeLaForma(t) {
+  const lineas = lineasDeLaHoja(), linea = lineas[t.l];
+  const desde = /\s/.test(linea[t.i - 1] || '') ? t.i - 1 : t.i;
+  aplicar(paso(baseDe(lineas, t.l) + desde, linea.slice(desde, t.i + t.len), ''), { cursor: baseDe(lineas, t.l) + desde });
+}

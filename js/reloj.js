@@ -1,8 +1,14 @@
 // ------------------------------------------------- qué se está tocando ahora
 // getTime() es el reloj de strudel, contado en vueltas
 let claveActivos = '', tempoPuesto = null;    // el tempo que el reloj tiene ahora, {bpm, tiempos}
+const SIN_SONIDO = 'no se pudo cargar el sonido: fijate la conexión y recargá.';
 let sonando = false, ultimoCodigo = '', motorListo = false;
-function motorLevantado() { motorListo = true; }
+let tocarAlLevantar = false;
+function motorLevantado() {
+  motorListo = true;
+  callarAviso('motor');
+  if (tocarAlLevantar) { tocarAlLevantar = false; alternarTocar(); }
+}
 
 function seguirTempo(t) {
   if (!actual.tempos.length) return;
@@ -37,14 +43,16 @@ function seguir() {
   realzar(nuevos);
 }
 
-// rAF se frena en una pestaña escondida y strudel sigue; y un cuadro ya es tarde: mira 0,1 s adelante
-setInterval(() => {
-  if (!sonando) return;
+// rAF se frena en una pestaña escondida y strudel sigue; y un cuadro ya es tarde: strudel
+// agenda hasta un cuarto de segundo adelante, así que se mira 0,2 s adelante
+const ADELANTE = 0.2;
+function tempoQueViene() {
   let t;
   try { t = getTime(); } catch (e) { return; }
   const p = tempoPuesto || actual.tempos[0] || { bpm: 90, tiempos: 4 };
-  seguirTempo(t + 0.1 * p.bpm / (60 * p.tiempos));     // 0,1 s, contado en vueltas
-}, 40);
+  seguirTempo(t + ADELANTE * p.bpm / (60 * p.tiempos));     // contado en vueltas
+}
+setInterval(() => { if (sonando) tempoQueViene(); }, 40);
 
 // hush() corta el reloj pero no las notas que ya salieron: sin apagar el audio queda la cola
 function silenciar() {
@@ -58,7 +66,8 @@ function silenciar() {
 
 function despertar() {
   const ctx = getAudioContext();
-  if (ctx && ctx.state === 'suspended') return ctx.resume();
+  // en iOS una llamada o cambiar de app lo deja «interrupted», no «suspended»
+  if (ctx && ctx.state !== 'running') return ctx.resume();
 }
 
 // el tempo es del reloj, ver REGLAS.md: decírselo directo deja arrastrar el número
@@ -67,19 +76,22 @@ function ponerTempo(bpm, tiempos = 4) {
   try { setcpm(bpm / tiempos); } catch (e) { /* strudel todavía no levantó */ }
 }
 
+// evaluate() no rechaza: lo que strudel no pudo llega por el onEvalError de arranque.js
+function strudelNoPudo(e) {
+  sonando = false;
+  refrescarTransporte();
+  console.error(e);
+  avisar('no se pudo tocar este tema.');
+}
+
+// el «setcpm» del código es el de la primera sección: con tempos por sección, el que toca
+// ahora se vuelve a poner apenas evaluó, antes de que el reloj agende a otro pulso
 function correr(codigo) {
-  // evaluate() es async: lo que falla después del primer await se va como promesa rechazada
-  const caido = e => {
-    sonando = false;
-    refrescarTransporte();
-    cajaErr.innerHTML += '<p><b>strudel:</b> ' + esc(String((e && e.message) || e)) + '</p>';
-  };
-  // el «setcpm» del código pisa lo que la tabla de tempos dejó tempoPuesto
   tempoPuesto = null;
   try {
-    Promise.resolve(evaluate(codigo)).catch(caido);
+    Promise.resolve(evaluate(codigo)).then(() => { if (sonando) tempoQueViene(); });
   } catch (e) {
-    caido(e);
+    strudelNoPudo(e);
   }
 }
 
@@ -93,7 +105,10 @@ function seguirElTema(r) {
   // sin nada que tocar hay que apagar: strudel seguiría con el último stack
   if (!r.codigo) { sonando = false; silenciar(); refrescarTransporte(); }
   // con secciones el número lo pone seguirTempo() en el tic que sigue; acá sólo se olvida el de antes
-  else if (soloElTempo) { tempoPuesto = null; ponerTempo(r.bpm, r.tiempos); }
+  else if (soloElTempo) {
+    tempoPuesto = null;
+    if (actual.tempos.length) tempoQueViene(); else ponerTempo(r.bpm, r.tiempos);
+  }
   else correr(r.codigo);
 }
 
@@ -113,12 +128,14 @@ function alternarTocar() {
     ultimoCodigo = '';
     silenciar();
   } else {
-    if (typeof evaluate !== 'function') { avisar('no cargó strudel: sin red no hay sonido.'); return; }
+    if (typeof evaluate !== 'function') { avisar(SIN_SONIDO); return; }
+    // apretar antes de que bajen los sonidos no se pierde: toca apenas estén
+    if (!motorListo) { tocarAlLevantar = true; avisar('cargando sonidos…', null, 'motor'); return; }
     const r = actualizar(false);
-    if (!r.codigo) { avisar('escribí algo primero: «el bombo toca pum - pum -».'); return; }
+    if (!r.codigo) { avisar('escribí algo primero: «la bata toca pum - pa -».'); return; }
     sonando = true;
     ultimoCodigo = r.codigo;
-    Promise.resolve(despertar()).then(() => correr(r.codigo));
+    Promise.resolve(despertar()).then(() => calentarTema(r)).then(() => { if (sonando) correr(r.codigo); });
   }
   refrescarTransporte();
 }

@@ -38,17 +38,18 @@ async function guardarArchivo() {
     if (!h && window.showSaveFilePicker)
       h = await showSaveFilePicker({ suggestedName: archivo,
         types: [{ description: 'un tema', accept: { 'text/plain': [EXT] } }] });
-    if (!h) { bajarCopia(archivo, txt); return decirEnElEnlace('archivo bajado'); }
-    if (!await puedeEscribir(h)) return avisar('no me dejaron escribir ese archivo.');
+    if (!h) { bajarCopia(archivo, txt); return decirEn(btnArchivo, 'archivo guardado'); }
+    if (!await puedeEscribir(h)) return avisar('no hay permiso para guardar ahí: elegí otro lugar.');
     const chorro = await h.createWritable();
     await chorro.write(txt);
     await chorro.close();
     if (tema) handles.set(claveTema(tema), h);
-    decirEnElEnlace('archivo guardado');
+    decirEn(btnArchivo, 'archivo guardado');
   } catch (e) {
     // cancelar el diálogo no es un error
     if (e && e.name === 'AbortError') return;
-    avisar('no se pudo guardar el archivo: ' + String((e && e.message) || e));
+    console.error(e);
+    avisar('no se pudo guardar el archivo: probá de nuevo o copiá el enlace.');
   }
 }
 
@@ -69,18 +70,12 @@ async function abrirArchivos(entradas) {
       avisar('«' + n + '» no parece un tema: no tiene ninguna parte ni ningún enlace a otro tema.');
   };
   if (!leidos.length) return quejarse();
-  // de a uno, anotando cada uno antes de nombrar al que sigue: dos archivos con el mismo nombre no se pisan
-  const traidos = [];
-  for (const t of leidos.slice(1)) {
-    const r = recibido({ ...t, txt: conRenglonFinal(t.txt) });
-    anotarTema(r.nombre, r.txt, null);
-    traidos.push(r);
-  }
-  const primero = recibido({ ...leidos[0], txt: conRenglonFinal(leidos[0].txt) });
-  for (const t of [primero, ...traidos]) if (t.handle && t.nombre) handles.set(claveTema(t.nombre), t.handle);
-  cargarTema(primero);
+  const [primero, ...otros] = leidos.map(t => ({ ...t, txt: conRenglonFinal(t.txt) }));
+  const { abre, recibidos, avisos } = recibirJuntos(primero, otros);
+  for (const t of [abre, ...recibidos]) if (t.handle && t.nombre) handles.set(claveTema(t.nombre), t.handle);
+  cargarTema(abre);
   quejarse();
-  for (const t of [primero, ...traidos]) if (t.aviso) avisar(t.aviso);
+  avisos.forEach(a => avisar(a));
   src.focus();
 }
 

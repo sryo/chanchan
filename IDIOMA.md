@@ -14,25 +14,29 @@ Los pasos se reparten parejo en la vuelta. Cuatro pasos son negras, ocho son cor
 
 Para la batería. Se escriben como se cantan.
 
-    pum    bombo
-    dum    tom grave
-    tum    tom
-    tim    tom agudo
-    pa     redoblante
-    toc    aro
-    plas   palmas
-    clon   cencerro
-    chan   platillo
-    tin    ride
-    chis   hi-hat
-    shh    shaker
-    tsss   hi-hat abierto
+    pum     bombo
+    dum     tom grave
+    tum     tom
+    tim     tom agudo
+    pa      redoblante
+    toc     aro
+    clac    claves
+    plas    palmas
+    ras     güiro
+    clon    cencerro
+    chan    platillo
+    tin     ride
+    tilín   triángulo
+    chis    hi-hat
+    chin    pandereta
+    shh     shaker
+    tsss    hi-hat abierto
 
 **Las notas**
 
     el bajo toca do - sol -
 
-Do re mi fa sol la si. Después, si hace falta, `sostenido` o `bemol`. Después la altura: `muy grave`, `grave`, `agudo`, `muy agudo`. Sin nada es la del medio.
+Do re mi fa sol la si. Después, si hace falta, `sostenido` o `bemol`. Después la altura: `muy grave`, `grave`, `agudo`, `muy agudo`. Sin nada, cada instrumento suena en su registro: `do` en el bajo es un do de bajo, y en la flauta uno de flauta. `grave` y `agudo` son una octava más abajo o más arriba desde ahí.
 
 Una nota lleva una sola alteración, una sola altura y un solo acorde. en `do sostenido bemol` sobra el bemol, y se marca en rojo. Si tipeás `do#`, el editor lo escribe `do sostenido`; Backspace lo devuelve.
 
@@ -44,15 +48,19 @@ Golpes y notas no van en el mismo renglón. Si la bata y el bajo tocan juntos, s
 
 El nombre va después de la nota.
 
-    do mayor           el de siempre
-    do menor           el triste
-    do quinta          dos notas, como una viola distorsionada
-    do séptima         el del blues
-    do disminuido      el tenso
-    do menor séptima   el menor con una nota más, el del soul
-    do mayor séptima   el mayor con una nota más, el de la bossa
-    do suspendido      ni mayor ni menor, en el aire
-    do aumentado       el mayor estirado, el raro
+    do mayor            el de siempre
+    do menor            el triste
+    do quinta           dos notas, como una viola distorsionada
+    do séptima          el del blues
+    do disminuido       el tenso, el del tango
+    do menor séptima    el menor con una nota más, el del soul
+    do mayor séptima    el mayor con una nota más, el de la bossa
+    do suspendido       ni mayor ni menor, en el aire
+    do aumentado        el mayor estirado, el raro
+    do sexta            el mayor, más dulce
+    do menor sexta      el menor, más oscuro
+    do novena           el del blues, más lleno
+    do semidisminuido   el tenso, más suave
 
 **Los signos**
 
@@ -75,6 +83,10 @@ Cómo suena. Varias cosas van separadas por comas, en cualquier orden.
 
 `en pizzicato`, `en una viola criolla`. Para la batería, una caja de ritmos: `en una 505`, `en una 606`, `en una 707`, `en una 808`, `en una 909`, `en una dmx`, `en una mpc`. O cualquiera del pack, por marca y modelo. El ▾ las lista.
 
+O percusión de verdad, tocada con las mismas palabras: `en un cajón`, `en unas congas`, `en unos bongós` y `en una murga`. Lo que no tiene no suena, y se avisa.
+
+    la bata toca pum pa pum pa, en un cajón
+
 **Cómo suena**
 
     al doble               el doble de rápido
@@ -86,20 +98,25 @@ Cómo suena. Varias cosas van separadas por comas, en cualquier orden.
     bajito                 más callado
     fuerte                 más alto
     muy fuerte             lo más alto que va
+    cada vez más fuerte    arranca suave y va subiendo
+    cada vez más bajito    va bajando hasta casi no oírse
     corto                  cada nota dura un suspiro
     largo                  cada nota se estira sobre la siguiente
     entrando despacio      no arranca de golpe, aparece
     que se apaga           la cola tarda en irse
     apagado                como detrás de una puerta
-    brillante              más filoso
+    sin graves             le saca los graves: suena finito
     sucio                  saturado, al borde
     temblando              la afinación tiembla
     con eco                suena en una sala grande
+    de lejos               como si tocara en el fondo de la sala
+    como de radio          finito, como por una radio vieja
     repicando              se repite y se va apagando
     a la izquierda         del parlante izquierdo
     a la derecha           del parlante derecho
     al revés               de atrás para adelante
     con swing              desparejo, arrastrado
+    a mano                 no tan perfecto: como si lo tocara alguien
     arpegiado              el acorde se desarma en notas, subiendo
     arpegiado bajando      el acorde se desarma en notas, bajando
     una octava arriba      lo mismo, una octava más agudo
@@ -109,9 +126,9 @@ Cómo suena. Varias cosas van separadas por comas, en cualquier orden.
     medio tono arriba      lo mismo, medio tono más agudo
     medio tono abajo       lo mismo, medio tono más grave
 
-**Cada nota, tantas veces por vuelta**
+**Cada nota, tantas veces por tiempo**
 
-`en blancas` son dos, `en negras` cuatro, `en corcheas` ocho, `en tresillos` doce, `en semicorcheas` dieciséis. Sirve para rasguear.
+`en negras` es una, `en corcheas` dos, `en tresillos` tres, `en semicorcheas` cuatro. `en blancas` es una cada dos tiempos. Sirve para rasguear.
 
     la viola toca do mayor | fa mayor, en corcheas
 
@@ -140,7 +157,7 @@ Después de cualquiera de éstas va el cómo.
 
 **Lo que se pisa**
 
-Dos frases que dicen lo mismo no van juntas. `bajito, fuerte` es un error. Lo mismo dos instrumentos, dos de entra y sale, o dos maneras de repartir los pasos, sea figura o reparto.
+Dos frases que dicen lo mismo no van juntas. `bajito, fuerte` es un error, y `de lejos, con eco` también: `de lejos` ya trae su eco. Lo mismo dos instrumentos, dos de entra y sale, o dos maneras de repartir los pasos, sea figura o reparto.
 
 Las que se suman sí van. `al doble, al doble` es cuatro veces más rápido, y `un tono arriba, medio tono arriba` es tono y medio.
 
@@ -161,7 +178,7 @@ Los renglones de antes de la primera sección suenan en todas.
 
     el tema va estrofa estrofa estribillo estrofa
 
-El orden en que van las secciones, y cuántas veces. Sin esta línea van una vez cada una, en el orden en que están escritas.
+El orden en que van las secciones, y cuántas veces. Sin este renglón van una vez cada una, en el orden en que están escritas.
 
 **El tempo**
 
@@ -194,7 +211,7 @@ Se escriben con letras hasta dieciséis, o con cifras. Los arreglos y el `cada` 
 
 Cualquiera de estos nombres puede ser el nombre de la parte, o ir después de la coma con `en`. Sin instrumento, piano. Van por familia.
 
-pianos: piano de concierto, piano brillante, piano de cola, piano de bar, piano eléctrico, piano dulce, clavecín, clavinet
+pianos: piano de concierto, piano brillante, piano de cola eléctrico, piano de bar, piano eléctrico, piano dulce, clavecín, clavinet
 
 láminas: celesta, campanitas, cajita de música, vibráfono, marimba, xilofón, campanas, salterio
 
@@ -202,9 +219,9 @@ láminas: celesta, campanitas, cajita de música, vibráfono, marimba, xilofón,
 
 violas: viola criolla, viola, viola de jazz, viola eléctrica, viola muteada, viola saturada, viola distorsionada, armónicos
 
-bajos: bajo acústico, bajo, bajo con púa, bajo sin trastes, bajo slap, bajo slap dos, bajo sintético, bajo sintético dos
+bajos: contrabajo, bajo, bajo con púa, bajo sin trastes, bajo slap, bajo slap dos, bajo sintético, bajo sintético dos
 
-cuerdas: violín, viola de arco, chelo, contrabajo, cuerdas trémolo, pizzicato, arpa, timbal
+cuerdas: violín, viola de arco, chelo, contrabajo con arco, cuerdas trémolo, pizzicato, arpa, timbal
 
 conjuntos: cuerdas, cuerdas suaves, cuerdas sintéticas, cuerdas sintéticas dos, coro, voces, coro sintético, golpe de orquesta
 
@@ -214,18 +231,18 @@ cañas: saxo soprano, saxo alto, saxo, saxo barítono, oboe, corno inglés, fago
 
 flautas: flautín, flauta, flauta dulce, siku, botella, shakuhachi, silbido, ocarina
 
-solistas: solista cuadrado, solista sierra, solista calíope, solista soplado, solista charango, solista voz, solista en quintas, solista grave
+sintetizadores: sintetizador cuadrado, sintetizador sierra, sintetizador calíope, sintetizador soplado, sintetizador distorsionado, sintetizador de voz, sintetizador en quintas, sintetizador grave
 
 colchones: colchón, colchón tibio, colchón polifónico, colchón coral, colchón frotado, colchón metálico, colchón halo, colchón barrido
 
 efectos: lluvia, banda de sonido, cristal, atmósfera, brillo, duendes, ecos, ciencia ficción
 
-del mundo: sitar, banjo, shamisen, koto, kalimba, gaita, violín folk, shanai
+del mundo: sitar, banjo, shamisen, koto, kalimba, gaita, violín folk, shanai, balafón
 
-percusión afinada: campanilla, agogó, tambores de acero, caja china, taiko, tom melódico, tambor sintético, platillo al revés
+percusión afinada: campanilla, agogó, tambores de acero, caja china, taiko, tom melódico, tambor sintético, platillo al revés, campanas de mano
 
 ruidos: roce de cuerdas, respiración, mar, pájaros, teléfono, helicóptero, aplausos, disparo
 
 osciladores: zumbido, sierra, cuadrada, triangular. No bajan ninguna muestra.
 
-También se entienden guitarra, guitarra criolla, guitarra española, guitarra eléctrica, saxofón, violonchelo, organo, fueye, timbales y teclado.
+También se entienden guitarra, guitarra criolla, guitarra española, guitarra eléctrica, saxofón, violonchelo, organo, fueye, timbales, teclado, piano de cola, quena, zampoña, voz, rhodes y hammond.

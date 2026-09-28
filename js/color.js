@@ -1,7 +1,7 @@
 // ------------------------------------------------------- el color de cada parte
 // a mano: las nueve familias que conviven van en los pares; ver REGLAS.md, la rueda
 const RUEDA = [
-  'percusión', 'percusión afinada', 'bajos',    'órganos',  'metales',     'solistas',
+  'percusión', 'percusión afinada', 'bajos',    'órganos',  'metales',     'sintetizadores',
   'cañas',     'colchones',         'violas',   'del mundo', 'flautas',    'efectos',
   'cuerdas',   'ruidos',            'conjuntos', 'osciladores', 'pianos',  'láminas',
 ];
@@ -15,6 +15,7 @@ const MATIZ = Object.create(null);
   // los de fuera del GM van primero, así «piano» abre su familia
   for (const [nombre, o] of Object.entries(SIN_GM)) anotar(o.fam, nombre);
   for (const [fam, tabla] of FAMILIAS) for (const nombre of Object.keys(tabla)) anotar(fam, nombre);
+  for (const [nombre, o] of Object.entries(DE_VCSL)) anotar(o.fam, nombre);
   porFamilia['percusión'] = Object.keys(SONIDOS);
   for (const [fam, nombres] of Object.entries(porFamilia))
     nombres.forEach((n, j) => MATIZ[norm(n)] = {
