@@ -128,6 +128,7 @@ botonDeshacer.addEventListener('mouseenter', () => clearTimeout(relojDeshacer));
 botonDeshacer.addEventListener('mouseleave', contarParaIrse);
 
 const usarDeshacer = e => {
+  if (e.button) return;     // el botón derecho es del navegador
   e.preventDefault();
   botonDeshacer.dataset.que === 'rehacer' ? rehacer() : deshacer();
 };

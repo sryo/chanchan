@@ -192,6 +192,15 @@ function armarSecciones(r, soloPega) {
     // lo que la hoja pide va primero: el tempo si no está, y la forma si hay secciones y no está.
     // Lo que ya está escrito, al final
     const primero = [], despues = [];
+    // la parte de arriba va primero: lo más común después de un renglón es otro de la misma
+    const lineas = src.value.split('\n');
+    for (let k = r.l - 1; k >= 0; k--) {
+      const arriba = leerRenglon(lineas[k]);
+      if (arriba.clase === 'vacia') continue;
+      if (arriba.clase === 'parte' && arriba.sujeto)
+        primero.push({ ...op(lineas[k].slice(0, arriba.verbo.hasta).trim(), null, 'otro más, como el de arriba'), buscar: arriba.nombre });
+      break;
+    }
     if (!hoja.tempo && !hoja.abierta) primero.push(tempo);
     const yaOfrecida = n => hoja.faltan.some(f => norm(f.txt) === norm(plantilla(n).txt));
     despues.push(...partes.filter(n => !yaOfrecida(n)).map(plantilla), seccion);

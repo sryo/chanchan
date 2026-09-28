@@ -7,8 +7,8 @@
     --suave: #c6bda6;
     --punteo: #8a8069;
 
-    --silencio: #978f7b;
-    --andamio: #aba493;
+    --silencio: #a29b89;
+    --andamio: #8f8876;
 
     --grave: var(--texto);
     --agudo: #557884;
@@ -44,8 +44,8 @@
     --tenue: #7c8a8e;
     --suave: #3f4c50;
     --punteo: #55646a;
-    --silencio: #515e62;
-    --andamio: #424d51;
+    --silencio: #4b575b;
+    --andamio: #56636a;
     --agudo: #9f9886;
     --mal: #ff3f3b;
     --vivo: #40311c;
@@ -79,7 +79,7 @@
   #cinta .tramo { fill: var(--fondo); fill-opacity: 0; transition: fill-opacity .12s; }
   #cinta.senalandoTramo .tramo { fill-opacity: .75; }
   #cinta.senalandoTramo .tramo.sola { fill-opacity: 0; }
-  #cinta.senalandoTramo .rotulo.sola { fill: var(--texto); }
+  #cinta.senalandoTramo .rotulo.sola, #cinta .rotulo.sonando { fill: var(--texto); }
 
   #cinta .regla { stroke: var(--texto); stroke-width: 1.5; stroke-opacity: .5; }
 
@@ -92,7 +92,8 @@
 
   header {
     display: flex; align-items: center; gap: 26px;
-    padding: var(--sangria) 62px 26px var(--sangria);
+    /* arriba y a la izquierda lo mismo: el play queda en el centro de la curva de la cinta */
+    padding: var(--sangria) 62px 14px var(--sangria);
     pointer-events: none;
   }
   header > * { pointer-events: auto; }
@@ -174,13 +175,21 @@
   .wrap { position: relative; flex: 1; min-height: 0; }
   #hl, #src {
     position: absolute; inset: 0; margin: 0;
-    padding: 0 20px 20px calc(var(--sangria) + var(--canal));
+    padding: 12px 20px 20px calc(var(--sangria) + var(--canal));
+    scrollbar-gutter: stable;
     border: 0; overflow: auto;
     font: inherit; font-size: var(--letra-tema); line-height: 1.75;
     white-space: pre-wrap; overflow-wrap: break-word;
     tab-size: 2;
   }
   #hl { pointer-events: none; color: var(--texto); }
+  /* corrida la hoja, lo que se va por arriba se desvanece: hay más arriba. El cursor no se toca */
+  .wrap.corrida :is(#hl, #puntos) {
+    -webkit-mask-image: linear-gradient(transparent, #000 1.2em);
+    mask-image: linear-gradient(transparent, #000 1.2em);
+  }
+  /* un renglón callado está escrito y no suena: se lee apagado, salvo la palabra que dice por qué */
+  #hl .r-callado > span:not(.t-mal):not([data-callado]) { opacity: .42; }
   #src {
     background: transparent; color: transparent;
     caret-color: var(--parte, var(--texto)); resize: none; outline: none;
@@ -317,6 +326,8 @@
   }
   #puntos { position: absolute; left: var(--sangria); top: 0; bottom: 0; width: var(--canal); pointer-events: none; z-index: 3; }
 
+  /* un renglón que no entra y sigue abajo: una raya del color de la parte, del puntito a su última fila */
+  #puntos .sigue { position: absolute; width: 2px; border-radius: 1px; opacity: .45; }
   .punto {
     position: absolute; left: 0; width: 22px; height: 22px; padding: 0;
     background: none; border: 0; cursor: pointer; pointer-events: auto;

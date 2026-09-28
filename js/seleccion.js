@@ -102,6 +102,7 @@ function seccionesSeleccion() {
 }
 
 const abrirSeleccion = e => {
+  if (e.button) return;     // el botón derecho es del navegador
   e.preventDefault();
   const secs = seccionesSeleccion();
   const r = botonSel.getBoundingClientRect();

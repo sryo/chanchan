@@ -304,11 +304,13 @@ const PRIMERA_HOJA = [
   'el piano toca do mayor | fa mayor',
   '* o saltar a otro tema, así: @ricotero',
   '* tocá una palabra y elegí en el ▾; ' + mostrarTecla('Tab') + ' te sugiere qué va; ' + mostrarTecla('Mod-Enter') + ' toca y para',
+  '* ' + mostrarTecla('Mod-/') + ' calla un renglón; ' + mostrarTecla('Alt-ArrowUp') + mostrarTecla('ArrowDown') + ' lo mueve',
 ].join('\n');
 // las bienvenidas de antes también son la hoja sin tocar: guardadas así, no se bautizan
 const BIENVENIDAS = [PRIMERA_HOJA, ...[
   ['* o ir a un tema ya grabado, así: @ricotero'],
   ['* o saltar a otro tema, así: @ricotero', '* tocá una palabra y elegí en el ▾; ' + mostrarTecla('Mod-Enter') + ' toca y para'],
+  ['* o saltar a otro tema, así: @ricotero', '* tocá una palabra y elegí en el ▾; ' + mostrarTecla('Tab') + ' te sugiere qué va; ' + mostrarTecla('Mod-Enter') + ' toca y para'],
 ].map(cola => [...PRIMERA_HOJA.split('\n').slice(0, 4), ...cola].join('\n'))];
 
 async function temaInicial() {

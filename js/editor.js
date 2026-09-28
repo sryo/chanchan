@@ -144,6 +144,8 @@ function realzar(nuevos = activos) {
     if (!s) continue;
     s.classList.add('t-activo');
     if (t && t.voz) s.style.setProperty('--vivo', vivoDe(t));
+    // una sección no toca: su realce va en tinta de página, ver REGLAS.md, los cuatro colores
+    else if (t && (t.tipo === 'seccion' || t.tipo === 'forma')) s.style.setProperty('--vivo', 'color-mix(in oklab,var(--texto) 13%,var(--fondo))');
   }
   realzados = new Set(activos);
   const ahora = claveManija();
@@ -154,15 +156,32 @@ function realzar(nuevos = activos) {
   conManija = ahora;
 }
 
+// la palabra que se está escribiendo todavía no es un error: el rojo espera a que el cursor se vaya
+// o a que pase el plazo del cajón
+let ultimaTecla = 0, rojoEnEspera = false;
+src.addEventListener('input', () => { ultimaTecla = performance.now(); });
+const escribiendoEn = (n, t) => {
+  if (performance.now() - ultimaTecla >= 400 || src.selectionStart !== src.selectionEnd) return false;
+  const { l, i } = resolver(src.selectionStart);
+  return l === n && i === t.i + t.len;
+};
+document.addEventListener('selectionchange', () => {
+  if (rojoEnEspera && document.activeElement === src) pintar(marcasActuales);
+});
+
 function pintar(marcas) {
   marcasActuales = marcas;
+  rojoEnEspera = false;
   const lineas = src.value.split('\n');
   hl.innerHTML = lineas.map((l, n) => {
     const tk = (marcas[n] || []).slice().sort((a, b) => a.i - b.i);
+    // callado, hasta el texto suelto va en span: se apaga el renglón entero, ver estilo.css
+    const callado = calladasActuales.has(n);
+    const suelto = s => callado && s ? '<span>' + esc(s) + '</span>' : esc(s);
     let out = '', cur = 0;
     for (const t of tk) {
       if (t.i < cur) continue;
-      out += esc(l.slice(cur, t.i));
+      out += suelto(l.slice(cur, t.i));
       const esEditable = t.tipo && t.tipo !== 'mal' ? ' t-editable' : '';
       const datos = t.tipo ? ' data-tipo="' + t.tipo + '" data-l="' + n + '" data-i="' + t.i + '" data-len="' + t.len + '"' : '';
       const alto = t.alto ? ' data-alto="' + t.alto + '"' : '';
@@ -177,10 +196,14 @@ function pintar(marcas) {
       const cuerpo = t.raizLen && t.raizLen < t.len
         ? esc(crudo.slice(0, t.raizLen)) + '<span class="t-cola">' + esc(crudo.slice(t.raizLen)) + '</span>'
         : esc(crudo);
-      out += '<span class="t-' + t.cls + esEditable + '"' + datos + alto + tinte + '>' + cuerpo + '</span>';
+      const enEspera = t.cls === 'mal' && escribiendoEn(n, t);
+      if (enEspera) rojoEnEspera = true;
+      const clase = enEspera ? 'espera' : t.cls, marca = t.callado ? ' data-callado' : '';
+      out += '<span class="t-' + clase + esEditable + '"' + datos + alto + tinte + marca + '>' + cuerpo + '</span>';
       cur = t.i + t.len;
     }
-    return out + esc(l.slice(cur));
+    out += suelto(l.slice(cur));
+    return callado ? '<span class="r-callado">' + out + '</span>' : out;
     // el salto de más: un pre no dibuja la fila vacía de después del último salto y el
     // textarea sí; sin él, al fondo de la hoja el espejo queda una fila más arriba
   }).join('\n') + '\n';
@@ -382,12 +405,15 @@ function irAlError(l) {
   const desde = baseDe(lineas, l) + (mal ? mal.i : 0);
   src.focus();
   src.setSelectionRange(desde, desde + (mal ? mal.len : lineas[l].length));
-  // el textarea no siempre lleva la selección a la vista: se la trae a un tercio de la hoja
-  const r = rectDe(desde), caja = src.getBoundingClientRect();
-  if (r.top < caja.top || r.bottom > caja.bottom) {
-    src.scrollTop += r.top - caja.top - caja.height / 3;
-    hl.scrollTop = src.scrollTop;
-  }
+  traerALaVista(desde);
+}
+
+// el textarea no siempre lleva la selección a la vista: se la trae a un tercio de la hoja
+function traerALaVista(pos) {
+  const r = rectDe(pos), caja = src.getBoundingClientRect();
+  if (r.top >= caja.top && r.bottom <= caja.bottom) return;
+  src.scrollTop += r.top - caja.top - caja.height / 3;
+  hl.scrollTop = src.scrollTop;
 }
 
 // un tramo por otro: el cursor queda al final, y el de deshacer cuelga de lo puesto y no del espacio que lo precede
@@ -416,6 +442,7 @@ src.addEventListener('input', () => {
 });
 // primero el espejo: los puntitos se posicionan a partir de los spans de #hl
 src.addEventListener('scroll', () => {
+  src.parentElement.classList.toggle('corrida', src.scrollTop > 0);
   hl.scrollTop = src.scrollTop;
   hl.scrollLeft = src.scrollLeft;
   armarPuntos(marcasActuales, calladasActuales);

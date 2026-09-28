@@ -57,6 +57,21 @@ atajo('Alt-ArrowUp', 'subir el renglón', moverRenglones(false));
 atajo('Alt-ArrowDown', 'bajar el renglón', moverRenglones(true));
 atajo('Alt-Shift-ArrowDown', 'duplicar el renglón', duplicarRenglones);
 
+// ⌥⌘↑ ⌥⌘↓: al encabezado de arriba o de abajo; en el borde no aplica y la tecla sigue su camino
+const irASeccion = abajo => hacer => {
+  const { l } = resolver(src.selectionStart), es = encabezados();
+  const e = abajo ? es.find(x => x.l > l) : es.filter(x => x.l < l).pop();
+  if (!e) return false;
+  if (hacer) {
+    const pos = baseDe(lineasDeLaHoja(), e.l);
+    src.setSelectionRange(pos, pos);
+    traerALaVista(pos);
+  }
+  return true;
+};
+atajo('Alt-Mod-ArrowUp', 'ir a la sección de arriba', irASeccion(false));
+atajo('Alt-Mod-ArrowDown', 'ir a la sección de abajo', irASeccion(true));
+
 // ---- con un renglón: llevarlo o copiarlo a otra sección, abrir una sección arriba
 // «e» es el encabezado de destino, o null para arriba de todas
 const llevarA = (l, e, copiar) => hacer => {
@@ -87,8 +102,11 @@ function ordenesDeParte(l) {
   const sueltas = [{ txt: 'abrir una sección acá', orden: abrirSeccionArriba(l) }];
   if (mia) sueltas.push({ txt: 'que suene en todas', orden: llevarA(l, null, false) });
   // el solo del puntito con mayúscula: escribe «callado» en las otras, o lo saca de todas
+  sueltas.push({ txt: calladasActuales.has(l) ? 'que suene' : 'callar', tecla: mostrarTecla('Mod-/'),
+                 orden: hacer => { if (hacer) alternarCallado(l); return true; } });
   const lasDemas = lineasQueSuenan(marcasActuales).filter(i => i !== l);
   if (lasDemas.length) sueltas.push({ txt: lasDemas.every(i => calladasActuales.has(i)) ? 'que suenen todas' : 'que suene sólo ésta',
+                                   tecla: '⇧ clic en el puntito',
                                    orden: hacer => { if (hacer) alternarCallado(l, true); return true; } });
   const a = e => { const art = articuloDe(e.escrito); return (art === 'el' ? 'al' : 'a ' + art) + ' ' + e.escrito; };
   return [

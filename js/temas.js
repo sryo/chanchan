@@ -71,6 +71,7 @@ function armarTemas() {
     '<div class="op aparte" data-nueva="1">nuevo</div>' +
     '<div class="op" data-archivo="1">abrir un archivo</div>';
   panelTemas.querySelectorAll('.op').forEach(el => el.addEventListener('mousedown', ev => {
+    if (ev.button) return;     // el botón derecho es del navegador
     ev.preventDefault();
     // la × deja el panel abierto: borrar de a uno es un gesto de lista
     if (ev.target.closest('.borrar')) {

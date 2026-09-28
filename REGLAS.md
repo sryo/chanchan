@@ -162,6 +162,10 @@ Cada renglón lleva, además de su código, un patrón gemelo donde cada paso es
 
 Lo arma `traductor.js`. Lo evalúa `editor.js` una vez por línea. `cinta.js` le pide los golpes de la vuelta larga, y `reloj.js` le pregunta a cada cuadro qué paso cae justo ahora.
 
+**Desde dónde se escucha no es el tema**
+
+⌘⇧↩ toca desde la sección del cursor: el reloj de strudel sigue su cuenta y el tema va corrido esas vueltas, `desdeVuelta` en `reloj.js`. No es estado escondido, porque no cambia qué suena: es adelantar una grabación. Lo que sí cambiaría qué suena, tocar una sola sección en vuelta, se escribe en la forma. Todo lo que pregunta dónde va el tema, la aguja, el tempo por sección, el realce, pasa por `enElTema()` y no por el reloj pelado.
+
 **El tempo es del reloj**
 
 No vive en el patrón. Por eso un tema que acelera se le va diciendo al reloj al cruzar cada borde de sección. Y por eso el número se puede arrastrar mientras suena: volver a evaluar cambiaría el tema recién en el borde de la vuelta.

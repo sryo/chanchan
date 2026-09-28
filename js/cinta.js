@@ -115,6 +115,7 @@ function dibujarCinta(renglones) {
   cinta.innerHTML = svg;
   aguja = document.getElementById('aguja');
   anillo = document.getElementById('anillo');
+  olvidarTramo();
 }
 
 // la cinta abarca la vuelta larga: una sola aguja sirve para todas las franjas
@@ -123,7 +124,7 @@ let aguja = null, anillo = null, vueltaAnillo = 0;
 function moverAguja() {
   if (!aguja) return;
   let t = null;
-  if (sonando) { try { t = getTime(); } catch (e) { t = null; } }
+  if (sonando) { try { t = enElTema(); } catch (e) { t = null; } }
   if (t == null) {
     aguja.style.display = 'none';
     anillo.style.display = 'none';
@@ -215,6 +216,10 @@ function aplicarFranja(l) {
 // pasar por el nombre de una sección apaga el resto del tiempo: el encabezado
 // enciende todas sus vueltas, un nombre de la forma sólo la suya
 let tramoSeñalado = null;
+// el rótulo de la sección que suena pasa a la tinta de la página; se repone al redibujar
+function rotuloSonando(k) {
+  for (const el of cinta.querySelectorAll('.rotulo')) el.classList.toggle('sonando', +el.dataset.k === k);
+}
 const datosTramo = (t, k) => ' data-nom="' + esc(t.nom) + '" data-k="' + k + '"';
 const coincide = (cual, nom, k) => cual === 'k:' + k || cual === 'n:' + nom;
 const esSola = (t, k) => coincide(tramoSeñalado, t.nom, k);

@@ -283,6 +283,7 @@ function pintarPanel(panel, secs, t, dueño = t) {
       (o.color ? ' style="--parte:' + o.color + '"' : '') + '>' +
       '<span>' + esc(o.txt) + '</span>' +
       (o.desc ? '<span class="d">' + esc(o.desc) + '</span>' : '') +
+      (o.tecla ? '<span class="d">' + esc(o.tecla) + '</span>' : '') +
       (o.familia ? '<span class="d">' + icono('chevron', 'chica derecha') + '</span>' : '') +
       '</div>').join('') + '</div>').join('');
 
@@ -306,6 +307,7 @@ function pintarPanel(panel, secs, t, dueño = t) {
     });
     el.addEventListener('mouseleave', () => { clearTimeout(esperaOir); clearTimeout(relojFamilia); });
     el.addEventListener('mousedown', e => {
+      if (e.button) return;     // el botón derecho es del navegador
       e.preventDefault();
       // una op con orden la hace; una con «hacer», lo suyo
       const hacer = o.hacer || (o.orden && (() => o.orden(true)));
@@ -441,6 +443,7 @@ manija.addEventListener('mouseenter', () => mirarBoton(true));
 manija.addEventListener('mouseleave', () => mirarBoton(false));
 
 const usarManija = e => {
+  if (e.button) return;     // el botón derecho es del navegador
   e.preventDefault();
   if (tokenDelMenu) { cerrarMenu(); return; }   // el mismo botón lo cierra
   const t = tokenDelSpan(señalado);
@@ -452,10 +455,8 @@ manija.addEventListener('click', e => { if (!e.detail) usarManija(e); });
 
 // el ▾ también es el de la palabra donde quedó el cursor, sea un click o una flecha: así se llega
 // sin el mouse. Tecleando no, que taparía lo que se escribe; y el mouse, al moverse, lo vuelve a llevar
-let tecleado = 0;
-src.addEventListener('input', () => { tecleado = performance.now(); });
 document.addEventListener('selectionchange', () => {
-  if (document.activeElement !== src || tokenDelMenu || arrastre || performance.now() - tecleado < 300) return;
+  if (document.activeElement !== src || tokenDelMenu || arrastre || performance.now() - ultimaTecla < 300) return;
   const { l, i } = resolver(src.selectionStart);
   const t = (marcasActuales[l] || []).find(x => x.i <= i && i <= x.i + x.len && tieneMenu({ ...x, l }));
   const nuevo = t ? { l, i: t.i, len: t.len } : null;
@@ -520,7 +521,7 @@ src.addEventListener('mousedown', e => {
     enlaceApretado = { nombre: datosDe(t).nombre, x: e.clientX, y: e.clientY };
     return;
   }
-  if (!t || !arrastrable(t) || (!e.altKey && t.tipo !== 'tempo')) return;
+  if (e.button || !t || !arrastrable(t) || (!e.altKey && t.tipo !== 'tempo')) return;
   e.preventDefault();
   const d = datosDe(t);
   arrastre = { t, x: e.clientX, y: e.clientY, movido: false,

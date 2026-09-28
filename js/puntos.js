@@ -44,12 +44,22 @@ function armarPuntos(marcas, calladas, renglones = actual.renglones) {
     puntos.appendChild(b);
     // después de colgarlo: suelto, offsetHeight mide cero
     b.style.top = (y + (sr.height - b.offsetHeight) / 2) + 'px';
+    // partido en varias filas, se lo dice al margen: la segunda fila no es otro renglón
+    const tramos = [...hl.querySelectorAll('span[data-l="' + l + '"]')].flatMap(s => [...s.getClientRects()]);
+    const abajo = Math.max(...tramos.map(r => r.bottom)) - caja.top;
+    if (abajo - (y + sr.height) > sr.height / 2) {
+      const sigue = document.createElement('div');
+      sigue.className = 'sigue';
+      const desde = y + (sr.height + b.offsetHeight) / 2 + 2;
+      sigue.style.cssText = 'left:' + (b.offsetWidth / 2 - 1) + 'px;top:' + desde + 'px;height:' + Math.max(0, abajo - desde) + 'px;background:' + (color.get(l) || 'var(--linea)');
+      puntos.appendChild(sigue);
+    }
   }
 }
 
 puntos.addEventListener('mousedown', e => {
   const b = e.target.closest('.punto');
-  if (!b) return;
+  if (!b || e.button !== 0) return;     // el botón derecho es del navegador
   e.preventDefault();
   alternarCallado(+b.dataset.l, e.shiftKey);
 });
@@ -71,13 +81,40 @@ function alternarCallado(l, solo) {
   } else {
     nuevas[l] = calladasActuales.has(l) ? sinCallado(lineas[l], l) : conCallado(lineas[l], l);
   }
-  // un paso por renglón tocado; solo o silencio, un solo grupo para atrás
+  reescribirRenglones(lineas, nuevas, l);
+}
+
+// un paso por renglón tocado, todos en un solo grupo para atrás; el deshacer cuelga del nombre de la parte
+function reescribirRenglones(lineas, nuevas, l) {
   const pasos = [];
   let base = 0;
   lineas.forEach((ln, k) => { if (nuevas[k] !== ln) pasos.push(paso(base, ln, nuevas[k])); base += ln.length + 1; });
   if (!pasos.length) return;
   aplicar(pasos);
-  // como cualquier otro gesto, deja su deshacer colgado del nombre de la parte
   const nombre = (marcasActuales[l] || []).find(t => t.cls === 'sujeto');
   if (nombre) mostrarDeshacer({ l, i: nombre.i, len: nombre.len }, false);
+  else mostrarDeshacer(anclaDe(baseDe(src.value.split('\n'), l), 1), false);
 }
+
+// ⌘/: los renglones del cursor que suenan se callan o vuelven a sonar, todos juntos; si ninguno es
+// una parte, se vuelven apunte o dejan de serlo. Callar una parte no es apuntarla: perdería su franja
+const callarOApuntar = hacer => {
+  const lineas = src.value.split('\n'), [a, z] = renglonesEnSeleccion(lineas);
+  const rango = Array.from({ length: z - a + 1 }, (_, k) => a + k);
+  const suenan = new Set(lineasQueSuenan(marcasActuales)), partes = rango.filter(l => suenan.has(l));
+  const escritos = rango.filter(l => lineas[l].trim());
+  if (!partes.length && !escritos.length) return false;
+  if (!hacer) return true;
+  const nuevas = lineas.slice();
+  if (partes.length) {
+    const todasCalladas = partes.every(l => calladasActuales.has(l));
+    for (const l of partes) nuevas[l] = todasCalladas ? sinCallado(lineas[l], l) : conCallado(lineas[l], l);
+    reescribirRenglones(lineas, nuevas, partes[0]);
+  } else {
+    const apuntes = escritos.every(l => /^\s*\*/.test(lineas[l]));
+    for (const l of escritos) nuevas[l] = apuntes ? lineas[l].replace(/^(\s*)\*\s?/, '$1') : '* ' + lineas[l];
+    reescribirRenglones(lineas, nuevas, escritos[0]);
+  }
+  return true;
+};
+atajo('Mod-/', 'callar o que suene', callarOApuntar);
