@@ -266,7 +266,11 @@
   .tecla.puesto, .tecla.puesto:hover { background: var(--parte, var(--texto)); }
   .teclado .octavas { position: relative; height: 1.6em; color: var(--tenue); font-size: var(--letra-chica); }
   .teclado .octavas span { position: absolute; top: 3px; white-space: nowrap; }
-  .teclado .dice { min-height: 1.55em; color: var(--tenue); font-size: var(--letra-chica); }
+  /* dos renglones fijos: si creciera al pasar, correría lo de abajo fuera del mouse */
+  .teclado .dice {
+    height: 3.1em; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    color: var(--tenue); font-size: var(--letra-chica);
+  }
 
   #menu.columnas .sec.fila { grid-column: 1 / -1; padding-bottom: 4px; }
   .fichas { display: flex; flex-wrap: wrap; gap: 0 2px; padding: 0 8px; }
