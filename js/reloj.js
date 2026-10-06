@@ -183,7 +183,8 @@ function alternarTocar(inicio) {
   refrescarTransporte();
 }
 
-btnTocar.addEventListener('click', alternarTocar);
+// sin pasarle el evento: alternarTocar lo tomaría por la vuelta de inicio
+btnTocar.addEventListener('click', () => alternarTocar());
 
 // la barra espaciadora es una tecla del idioma, así que el atajo es meta+Enter; anda también escribiendo el nombre
 atajo('Mod-Enter', 'tocar o parar', hacer => { if (hacer) alternarTocar(); return true; }, 'todos');

@@ -60,6 +60,34 @@ const ACORDES_GLOSA = {
 // como también se dicen; no se ofrecen, se entienden
 const ACORDES_DICHOS = { 'séptima mayor': 'mayor séptima', 'siete mayor': 'mayor séptima',
                          siete: 'séptima', 'menor siete': 'menor séptima' };
+// el cifrado de quien ya toca, de cancionero o americano: se tipea así y se escribe en palabras.
+// La mayúscula es el acorde, como en un cancionero: «Do» es do mayor, y «do», la nota
+const CIFRADO = {
+  '': 'mayor', M: 'mayor', maj: 'mayor',
+  m: 'menor', min: 'menor',
+  5: 'quinta', 6: 'sexta', 7: 'séptima', 9: 'novena', m6: 'menor sexta',
+  m7: 'menor séptima', min7: 'menor séptima',
+  maj7: 'mayor séptima', M7: 'mayor séptima', '7M': 'mayor séptima', 'Δ': 'mayor séptima', 'Δ7': 'mayor séptima', '∆': 'mayor séptima', '∆7': 'mayor séptima',
+  dim: 'disminuido', dim7: 'disminuido', '°': 'disminuido', '°7': 'disminuido', 'º': 'disminuido', 'º7': 'disminuido',
+  m7b5: 'semidisminuido', 'm7(b5)': 'semidisminuido', 'm7♭5': 'semidisminuido', 'ø': 'semidisminuido', 'ø7': 'semidisminuido',
+  sus: 'suspendido', sus4: 'suspendido',
+  aug: 'aumentado', '+': 'aumentado',
+};
+const RAIZ_AMERICANA = { C: 'do', D: 're', E: 'mi', F: 'fa', G: 'sol', A: 'la', B: 'si' };
+// al revés, para mostrarlo al lado de las palabras: una forma por acorde, y deCifrado() la entiende
+const CIFRADO_DE = { mayor: '', menor: 'm', quinta: '5', séptima: '7', disminuido: '°', 'menor séptima': 'm7',
+  'mayor séptima': '7M', suspendido: 'sus4', aumentado: '+', sexta: '6', 'menor sexta': 'm6', novena: '9', semidisminuido: 'm7b5' };
+const cifradoDe = p => p.raiz[0].toUpperCase() + p.raiz.slice(1) +
+  (p.altN === 'sostenido' ? '#' : p.altN === 'bemol' ? 'b' : '') + CIFRADO_DE[p.acorde];
+// «Lam7!» → «la menor séptima!»; null si la palabra no es cifrado o ya es del idioma
+function deCifrado(palabra) {
+  const m = palabra.match(/^(Do|Re|Mi|Fa|Sol|La|Si|do|re|mi|fa|sol|la|si|[A-G])([#♯b♭]?)(.*?)(!?)$/);
+  if (!m) return null;
+  const [, raiz, alt, cola, acento] = m, acorde = /^[A-Z]/.test(raiz) || cola ? CIFRADO[cola] : '';
+  if (acorde == null || (!acorde && !alt)) return null;
+  const nota = RAIZ_AMERICANA[raiz] || raiz.toLowerCase();
+  return [nota, alt && (/[#♯]/.test(alt) ? 'sostenido' : 'bemol'), acorde].filter(Boolean).join(' ') + acento;
+}
 const CROMATICA = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
 const GRADOS = { c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
 // strudel no entiende «do mayor»: hay que darle las notas
@@ -95,6 +123,8 @@ const OCTAVA_BASE = 4;
 
 // el acorde llega normalizado: se escribe con sus tildes, y el «!» se queda
 const nombreAcorde = a => a && ([...Object.keys(ACORDES), ...Object.keys(ACORDES_DICHOS)].find(k => norm(k) === a) || a);
+// el de la tabla: «siete» es séptima
+const acordeDeTabla = a => { const n = nombreAcorde(a); return ACORDES_DICHOS[n] || n; };
 const armarNota = p => [p.raiz, p.altN, p.octN, nombreAcorde(p.acorde)].filter(Boolean).join(' ') + (p.acento ? '!' : '');
 
 // la altura como un número, para subirla y bajarla de a un semitono

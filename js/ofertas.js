@@ -36,9 +36,9 @@ function arbolDeLaComa(modo, voz) {
 }
 const grupoDe = (arbol, txt) => arbol.find(g => g.ops.some(o => norm(o.txt) === norm(txt)));
 
-// los golpes en sus familias: una sección por familia
+// los golpes en sus familias: una fila por familia, de grave a agudo como el teclado de las notas
 const golpesEnGrupos = ops => GRUPOS_GOLPES.map(([titulo, lista]) =>
-  ({ titulo, ops: lista.map(g => ops.find(o => norm(o.txt) === norm(g))).filter(Boolean) }));
+  ({ titulo, fila: true, fichas: true, ops: lista.map(g => ops.find(o => norm(o.txt) === norm(g))).filter(Boolean) }));
 const ofrecerEnvolvibles = modo => MODIFICADORES.filter(m => envolvible(m) && sirveCon(modo)(m)).map(m => ({ txt: m[0], desc: m[2] }));
 const ofrecerFiguras = () => Object.entries(FIGURAS)
   .map(([f, k]) => ({ txt: 'en ' + f, desc: k < 1 ? 'una cada dos tiempos' : enLetras(k) + ' por tiempo' }));
@@ -69,5 +69,36 @@ const CAMPOS_NOTA = voz => [
   ['qué tan agudo', 'octN', 'normal', ofrecerOctavas(voz)],
   ['qué acorde', 'acorde', 'una nota sola', ofrecerAcordes(voz)],
 ];
+
+// el teclado del ▾ de una nota: tres octavas alrededor de la escrita, y cada tecla escribe su nota con
+// el acorde y el acento como están. La negra va con la alteración de la nota, y si no tiene, sostenido
+const TECLAS = [['do'], ['do', 're'], ['re'], ['re', 'mi'], ['mi'], ['fa'], ['fa', 'sol'], ['sol'], ['sol', 'la'], ['la'], ['la', 'si'], ['si']];
+function ofrecerTeclas(p, voz) {
+  const oct = p.octN ? OCTAVAS[p.octN] : OCTAVA_BASE;
+  const centro = Math.min(OCTAVAS['muy agudo'] - 1, Math.max(OCTAVAS['muy grave'] + 1, oct));
+  const bemol = p.altN === 'bemol', escrita = p.raiz ? semiDe(p) : null;
+  const ops = [];
+  for (let o = centro - 1; o <= centro + 1; o++) {
+    const octN = o === OCTAVA_BASE ? '' : OCT_NOMBRE[o];
+    TECLAS.forEach((par, k) => {
+      const negra = par.length > 1, semi = 12 * o + k;
+      const nota = { ...p, raiz: par[negra && bemol ? 1 : 0], altN: negra ? (bemol ? 'bemol' : 'sostenido') : '', octN };
+      ops.push({ txt: armarNota({ ...nota, acento: false }), nuevo: armarNota(nota), negra, puesto: semi === escrita,
+                 octava: k ? null : armarNota({ raiz: 'do', octN }), receta: recetaDe('tecla', { semi, acorde: p.acorde }, voz) });
+    });
+  }
+  return ops;
+}
+
+// los de siempre primero, con el cifrado al lado para quien ya toca; el escrito, aunque no sea de ésos
+const ACORDES_DE_SIEMPRE = ['mayor', 'menor', 'séptima', 'menor séptima', 'mayor séptima'];
+function ofrecerAcordesDe(p, voz, todos) {
+  const raiz = p.raiz || 'do', escrito = acordeDeTabla(p.acorde), semi = semiDe({ ...p, raiz });
+  const lista = todos ? Object.keys(ACORDES)
+    : ACORDES_DE_SIEMPRE.concat(escrito && !ACORDES_DE_SIEMPRE.includes(escrito) ? [escrito] : []);
+  return lista.map(a => ({ txt: a, desc: cifradoDe({ ...p, raiz, acorde: a }), glosa: ACORDES_GLOSA[a], puesto: a === escrito,
+                           nuevo: armarNota({ ...p, raiz, acorde: a }), receta: recetaDe('tecla', { semi, acorde: a }, voz) }))
+    .concat(todos ? [] : [{ txt: 'otros', abre: 'otros acordes' }]);
+}
 const ofrecerMaquinas = () => [...new Map(Object.values(maquinas()).map(m => [m.banco, m])).values()]
   .map(m => ({ txt: m.nombre, desc: m.marca, marca: m.marca, banco: m.banco, un: m.un, receta: recetaDe('maquina', m.banco) }));

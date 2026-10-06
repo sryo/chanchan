@@ -244,9 +244,39 @@
   #menu.columnas .sec.pie.mitad { grid-column: auto; }
   /* en un teléfono las columnas se reparten el ancho, y lo que describe baja abajo de lo que escribe */
   @media (max-width: 720px) {
-    #menu.columnas .op:not(.conSub) { white-space: normal; flex-wrap: wrap; row-gap: 0; }
-    #menu.columnas .op:not(.conSub) .d { flex-basis: 100%; margin-left: 0; }
+    #menu.columnas.apretada .op:not(.conSub) { white-space: normal; flex-wrap: wrap; row-gap: 0; }
+    #menu.columnas.apretada .op:not(.conSub) .d { flex-basis: 100%; margin-left: 0; }
+    #menu.columnas .sec.teclado { grid-column: 1 / -1; }
   }
+
+  /* la blanca es siempre la más clara de las dos, también de noche */
+  .sec.teclado { --blanca: color-mix(in oklab, var(--fondo), #fff 55%); --negra: var(--texto); }
+  #menu.columnas .sec.teclado { padding: 6px 14px 4px; }
+  :root[data-luz="oscuro"] .sec.teclado { --blanca: color-mix(in oklab, var(--texto) 78%, var(--panel)); --negra: var(--fondo); }
+  .piano { --tecla: min(20px, calc((100vw - 60px) / var(--blancas))); width: calc(var(--tecla) * var(--blancas)); }
+  .teclas { position: relative; height: 64px; margin-top: 4px; }
+  .tecla { position: absolute; top: 0; cursor: pointer; }
+  .tecla.blanca {
+    width: var(--tecla); height: 64px; background: var(--blanca);
+    border: 1px solid var(--linea); border-top: 0; border-radius: 0 0 3px 3px;
+  }
+  .tecla.negra { width: calc(var(--tecla) * .62); height: 38px; background: var(--negra); border-radius: 0 0 2px 2px; z-index: 1; }
+  .tecla.blanca:hover { background: var(--realce); }
+  .tecla.negra:hover { background: var(--tenue); }
+  .tecla.puesto, .tecla.puesto:hover { background: var(--parte, var(--texto)); }
+  .teclado .octavas { position: relative; height: 1.6em; color: var(--tenue); font-size: var(--letra-chica); }
+  .teclado .octavas span { position: absolute; top: 3px; white-space: nowrap; }
+  .teclado .dice { min-height: 1.55em; color: var(--tenue); font-size: var(--letra-chica); }
+
+  #menu.columnas .sec.fila { grid-column: 1 / -1; padding-bottom: 4px; }
+  .fichas { display: flex; flex-wrap: wrap; gap: 0 2px; padding: 0 8px; }
+  .ficha { display: flex; flex-direction: column; min-width: 52px; padding: 2px 6px 3px; border-radius: 4px; cursor: pointer; }
+  .ficha > span:first-child { font-weight: 600; }
+  .ficha .d { color: var(--tenue); font-size: var(--letra-chica); white-space: nowrap; }
+  .ficha:hover { background: var(--realce); }
+  .ficha.puesto, .ficha.puesto:hover { color: var(--parte, var(--texto)); background: color-mix(in oklab, var(--parte, var(--texto)) 14%, transparent); }
+  .ficha.puesto .d { color: inherit; }
+  .ficha.noEntra { opacity: .4; cursor: default; background: none; }
 
   #deshacer, #seleccion, #manija {
     position: fixed; z-index: 11; display: none;

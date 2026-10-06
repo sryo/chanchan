@@ -56,7 +56,7 @@ ${columnas(Object.entries(SONIDOS).map(([w, [, d]]) => [w, d]))}
 
 Do re mi fa sol la si. Después, si hace falta, ${codigo('sostenido')} o ${codigo('bemol')}. Después la altura: ${alturas.map(codigo).join(', ')}. Sin nada, cada instrumento suena en su registro: ${codigo('do')} en el bajo es un do de bajo, y en la flauta uno de flauta. ${codigo('grave')} y ${codigo('agudo')} son una octava más abajo o más arriba desde ahí.
 
-Una nota lleva una sola alteración, una sola altura y un solo acorde. en ${codigo('do sostenido bemol')} sobra el bemol, y se marca en rojo. Si tipeás ${codigo('do#')}, el editor lo escribe ${codigo('do sostenido')}; Backspace lo devuelve.
+Una nota lleva una sola alteración, una sola altura y un solo acorde. en ${codigo('do sostenido bemol')} sobra el bemol, y se marca en rojo. Si tipeás ${codigo('do#')} o ${codigo('mib')}, al terminar la palabra el editor lo escribe ${codigo('do sostenido')} o ${codigo('mi bemol')}; Backspace lo devuelve.
 
 Golpes y notas no van en el mismo renglón. Si la bata y el bajo tocan juntos, son dos renglones.
 
@@ -67,6 +67,11 @@ Golpes y notas no van en el mismo renglón. Si la bata y el bajo tocan juntos, s
 El nombre va después de la nota.
 
 ${columnas(Object.keys(ACORDES).map(a => ['do ' + a, ACORDES_GLOSA[a] || '']))}
+
+Quien ya toca puede tipear el cifrado, de cancionero o americano, y al terminar la palabra queda escrito en palabras. La mayúscula es el acorde, como en un cancionero: ${codigo('Do')} es ${codigo('do mayor')}, y ${codigo('do')} es la nota.
+
+    tipeás   el piano toca Do | Lam | Fa | Sol7
+    queda    el piano toca do mayor | la menor | fa mayor | sol séptima
 
 **Los signos**
 

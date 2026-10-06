@@ -97,19 +97,25 @@ function seccionesDe(t) {
   // sin rótulo
   const alPie = { titulo: '', pie: true, ops: como(ofrecerSilencios()) };
 
-  if (t.tipo === 'paso' && d.modo !== 'nota')
-    return [...golpesEnGrupos(como(ofrecerGolpes())), alPie];
+  // lo que la caja no tiene se ofrece en gris, y dice por qué; los de mano suenan en cualquiera
+  if (t.tipo === 'paso' && d.modo !== 'nota') {
+    const caja = cajaDe(renglonDeLinea(t.l).maquina);
+    const falta = o => { const pieza = SONIDOS[o.txt][0]; return caja && !(pieza in DE_MANO) && !caja.piezas.has(pieza); };
+    return [...golpesEnGrupos(como(ofrecerGolpes()).map(o => falta(o)
+      ? { ...o, orden: () => false, falta: (caja.art || 'la') + ' ' + caja.nombre + ' no tiene ' + o.desc } : o)), alPie];
+  }
 
+  // la nota, su alteración y su altura son una sola cosa, la tecla. Los acordes, si el renglón los toca
   if (t.tipo === 'paso' || t.tipo === 'nota') {
-    const p = { raiz: d.raiz || 'do', altN: d.altN || '', octN: d.octN || '', acorde: d.acorde || '', acento: d.acento };
-    const con = (campo, val) => armarNota({ ...p, [campo]: val });
-    const campo = (ofertas, clave, vacio) =>
-      (vacio ? [{ txt: vacio, nuevo: con(clave, ''), puesto: !p[clave] }] : []).concat(
-        ofertas.map(o => ({ ...o, nuevo: con(clave, o.txt), puesto: norm(p[clave]) === norm(o.txt) })));
+    const p = { raiz: d.raiz || '', altN: d.altN || '', octN: d.octN || '', acorde: d.acorde || '', acento: d.acento };
+    const pedidos = familiaElegida === 'acordes' || familiaElegida === 'otros acordes';
+    const conAcordes = pedidos || !!p.acorde || (marcasActuales[t.l] || []).some(x => x.tipo === 'nota' && x.acorde);
+    const glosa = p.acorde ? ', ' + ACORDES_GLOSA[acordeDeTabla(p.acorde)] : '';
     return [
-      { titulo: 'qué nota', ops: campo(ofrecerNotas(voz), 'raiz') },
-      ...CAMPOS_NOTA(voz).map(([titulo, clave, vacio, ofertas]) => ({ titulo, ops: campo(ofertas, clave, vacio) })),
-      alPie,
+      { titulo: 'qué nota', teclado: true, dice: p.raiz ? '«' + hoy + '»' + glosa : '', ops: ofrecerTeclas(p, voz) },
+      ...(conAcordes ? [{ titulo: 'qué acorde', ops: ofrecerAcordesDe(p, voz, familiaElegida === 'otros acordes') }] : []),
+      { ...alPie, ops: alPie.ops.concat(p.acorde ? [{ txt: 'una nota sola', nuevo: armarNota({ ...p, acorde: '' }) }]
+        : conAcordes ? [] : [{ txt: 'un acorde', abre: 'acordes' }]) },
     ];
   }
 
@@ -232,7 +238,7 @@ function seccionesDe(t) {
       const pega = t.i > 0 && !/\s/.test(linea[t.i - 1] || ' ') ? ' ' : '';
       const conEspacio = ops => ops.map(o => ({ ...o, nuevo: pega + o.txt }));
       return [
-        ...(modo === 'nota' ? [] : [{ titulo: 'golpes', ops: conEspacio(ofrecerGolpes()) }]),
+        ...(modo === 'nota' ? [] : golpesEnGrupos(conEspacio(ofrecerGolpes()))),
         ...(modo === 'sonido' ? [] : [{ titulo: 'notas', ops: conEspacio(ofrecerNotas(ins && ins.nombre)) }]),
         { ...alPie, ops: conEspacio(ofrecerSilencios()) },
       ];
@@ -270,13 +276,37 @@ function pintarDeQuien(el, t) {
   else el.style.removeProperty('--parte');
 }
 
+// las teclas se ubican en múltiplos de --tecla; la negra, montada entre sus dos blancas
+function pintarTeclado(s, k) {
+  let blancas = 0, teclas = '', octavas = '';
+  s.ops.forEach((o, j) => {
+    const x = 'left: calc(var(--tecla) * ' + (o.negra ? blancas - .31 : blancas) + ')';
+    if (o.octava) octavas += '<span style="' + x + '">' + esc(o.octava) + '</span>';
+    teclas += '<div class="tecla ' + (o.negra ? 'negra' : 'blanca') + (o.puesto ? ' puesto' : '') +
+      '" data-op="' + j + '" data-sec="' + k + '" title="' + esc(o.txt) + '" style="' + x + '"></div>';
+    if (!o.negra) blancas++;
+  });
+  return '<div class="piano" style="--blancas: ' + blancas + '"><div class="teclas">' + teclas + '</div>' +
+    '<div class="octavas">' + octavas + '</div><div class="dice">' + esc(s.dice || '') + '</div></div>';
+}
+
+// los golpes: la palabra arriba y lo que es abajo, en una fila que en el teléfono sigue en la de abajo
+const pintarFichas = (s, k) => '<div class="fichas">' + s.ops.map((o, j) =>
+  '<div class="ficha' + (o.puesto ? ' puesto' : '') + (o.orden && !o.orden(false) ? ' noEntra' : '') +
+  '" data-op="' + j + '" data-sec="' + k + '"' + (o.falta ? ' title="' + esc(o.falta) + '"' : '') + '>' +
+  '<span>' + esc(o.txt) + '</span><span class="d">' + esc(o.desc || '') + '</span></div>').join('') + '</div>';
+
+// lo que dice la línea de abajo del teclado al pasar por una tecla o un acorde: qué escribe y cómo suena
+const diceDe = o => o.nuevo ? '«' + o.nuevo + '»' + (o.glosa ? ', ' + o.glosa : '') : null;
+
 function pintarPanel(panel, secs, t, dueño = t) {
   pintarDeQuien(panel, dueño);
   panel.innerHTML = secs.filter(s => s.ops.length).map(s =>
     '<div class="sec' + (s.detalle ? ' detalle' : '') + (s.pie ? ' pie' : '') + (s.mitad ? ' mitad' : '') +
-    '">' + (s.titulo ? '<h3>' + esc(s.titulo) + '</h3>' : '') + s.ops.map((o, j) =>
+    (s.teclado ? ' teclado' : '') + (s.fila ? ' fila' : '') + '">' + (s.titulo ? '<h3>' + esc(s.titulo) + '</h3>' : '') +
+    (s.teclado ? pintarTeclado(s, secs.indexOf(s)) : s.fichas ? pintarFichas(s, secs.indexOf(s)) : s.ops.map((o, j) =>
       // una op con orden que no entra se pinta y no se aprieta
-      '<div class="op' + (o.puesto ? ' puesto' : '') + (o.familia ? ' conSub' : '') + (o.aparte ? ' aparte' : '') +
+      '<div class="op' + (o.puesto ? ' puesto' : '') + (o.familia || o.abre ? ' conSub' : '') + (o.aparte ? ' aparte' : '') +
       (o.orden && !o.orden(false) ? ' noEntra' : '') +
       '" data-op="' + j + '" data-sec="' + secs.indexOf(s) + '"' +
       // .puesto lo lee de --parte
@@ -284,21 +314,29 @@ function pintarPanel(panel, secs, t, dueño = t) {
       '<span>' + esc(o.txt) + '</span>' +
       (o.desc ? '<span class="d">' + esc(o.desc) + '</span>' : '') +
       (o.tecla ? '<span class="d">' + esc(o.tecla) + '</span>' : '') +
-      (o.familia ? '<span class="d">' + icono('chevron', 'chica derecha') + '</span>' : '') +
-      '</div>').join('') + '</div>').join('');
+      (o.familia || o.abre ? '<span class="d">' + icono('chevron', 'chica derecha') + '</span>' : '') +
+      '</div>').join('')) + '</div>').join('');
 
   // columnas fijas: el pie abarca todas, y con auto-fit eso estira el menú a la pantalla.
-  // Cada una mide lo que su contenido, sin encogerse; en un teléfono van de a dos, y las otras bajan
-  const columnas = secs.filter(x => x.ops.length && !x.pie).length;
-  panel.style.gridTemplateColumns = angosta.matches && columnas > 1
-    ? 'repeat(' + Math.min(2, columnas) + ', minmax(0, 1fr))' : 'repeat(' + columnas + ', max-content)';
+  // Cada una mide lo que su contenido, sin encogerse; en un teléfono van de a dos, y las otras bajan.
+  // El teclado no se parte: en un teléfono va solo arriba, a lo ancho. Una fila va a lo ancho siempre
+  const columnas = Math.max(1, secs.filter(x => x.ops.length && !x.pie && !x.fila).length);
+  const angostas = Math.max(1, Math.min(2, secs.filter(x => x.ops.length && !x.pie && !x.fila && !x.teclado).length));
+  panel.style.gridTemplateColumns = angosta.matches
+    ? 'repeat(' + angostas + ', minmax(0, 1fr))' : 'repeat(' + columnas + ', max-content)';
+  // de a dos no entra lo que describe, y baja; sola, la columna tiene todo el ancho
+  panel.classList.toggle('apretada', angosta.matches && columnas > 1 && angostas > 1);
 
-  panel.querySelectorAll('.op').forEach(el => {
+  const dice = panel.querySelector('.dice'), loDeAntes = dice && dice.textContent;
+  panel.onmouseleave = () => { if (dice) dice.textContent = loDeAntes; };
+  panel.querySelectorAll('.op, .tecla, .ficha').forEach(el => {
     const o = secs[+el.dataset.sec].ops[+el.dataset.op];
     el.addEventListener('mouseenter', () => {
+      if (dice) dice.textContent = diceDe(o) ?? loDeAntes;
       clearTimeout(esperaOir);
       clearTimeout(relojFamilia);
-      if (o.receta) esperaOir = setTimeout(() => oir(o.receta), 120);
+      // lo que no entra no se oye: sonaría lo que no va a sonar
+      if (o.receta && !o.falta) esperaOir = setTimeout(() => oir(o.receta), 120);
       // el panel no se mueve: abrir familia al pasar es seguro, salvo yendo al detalle
       if (o.familia) relojFamilia = setTimeout(() => {
         if (vaHaciaElDetalle()) return;
@@ -309,10 +347,13 @@ function pintarPanel(panel, secs, t, dueño = t) {
     el.addEventListener('mousedown', e => {
       if (e.button) return;     // el botón derecho es del navegador
       e.preventDefault();
+      if (o.falta) return;
       // una op con orden la hace; una con «hacer», lo suyo
       const hacer = o.hacer || (o.orden && (() => o.orden(true)));
       if (hacer) { hacer(); return cerrarMenu(); }
       if (o.familia) return verFamilia(o.familia, t);
+      // abre al apretar y no al pasar: agranda la columna debajo del mouse
+      if (o.abre) { verFamilia(o.abre, t); return acomodar(menu, t.r); }
       if (o.clausula) { ponerClausula(t.l, o.clausula); return cerrarMenu(); }
       reemplazar(t, o.nuevo);
       cerrarMenu();

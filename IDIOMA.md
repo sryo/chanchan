@@ -38,7 +38,7 @@ Para la batería. Se escriben como se cantan.
 
 Do re mi fa sol la si. Después, si hace falta, `sostenido` o `bemol`. Después la altura: `muy grave`, `grave`, `agudo`, `muy agudo`. Sin nada, cada instrumento suena en su registro: `do` en el bajo es un do de bajo, y en la flauta uno de flauta. `grave` y `agudo` son una octava más abajo o más arriba desde ahí.
 
-Una nota lleva una sola alteración, una sola altura y un solo acorde. en `do sostenido bemol` sobra el bemol, y se marca en rojo. Si tipeás `do#`, el editor lo escribe `do sostenido`; Backspace lo devuelve.
+Una nota lleva una sola alteración, una sola altura y un solo acorde. en `do sostenido bemol` sobra el bemol, y se marca en rojo. Si tipeás `do#` o `mib`, al terminar la palabra el editor lo escribe `do sostenido` o `mi bemol`; Backspace lo devuelve.
 
 Golpes y notas no van en el mismo renglón. Si la bata y el bajo tocan juntos, son dos renglones.
 
@@ -61,6 +61,11 @@ El nombre va después de la nota.
     do menor sexta      el menor, más oscuro
     do novena           el del blues, más lleno
     do semidisminuido   el tenso, más suave
+
+Quien ya toca puede tipear el cifrado, de cancionero o americano, y al terminar la palabra queda escrito en palabras. La mayúscula es el acorde, como en un cancionero: `Do` es `do mayor`, y `do` es la nota.
+
+    tipeás   el piano toca Do | Lam | Fa | Sol7
+    queda    el piano toca do mayor | la menor | fa mayor | sol séptima
 
 **Los signos**
 

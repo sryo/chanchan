@@ -21,6 +21,11 @@ function recetaDe(que, clave, voz) {
     return { voces: [{ s, note: NOTAS[clave] + oct }], dura: .4 };
   if (que === 'acorde' && ACORDE[norm(clave)])
     return { voces: ACORDE[norm(clave)].map(i => ({ s, note: nombreNota(i, oct) })), dura: .5 };
+  // una tecla del ▾: la altura escrita contada como semiDe(), con el acorde si lo lleva
+  if (que === 'tecla') {
+    const ivs = ACORDE[norm(clave.acorde || '')] || [0];
+    return { voces: ivs.map(i => ({ s, note: nombreNota(clave.semi - 12 * OCTAVA_BASE + i, oct) })), dura: ivs.length > 1 ? .5 : .4 };
+  }
   if (que === 'octava' && OCTAVAS[clave])
     return { voces: [{ s, note: 'c' + octavaQueSuena(clave, oct) }], dura: .4 };
   if (que === 'alteracion')

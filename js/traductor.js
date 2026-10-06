@@ -162,7 +162,7 @@ function traducirLinea(texto, nro) {
     const w = norm(pw[k].w).replace(/!$/, '');
     const sufijo = sufijoDeNota(k);
     // un «!» suelto es error, pero el paso sigue ahí: silencio, o el corte de compás
-    if (acento && !(SONIDOS[w] || NOTAS[w] || sufijo)) {
+    if (acento && !(SONIDOS[w] || NOTAS[w] || sufijo || deCifrado(pw[k].w))) {
       error(pw[k].i, pw[k].w.length, 'el «!» va pegado a un golpe o a una nota: «pum!».',
         { arreglo: arreglar(pw[k].i + pw[k].w.length - 1, 1, '') });
       if (w === '|') cortes.push(pasos.length);
@@ -242,7 +242,11 @@ function traducirLinea(texto, nro) {
     } else {
       // lo que no se entiende suena como silencio: el error ya está, y los otros pasos no se corren
       const signo = acento ? '!' : '';
+      const cifrado = deCifrado(pw[k].w);
       if (w === '.') error(pw[k].i, pw[k].w.length, 'el silencio es «-».', { arreglo: arreglar(pw[k].i, pw[k].w.length, '-') });
+      // lo que no pasó por el teclado, como lo pegado de un cancionero
+      else if (cifrado) error(pw[k].i, pw[k].w.length, '«' + pw[k].w + '» se escribe «' + cifrado + '».',
+        { arreglo: arreglar(pw[k].i, pw[k].w.length, cifrado) });
       else if (RENOMBRADOS.golpe[w]) error(pw[k].i, pw[k].w.length, '«' + w + '» ahora se escribe «' + RENOMBRADOS.golpe[w] + '».',
         { arreglo: arreglar(pw[k].i, pw[k].w.length, RENOMBRADOS.golpe[w] + signo) });
       else {
@@ -472,7 +476,7 @@ function traducirLinea(texto, nro) {
   for (const t of quiénTk) t.voz = voz;
   const largo = cortes.length ? cortes.length + 1 : 1;
   const vueltas = mcm(mcm(largo * lento, vueltasMascara), vueltasMod);
-  return { tipo: 'parte', nro, nombre, voz, modo, codigo, cotejo, lugares, callado, vueltas, mitades, tk, errs };
+  return { tipo: 'parte', nro, nombre, voz, modo, maquina, codigo, cotejo, lugares, callado, vueltas, mitades, tk, errs };
 }
 
 function traducir(fuente) {

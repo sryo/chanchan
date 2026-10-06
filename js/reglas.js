@@ -14,24 +14,29 @@ const volverALoTipeado = hacer => {
 };
 atajo('Backspace', 'volver a lo tipeado', volverALoTipeado);
 
-// cada regla mira el renglón hasta el cursor; el «$» es el cursor
+// cada regla mira el renglón hasta el cursor, con lo recién tipeado al final, y contesta lo que va
+// en su lugar o nada; «pasos» es dónde caen los pasos en el renglón
 const REGLAS_DE_ENTRADA = [
-  // «do#» es como se escribe apurado; el idioma dice «do sostenido»
-  [/\b(do|re|mi|fa|sol|la|si)#$/i, m => m[1] + ' sostenido'],
+  // «Lam7» o «do#», como tipea quien ya toca: al terminar la palabra queda en palabras. Ver deCifrado()
+  [/(?<=^|\s)(\S+)([\s,|])$/, (m, desde, pasos) =>
+    desde >= pasos.desde && desde + m[1].length <= pasos.hasta && deCifrado(m[1]) && deCifrado(m[1]) + m[2]],
 ];
 
-// sólo al tipear, y no en medio de una composición: la tilde muerta no es texto, y lo pegado queda como vino
+// sólo al tipear, y no en medio de una composición: la tilde muerta no es texto, y lo pegado queda como vino.
+// Con Enter, la palabra que terminó queda en el renglón de arriba
 src.addEventListener('input', e => {
-  if (e.isComposing || (e.inputType && e.inputType !== 'insertText')) return;
+  if (e.isComposing || (e.inputType && e.inputType !== 'insertText' && e.inputType !== 'insertLineBreak')) return;
   if (src.selectionStart !== src.selectionEnd) return;
-  const pos = src.selectionStart, base = inicioDeRenglon(src.value, pos);
-  const linea = src.value.slice(base, src.value.indexOf('\n', pos));
-  if (leerRenglon(linea).clase !== 'parte') return;
+  const pos = src.selectionStart, base = inicioDeRenglon(src.value, pos - 1);
+  const fin = src.value.indexOf('\n', pos - 1);
+  const r = leerRenglon(src.value.slice(base, fin < 0 ? undefined : fin));
+  if (r.clase !== 'parte') return;
   const antes = src.value.slice(base, pos);
   for (const [re, hacer] of REGLAS_DE_ENTRADA) {
     const m = re.exec(antes);
-    if (!m) continue;
-    const desde = pos - m[0].length, puesto = hacer(m);
+    const puesto = m && hacer(m, m.index, r.clausulas[0]);
+    if (!puesto) continue;
+    const desde = base + m.index;
     aplicar(paso(desde, m[0], puesto), { cursor: desde + puesto.length });
     recordarRegla(desde, puesto.length, m[0]);
     return;

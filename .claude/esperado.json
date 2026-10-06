@@ -295,6 +295,21 @@
   "tempos": [],
   "enlaces": []
  },
+ "el cifrado pegado trae su arreglo": {
+  "codigo": "setcpm(90/4)\nnote(\"<[c4] [-] [-] [-] [-] [-]>\").sound(\"piano\").orbit(0)",
+  "vueltas": 6,
+  "bpm": 90,
+  "errores": [
+   "1: «Lam» se escribe «la menor». → «la menor»",
+   "1: «F» se escribe «fa mayor». → «fa mayor»",
+   "1: «Sol7» se escribe «sol séptima». → «sol séptima»",
+   "1: «do#» se escribe «do sostenido». → «do sostenido»",
+   "1: «Bbm7!» se escribe «si bemol menor séptima!». → «si bemol menor séptima!»"
+  ],
+  "tramos": [],
+  "tempos": [],
+  "enlaces": []
+ },
  "acordes de dos palabras": {
   "codigo": "setcpm(90/4)\nnote(\"<[[c4,d#4,g4,a#4]] [[a4,c#5,d5,f#5]] [[a4,b4,e5]] [[a4,c#5,f5]]>\").sound(\"piano\").orbit(0)",
   "vueltas": 4,

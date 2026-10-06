@@ -122,7 +122,7 @@ Una orden es una función que recibe si tiene que hacerlo. Sin hacerlo, sólo co
 
 **Las reglas de entrada**
 
-Lo que el editor transforma al vuelo mientras se tipea, en `reglas.js`, se puede devolver con una tecla: Backspace justo después trae lo que se había tipeado, y nada más. Vale para aceptar una sugerencia y para `do#`, que se vuelve `do sostenido`. Cualquier otro cambio, o mover el cursor, olvida la regla. Ninguna regla corre en medio de una composición, que es cómo entra una tilde.
+Lo que el editor transforma al vuelo mientras se tipea, en `reglas.js`, se puede devolver con una tecla: Backspace justo después trae lo que se había tipeado, y nada más. Vale para aceptar una sugerencia y para el cifrado de quien ya toca, `do#` o `Lam7`, que al terminar la palabra se vuelve `do sostenido` o `la menor séptima`. Cualquier otro cambio, o mover el cursor, olvida la regla. Ninguna regla corre en medio de una composición, que es cómo entra una tilde.
 
 **Las secciones se mueven escribiendo renglones**
 
@@ -179,6 +179,10 @@ Cualquier cosa que recorra la lista entera corre en cada cuadro del hover. Así 
 **Los menús preguntan**
 
 El título de una columna es una pregunta que cualquiera se haría, en minúscula: «qué nota», «qué tan agudo», «dónde suena». Cada opción es lo que escribe, y su descripción, lo que se oye. Lo que abre otro nivel lleva ›. El pie no tiene título y guarda las órdenes: sacar, llevar, copiar.
+
+La nota, su alteración y su altura son una sola elección, la tecla: el ▾ de una nota es un teclado de tres octavas alrededor de la escrita, y cada tecla escribe su nota con el acorde como está. Los acordes se ofrecen si el renglón ya los toca, los de siempre primero, con el cifrado al lado para quien ya toca. Si no, quedan a un › del pie.
+
+Los golpes van en filas, una por familia, de grave a agudo como el teclado: la palabra arriba y lo que es abajo, siempre en el mismo lugar. Lo que la caja del renglón no tiene se ofrece en gris, no se oye al pasar, y dice que falta.
 
 Lo que va después de la coma es un solo árbol, `GRUPOS_COMO`, y se ve igual en el ▾ de «toca», en el de una frase escrita y en el sugeridor recién puesta la coma: las preguntas primero, las frases después. Con una letra tipeada ya es buscar, y va todo junto. Lo que choca con algo que el renglón ya dice se ofrece en gris, y dice con qué.
 
